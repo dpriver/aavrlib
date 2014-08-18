@@ -26,7 +26,7 @@ DEPS=
 #-------------------------------------------------------------
 # Test files
 #-------------------------------------------------------------
-TEST_SOURCES=test_delay1.c test_spi1.c
+TEST_SOURCES=test_delay_ms_1.c test_spi_block.c test_spi_burst.c
 TEST_TARGETS=$(TEST_SOURCES:%.c=$(TEST_BIN_DIR)/%)
 TEST_COBJ=$(TEST_SOURCES:%.c=$(TEMP_DIR)/%.o)
 TEST_DEPS=$(BIN_DIR)/$(TARGET)
@@ -47,7 +47,9 @@ ISP=avrdude
 #-------------------------------------------------------------
 MCU=atmega328p
 FREQ=16000000
-CFLAGS=-I. -Iinclude/ -Wall -Os -DF_CPU=$(FREQ) -std=c99
+VARIABLES=F_CPU=$(FREQ) SPI_TEST=2
+CDEFINES=$(VARIABLES:%=-D%) 
+CFLAGS=-I. -Iinclude/ -Wall $(CDEFINES) -std=gnu99
 LDFLAGS=-L$(BIN_DIR)
 LDLIBS=-laavr
 ISPPORT=/dev/ttyACM0
@@ -63,6 +65,7 @@ ISPFLAGS=-c arduino -p $(MCU) -P $(ISPPORT) -b 115200 -C $(ISPCONF)
 #-------------------------------------------------------------
 # The expected rules to be manually used are
 #	- all			-> compile everything (aavr library and tests)
+#	- force_all		-> force the compilation of everything"
 #	- lib 			-> compile aavr library
 #	- tests 		-> compile tests (and avr for dependancy, just the same as "all")
 #	- clean 		-> remove binary and temporary files
@@ -74,6 +77,7 @@ help:
 	@echo -e "========= RULES ========================================================================"
 	@echo -e "- help			-> prints this help"
 	@echo -e "- all			-> compile everything (aavr library and tests)"
+	@echo -e "- force_all		-> force the compilation of everything"
 	@echo -e "- lib			-> compile aavr library"
 	@echo -e "- tests			-> compile tests (and avr for dependancy, just the same as \"all\")"
 	@echo -e "- clean			-> remove binary and temporary files"
@@ -81,6 +85,8 @@ help:
 	@echo -e "- write_test_%		-> load the especified program test "test_%" in the avr device\n"
 
 all: lib tests
+
+force_all: clean all
 
 lib: $(BIN_DIR)/$(TARGET)
 

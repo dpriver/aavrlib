@@ -36,9 +36,13 @@ void delay_ms_2(){
 	// NOT IMPLEMENTED
 }
 
-void delay_cycle(){
-	#warning TODO "Not implemented"
-	// NOT IMLPEMENTED
+void delay_cycle(){			// A non-interrupt-dependant delay for testing purposes
+	uint32_t counter1, counter2;
+    for (counter1 = 0; counter1 < 10; counter1++) { 
+        for (counter2 = 0; counter2 < 25000; counter2++) {
+         /* Do nothing */ 
+        }
+    }
 }
 
 ISR(TIMER0_COMPA_vect, ISR_BLOCK){
@@ -48,4 +52,5 @@ ISR(TIMER0_COMPA_vect, ISR_BLOCK){
 	}
 	else
 		timer_attr[timer0].duration--;
+	TIFR0 |= _BV(OCF0A);
 }
