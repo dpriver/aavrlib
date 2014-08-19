@@ -17,7 +17,7 @@ TEMP_DIR=temp
 #-------------------------------------------------------------
 # Library files
 #-------------------------------------------------------------
-SOURCES=timer.c delay.c spi.c
+SOURCES=timer.c delay.c spi.c d7seg.c
 HEADERS=$(SOURCES:%.c=$(HEAD_DIR)/%.h)
 TARGET=libaavr.a
 COBJ=$(SOURCES:%.c=$(TEMP_DIR)/%.o)
@@ -26,7 +26,7 @@ DEPS=
 #-------------------------------------------------------------
 # Test files
 #-------------------------------------------------------------
-TEST_SOURCES=test_delay_ms_1.c test_spi_block.c test_spi_burst.c
+TEST_SOURCES=test_delay_ms_1.c test_spi_block.c test_spi_burst.c test_d7seg.c
 TEST_TARGETS=$(TEST_SOURCES:%.c=$(TEST_BIN_DIR)/%)
 TEST_COBJ=$(TEST_SOURCES:%.c=$(TEMP_DIR)/%.o)
 TEST_DEPS=$(BIN_DIR)/$(TARGET)
