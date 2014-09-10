@@ -48,28 +48,34 @@
 
 */
 
+#include <stdint.h>
+#include <avr/io.h>
+typedef enum{fps_20=195, fps_30=130, fps_60=65} fps_rate;
+
+
 #ifdef DISPLAY_ZHS110561K
-	#define SEGMENT_A ~_BV(5)
-	#define SEGMENT_B ~_BV(4)
-	#define SEGMENT_C ~_BV(2)
-	#define SEGMENT_D ~_BV(1)
-	#define SEGMENT_E ~_BV(0)
-	#define SEGMENT_F ~_BV(6)
-	#define SEGMENT_G ~_BV(7)
-	#define SEGMENT_P ~_BV(3)
+	#define SEGMENT_A (uint8_t) ~_BV(5)
+	#define SEGMENT_B (uint8_t) ~_BV(4)
+	#define SEGMENT_C (uint8_t) ~_BV(2)
+	#define SEGMENT_D (uint8_t) ~_BV(1)
+	#define SEGMENT_E (uint8_t) ~_BV(0)
+	#define SEGMENT_F (uint8_t) ~_BV(6)
+	#define SEGMENT_G (uint8_t) ~_BV(7)
+	#define SEGMENT_P (uint8_t) ~_BV(3)
 #else
-	#ifdef DISPLAY_FYQ5641BS
-		#define SEGMENT_A ~_BV(7)
-		#define SEGMENT_B ~_BV(5)
-		#define SEGMENT_C ~_BV(3)
-		#define SEGMENT_D ~_BV(1)
-		#define SEGMENT_E ~_BV(0)
-		#define SEGMENT_F ~_BV(6)
-		#define SEGMENT_G ~_BV(4)
-		#define SEGMENT_P ~_BV(2)
-	#endif
+	//#ifdef DISPLAY_FYQ5641BS
+		#define SEGMENT_A (uint8_t) ~_BV(7)
+		#define SEGMENT_B (uint8_t) ~_BV(5)
+		#define SEGMENT_C (uint8_t) ~_BV(3)
+		#define SEGMENT_D (uint8_t) ~_BV(1)
+		#define SEGMENT_E (uint8_t) ~_BV(0)
+		#define SEGMENT_F (uint8_t) ~_BV(6)
+		#define SEGMENT_G (uint8_t) ~_BV(4)
+		#define SEGMENT_P (uint8_t) ~_BV(2)
+	//#endif
 #endif
 
+#define D7SEG_NULL 0xFF
 #define D7SEG_0 SEGMENT_A & SEGMENT_B & SEGMENT_C & SEGMENT_D & SEGMENT_E & SEGMENT_F
 #define D7SEG_1 SEGMENT_B & SEGMENT_C
 #define D7SEG_2 SEGMENT_A & SEGMENT_B & SEGMENT_G & SEGMENT_E & SEGMENT_D
@@ -87,6 +93,7 @@
 #define D7SEG_E SEGMENT_A & SEGMENT_D & SEGMENT_E & SEGMENT_F & SEGMENT_G
 #define D7SEG_F SEGMENT_A & SEGMENT_E & SEGMENT_F & SEGMENT_G
 
-
+void d7seg_init(fps_rate fps);
+void d7seg_print(uint8_t value[4]);
 
 #endif

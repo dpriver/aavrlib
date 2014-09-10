@@ -11,6 +11,8 @@
 #include <avr/power.h>
 #include <stdint.h>
 
+
+enum{timer0, timer1, timer2};
 enum{disabled=0x00, no_prescale=0x01, prescale_8=0x02, prescale_64=0x03, prescale_256=0x04, prescale_1024=0x05};
 enum{match_disconected=0x00, match_toggle=0x10, match_clear=0x20, match_set=0x30};
 

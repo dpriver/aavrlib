@@ -4,54 +4,62 @@
 #  It's kind of a mess, but it took me a whole day to figure out how to make all this work...
 #=====================================================================================================================================
 
+LIB=aavr
+LIB_TARGET=$(LIB:%=$(LIB_BIN_DIR)/lib%.a)
+
 #-------------------------------------------------------------
 # Directories
 #-------------------------------------------------------------
-SRC_DIR=src
-TEST_SRC_DIR=test
-BIN_DIR=bin
+PROJECT_DIR=.
+SRC_DIR = $(PROJECT_DIR)/src
+TEST_SRC_DIR=$(PROJECT_DIR)/test
+BIN_DIR=$(PROJECT_DIR)/bin
+LIB_BIN_DIR=$(BIN_DIR)/lib
 TEST_BIN_DIR=$(BIN_DIR)/test
-HEAD_DIR=include
-TEMP_DIR=temp
+HEAD_DIR=$(PROJECT_DIR)/include
+OBJ_DIR=$(PROJECT_DIR)/temp
+LIB_OBJ_DIR=$(OBJ_DIR)/lib
+TEST_OBJ_DIR=$(OBJ_DIR)/test
 
 #-------------------------------------------------------------
 # Library files
 #-------------------------------------------------------------
 SOURCES=timer.c delay.c spi.c d7seg.c
 HEADERS=$(SOURCES:%.c=$(HEAD_DIR)/%.h)
-TARGET=libaavr.a
-COBJ=$(SOURCES:%.c=$(TEMP_DIR)/%.o)
+TARGET=
+COBJ=$(SOURCES:%.c=$(OBJ_DIR)/%.o)
 DEPS=
 
 #-------------------------------------------------------------
 # Test files
 #-------------------------------------------------------------
-TEST_SOURCES=test_delay_ms_1.c test_spi_block.c test_spi_burst.c test_d7seg.c
+TEST_SOURCES=test_delay_ms_1.c test_spi_block.c test_spi_burst.c test_d7seg.c test_d7seg_quad.c
 TEST_TARGETS=$(TEST_SOURCES:%.c=$(TEST_BIN_DIR)/%)
-TEST_COBJ=$(TEST_SOURCES:%.c=$(TEMP_DIR)/%.o)
+TEST_COBJ=$(TEST_SOURCES:%.c=$(OBJ_DIR)/%.o)
 TEST_DEPS=$(BIN_DIR)/$(TARGET)
 
 #-------------------------------------------------------------
 # Programs
 #-------------------------------------------------------------
-CC=avr-gcc
-AS=avr-as
-AR=avr-ar
-RANLIB=avr-ranlib
-STRIP=avr-strip
-OBJC=avr-objcopy
-ISP=avrdude
+export CC=avr-gcc
+export AS=avr-as
+export AR=avr-ar
+export RANLIB=avr-ranlib
+export STRIP=avr-strip
+export OBJC=avr-objcopy
+export ISP=avrdude
 
 #-------------------------------------------------------------
 # Configuration
 #-------------------------------------------------------------
 MCU=atmega328p
 FREQ=16000000
-VARIABLES=F_CPU=$(FREQ) SPI_TEST=2
-CDEFINES=$(VARIABLES:%=-D%) 
-CFLAGS=-I. -Iinclude/ -Wall $(CDEFINES) -std=gnu99
-LDFLAGS=-L$(BIN_DIR)
-LDLIBS=-laavr
+VARIABLES=F_CPU=$(FREQ) SPI_TEST=1 DISPLAY_FYQ5641BS
+export CDEFINES=$(VARIABLES:%=-D%) 
+CFLAGS=-I$(HEAD_DIR) -Wall -Os -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
+LDFLAGS=-L$(LIB_BIN_DIR)
+LDLIBS=
+STRIPFLAGS=--strip-debug
 ISPPORT=/dev/ttyACM0
 ISPCONF=/etc/avrdude/avrdude.conf
 ISPFLAGS=-c arduino -p $(MCU) -P $(ISPPORT) -b 115200 -C $(ISPCONF)
@@ -84,34 +92,32 @@ help:
 	@echo -e "- read			-> read the loaded program in the avr device"
 	@echo -e "- write_test_%		-> load the especified program test "test_%" in the avr device\n"
 
+
 all: lib tests
 
 force_all: clean all
 
-lib: $(BIN_DIR)/$(TARGET)
+lib: timer delay spi d7seg
+	@echo -e "\tARCHIVING " $(LIB_TARGET)
+	@$(STRIP) $(STRIPFLAGS) -g $(LIB_OBJ_DIR)/*
+	@$(AR) rcsv $(LIB_TARGET) $(LIB_OBJ_DIR)/*
+	@$(RANLIB) $(LIB_TARGET)
 
-tests: $(TEST_TARGETS)
+tests:
+	@$(MAKE) -C test all
 
-$(TEST_TARGETS): $(TEST_COBJ) | $(TEST_BIN_DIR)
-	@echo -e "\tLINKING CC" $(@:$(TEST_BIN_DIR)/%=$(TEMP_DIR)/%.o)
-	@$(CC) -mmcu=$(MCU) -o $@ $(@:$(TEST_BIN_DIR)/%=$(TEMP_DIR)/%.o) $(LDFLAGS) $(LDLIBS)
-	@$(OBJC) -O ihex -R .eeprom $@ $@.hex
-	@$(OBJC) -O binary -R .eeprom $@ $@.bin
+timer:
+	@$(MAKE) -C src/timer all
 
+spi:
+	@$(MAKE) -C src/spi all
 
-$(TEST_COBJ): $(TEST_SOURCES:%=$(TEST_SRC_DIR)/%) $(BIN_DIR)/$(TARGET) | $(TEMP_DIR)
-	@echo -e "\tCC" $(@:$(TEMP_DIR)/%.o=$(TEST_SRC_DIR)/%.c)
-	@$(CC) -mmcu=$(MCU) -c -o $@ $(@:$(TEMP_DIR)/%.o=$(TEST_SRC_DIR)/%.c) $(CFLAGS)
+delay:
+	@$(MAKE) -C src/delay all
 
-$(COBJ): $(SOURCES:%=$(SRC_DIR)/%) $(HEADERS) $(DEPS) | $(TEMP_DIR)
-	@echo -e "\tCC" $(@:$(TEMP_DIR)/%.o=$(SRC_DIR)/%.c)
-	@$(CC) -mmcu=$(MCU) -c -o $@ $(@:$(TEMP_DIR)/%.o=$(SRC_DIR)/%.c) $(CFLAGS)
+d7seg:
+	@$(MAKE) -C src/d7seg all
 
-$(BIN_DIR)/$(TARGET): $(COBJ) | $(BIN_DIR)
-	@echo -e "\tARCHIVING CC" $(COBJ)
-	@$(STRIP) -g $(COBJ)
-	@$(AR) rcsv $@ $(COBJ)
-	@$(RANLIB) $@
 
 clean: clean_bin clean_temp
 
@@ -124,8 +130,8 @@ clean_bin:
 
 clean_temp:
 	@echo -e "removing temporary files"
-	@rm -rf $(TEMP_DIR)
-	@mkdir $(TEMP_DIR)
+	@rm -rf $(OBJ_DIR)
+	@mkdir $(OBJ_DIR)
 
 read:
 	@echo -e "Reading device flash"
@@ -137,15 +143,3 @@ write_test_%: $(BIN_DIR)/test/test_%
 
 libinstall: lib
 	@echo -e "not implemented"
-
-$(BIN_DIR):
-	@echo -e "creating bin directory"
-	@mkdir $(BIN_DIR)
-
-$(TEST_BIN_DIR): | $(BIN_DIR)
-	@echo -e "creating test bin directory"
-	@mkdir $(TEST_BIN_DIR)
-
-$(TEMP_DIR):
-	@echo -e "creating temp directory"
-	@mkdir $(TEMP_DIR)

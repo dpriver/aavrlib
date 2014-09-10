@@ -10,17 +10,10 @@ volatile static struct{
 	transsmision_end_handler end_handler;
 }spi_attr;
 
-void spi_send_block(const uint8_t caracters[], uint8_t length){
-	spi_setup_master();
-	spi_begin_transmission();
-	for(int i = 0; i<length ; i++){
-		spi_sendbyte(caracters[i]);
-		while(!spi_finished_transmission());
-	}
-	spi_end_transmission();
-}
 
-void spi_send_burst(const uint8_t characters[], uint8_t length, transsmision_end_handler end_handler){
+
+
+void spi_send_burst(uint8_t characters[], uint8_t length, transsmision_end_handler end_handler){
 	for(int i = 0; i < length; i++)
 		spi_attr.buffer[i] = characters[i];
 
@@ -33,7 +26,7 @@ void spi_send_burst(const uint8_t characters[], uint8_t length, transsmision_end
 		spi_begin_transmission();
 		spi_sendbyte(spi_attr.buffer[0]);
 	}
-	else
+	else if(end_handler != NULL)
 		end_handler();
 }
 
@@ -61,7 +54,9 @@ ISR(SPI_STC_vect, ISR_BLOCK){
 			spi_readbyte(spi_attr.buffer[spi_attr.last]);
 
 		spi_end_transmission();
-		sei();						// enable interrupts beyong this point
-		spi_attr.end_handler();
+		if(spi_attr.end_handler != NULL){
+			sei();						// enable interrupts beyong this point
+			spi_attr.end_handler();
+		}
 	}
 }

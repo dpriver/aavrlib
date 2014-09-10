@@ -5,6 +5,8 @@
 #define NO_TEST 1
 #define TEST_74HC595N 2
 
+#define NULL 0
+
 #ifndef SPI_TEST
 	#warning "SPI to default value, 0 -NO_TEST"
 	#define SPI_TEST NO_TEST
@@ -24,21 +26,24 @@
 
 typedef void (*transsmision_end_handler)(void);
 
-void spi_send_block(const uint8_t caracteres[], uint8_t length);
-void spi_send_burst(const uint8_t caracters[], uint8_t length, transsmision_end_handler end_handler);
+void spi_send_block(uint8_t caracteres[], uint8_t length);
+void spi_send_burst(uint8_t caracters[], uint8_t length, transsmision_end_handler end_handler);
 
 
+// Clock in master is stablished to max freq "clk/2"
 #define spi_setup_master_with_int() \
 	DDRB |= _BV(DDB2) | _BV(DDB3) | _BV(DDB5); \
-	SPCR = _BV(SPIE) | _BV(SPE) | _BV(MSTR) | _BV(SPR0) | _BV(SPR1);
+	SPCR = _BV(SPIE) | _BV(SPE) | _BV(MSTR); \
+	SPSR |= _BV(SPI2X);
 
 #define spi_setup_master() \
 	DDRB |= _BV(DDB2) | _BV(DDB3) | _BV(DDB5); \
-	SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0) | _BV(SPR1);
+	SPCR = _BV(SPE) | _BV(MSTR); \
+	SPSR |= _BV(SPI2X);
 
 #define spi_setup_slave() \
 	DDRB &= ~_BV(DDB3) & ~_BV(DDR2) & ~_BV(DDR5); \
-	SPCR = _BV(SPIE) | _BV(SPE) | _BV(SPR0) | _BV(SPR1);;
+	SPCR = _BV(SPIE) | _BV(SPE) | _BV(SPR0) | _BV(SPR1);
 
 #if SPI_TEST == NO_TEST
 

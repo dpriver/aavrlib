@@ -8,18 +8,11 @@
 #include "timer.h"
 #include <avr/interrupt.h>
 
-enum {timer0, timer1, timer2};
-
 volatile static struct {
 	uint16_t duration;
 	uint8_t blocked;
 } timer_attr[3];
 
-
-void delay_ms_0(){
-	#warning TODO "Not implemented"
-	// NOT IMPLEMENTED
-}
 
 void delay_ms_1(uint16_t ms){
 	timer_attr[timer0].duration = ms;
@@ -29,20 +22,6 @@ void delay_ms_1(uint16_t ms){
 	timer0_start();
 
 	while(timer_attr[timer0].duration > 0);
-}
-
-void delay_ms_2(){
-	#warning TODO "Not implemented"
-	// NOT IMPLEMENTED
-}
-
-void delay_cycle(){			// A non-interrupt-dependant delay for testing purposes
-	uint32_t counter1, counter2;
-    for (counter1 = 0; counter1 < 10; counter1++) { 
-        for (counter2 = 0; counter2 < 25000; counter2++) {
-         /* Do nothing */ 
-        }
-    }
 }
 
 ISR(TIMER0_COMPA_vect, ISR_BLOCK){

@@ -15,7 +15,7 @@ int main(void)
 
 
 	PORTB |= _BV(PORTB0);
-	spi_send_block(caracteres, 16);
+	spi_send_burst(caracteres, 16, NULL);
 
 	while(1) {
 		PORTB |= _BV(PORTB0);
