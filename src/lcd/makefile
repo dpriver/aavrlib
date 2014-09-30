@@ -1,6 +1,6 @@
-LIB=delay
-SOURCES=delay_ms.c delay_us.c delay_cycle.c
-HEADERS=delay.h
+LIB=lcd
+SOURCES=init_lcd.c lcd_send.c 
+HEADERS=lcd.h
 
 COBJS=$(SOURCES:%.c=$(LIB_OBJ_DIR)/%.o)
 CHEADS=$(HEADERS:%.h=$(HEAD_DIR)/%.h)
@@ -19,16 +19,21 @@ TEST_BIN_DIR=$(BIN_DIR)/test
 LIB_OBJ_DIR=$(OBJ_DIR)/lib
 TEST_OBJ_DIR=$(OBJ_DIR)/test
 
+#-------------------------------------------------------------
+# Configuration
+#-------------------------------------------------------------
+
 
 #-------------------------------------------------------------
 # Configuration
 #-------------------------------------------------------------
 MCU=atmega328p 
 FREQ=16000000
-CFLAGS=-I$(HEAD_DIR) -Wall -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
+CFLAGS=-I$(HEAD_DIR) -Wall -Os -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
 LDFLAGS=-L$(LIB_BIN_DIR)
 LDLIBS=-laavr
 STRIPFLAGS=--strip-debug
+
 
 
 all: $(CHEADS) $(COBJS) | $(LIB_BIN_DIR)

@@ -21,14 +21,6 @@ OBJ_DIR=$(PROJECT_DIR)/temp
 LIB_OBJ_DIR=$(OBJ_DIR)/lib
 TEST_OBJ_DIR=$(OBJ_DIR)/test
 
-#-------------------------------------------------------------
-# Library files
-#-------------------------------------------------------------
-SOURCES=timer.c delay.c spi.c d7seg.c
-HEADERS=$(SOURCES:%.c=$(HEAD_DIR)/%.h)
-TARGET=
-COBJ=$(SOURCES:%.c=$(OBJ_DIR)/%.o)
-DEPS=
 
 #-------------------------------------------------------------
 # Test files
@@ -54,9 +46,9 @@ export ISP=avrdude
 #-------------------------------------------------------------
 MCU=atmega328p
 FREQ=16000000
-VARIABLES=F_CPU=$(FREQ) SPI_TEST=1 DISPLAY_FYQ5641BS
+VARIABLES=F_CPU=$(FREQ) SPI_74HC595N D7SEG_FYQ5641BS
 export CDEFINES=$(VARIABLES:%=-D%) 
-CFLAGS=-I$(HEAD_DIR) -Wall -Os -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
+CFLAGS=-I$(HEAD_DIR) -Wall -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
 LDFLAGS=-L$(LIB_BIN_DIR)
 LDLIBS=
 STRIPFLAGS=--strip-debug
@@ -97,7 +89,7 @@ all: lib tests
 
 force_all: clean all
 
-lib: timer delay spi d7seg
+lib: timer delay spi d7seg systick lcd usart ir
 	@echo -e "\tARCHIVING " $(LIB_TARGET)
 	@$(STRIP) $(STRIPFLAGS) -g $(LIB_OBJ_DIR)/*
 	@$(AR) rcsv $(LIB_TARGET) $(LIB_OBJ_DIR)/*
@@ -117,6 +109,18 @@ delay:
 
 d7seg:
 	@$(MAKE) -C src/d7seg all
+
+systick:
+	@$(MAKE) -C src/systick all
+
+lcd:
+	@$(MAKE) -C src/lcd all
+
+usart:
+	@$(MAKE) -C src/usart all
+
+ir:
+	@$(MAKE) -C src/ir all
 
 
 clean: clean_bin clean_temp
@@ -140,6 +144,10 @@ read:
 write_test_%: $(BIN_DIR)/test/test_%
 	@echo -e "writing program '$<' to device flash"
 	@sudo $(ISP) $(ISPFLAGS) -U flash:w:$<.hex
+	@sudo putty -load arduino_serial &
+
+open_serial:
+	@sudo putty -load arduino_serial &
 
 libinstall: lib
 	@echo -e "not implemented"

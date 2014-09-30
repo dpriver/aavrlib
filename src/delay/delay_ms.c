@@ -4,32 +4,32 @@
  * Library with diferent delay implementations
  *=====================================================================================================================================*/
 
+/*
+ * This delay function uses system tick
+ * Creates a process that is gonna be called each 'ms' miliseconds, and the first time it's called, removes itshelf
+ * The delay function iterates while the process remains active
+ */
+
+ /*
+ * KNOWN BUGS AND ISSUES
+ * For the time, only 255ms delays can be made
+ */
+
 #include "delay.h"
 #include "timer.h"
-#include <avr/interrupt.h>
-
-volatile static struct {
-	uint16_t duration;
-	uint8_t blocked;
-} timer_attr[3];
+#include "systick.h"
 
 
-void delay_ms_1(uint16_t ms){
-	timer_attr[timer0].duration = ms;
-	timer0_setup_mode_CTC(prescale_1024);
-	timer0_setup_compA(match_disconected, (uint8_t)16);
-	timer0_en_int_compA();
-	timer0_start();
-
-	while(timer_attr[timer0].duration > 0);
+void delay_handler(uint8_t this_id){
+	rem_process(this_id);
 }
 
-ISR(TIMER0_COMPA_vect, ISR_BLOCK){
-	if(timer_attr[timer0].duration <= 0){
-		timer0_dis_int_compA();
-		timer0_stop();
-	}
-	else
-		timer_attr[timer0].duration--;
-	TIFR0 |= _BV(OCF0A);
+void delay_ms(uint16_t ms){
+	int process_id;
+
+	// agregar el proceso
+	process_id = add_process(delay_handler, ms);
+
+	// mientras el proceso siga activo
+	while( process_active(process_id) );
 }

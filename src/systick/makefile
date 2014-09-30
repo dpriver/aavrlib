@@ -1,6 +1,6 @@
-LIB=delay
-SOURCES=delay_ms.c delay_us.c delay_cycle.c
-HEADERS=delay.h
+LIB=systick
+SOURCES=init_system_tick.c micros.c add_process.c process_active.c rem_process.c
+HEADERS=systick.h
 
 COBJS=$(SOURCES:%.c=$(LIB_OBJ_DIR)/%.o)
 CHEADS=$(HEADERS:%.h=$(HEAD_DIR)/%.h)
@@ -19,6 +19,10 @@ TEST_BIN_DIR=$(BIN_DIR)/test
 LIB_OBJ_DIR=$(OBJ_DIR)/lib
 TEST_OBJ_DIR=$(OBJ_DIR)/test
 
+#-------------------------------------------------------------
+# Configuration
+#-------------------------------------------------------------
+
 
 #-------------------------------------------------------------
 # Configuration
@@ -29,6 +33,7 @@ CFLAGS=-I$(HEAD_DIR) -Wall -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
 LDFLAGS=-L$(LIB_BIN_DIR)
 LDLIBS=-laavr
 STRIPFLAGS=--strip-debug
+
 
 
 all: $(CHEADS) $(COBJS) | $(LIB_BIN_DIR)

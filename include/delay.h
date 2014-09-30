@@ -21,12 +21,10 @@ void delay_ms_0();
 /*
  * 8-bit timer millisec implementation
  */
-void delay_ms_1(uint16_t ms);
+void delay_ms(uint16_t ms);
 
-/*
- * 16-bit timer millisec implementation 
- */
-void delay_ms_2();
+void delay_us(uint16_t us);
+
 
 /*
  * cycle delay implementation

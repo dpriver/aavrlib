@@ -1,5 +1,5 @@
 LIB=timer
-SOURCES=ms_prescale.c
+SOURCES=
 HEADERS=timer.h
 
 COBJS=$(SOURCES:%.c=$(LIB_OBJ_DIR)/%.o)
