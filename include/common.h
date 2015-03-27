@@ -12,6 +12,7 @@
 #define TRUE 0xFF
 #define FALSE 0x00
 
+#define MAX_UINT
 
 /*========================================
  * Arduino Pins
@@ -72,7 +73,7 @@
 
 // Analog port
 #define ANALOG_PORT PORTC
-#define ANALOG_READ PINC
+#define ANALOG_VALUE PINC
 
 // Flags
 #define ANALOG_0 PORTC0

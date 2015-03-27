@@ -15,14 +15,19 @@ void init_system_tick(){
 	timer1_setup_mode_CTC(prescale_8);
 }
 
-
+// No me hace ninguna gracia que todos los procesos asignados a system tick se ejecuten en modo interrupción... Debería hacerla ISR_NOBLOCK, porque tal y como estña, facilmente podría joderse...
 ISR(TIMER1_COMPA_vect, ISR_BLOCK){
+
 	system_tick.current_tick++;
+	system_tick.tiempoISR = micros();
+
 	for(int i = 0; i< MAX_PROCESSES ; i++){
 		if( system_tick.handler[i] && (system_tick.next_handler_tick[i] == system_tick.current_tick) ){
 			system_tick.handler[i](i);
 			system_tick.next_handler_tick[i] = system_tick.handler_time[i] + system_tick.current_tick;
 		}
 	}
+
+	system_tick.tiempoISR = micros() - system_tick.tiempoISR; 
 }
 

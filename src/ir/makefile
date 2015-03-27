@@ -29,7 +29,7 @@ TEST_OBJ_DIR=$(OBJ_DIR)/test
 #-------------------------------------------------------------
 MCU=atmega328p 
 FREQ=16000000
-CFLAGS=-I$(HEAD_DIR) -Wall -Os -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
+CFLAGS=-I$(HEAD_DIR) -Wall -std=gnu99  -Os -mmcu=$(MCU) -c $(CDEFINES) -DIR_FALL_MODE -DIR_DEBUG
 LDFLAGS=-L$(LIB_BIN_DIR)
 LDLIBS=-laavr
 STRIPFLAGS=--strip-debug

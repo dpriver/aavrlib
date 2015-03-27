@@ -13,6 +13,7 @@ System tick library
 #include "common.h"
 
 #define MAX_PROCESSES 10
+#define MAX_MICROS_COUNT (UINT16_MAX*1000) + 999
 
 typedef void (*process_handler)(uint8_t own_id);
 
@@ -21,6 +22,7 @@ volatile struct{
 	uint16_t next_handler_tick[ MAX_PROCESSES ];
 	uint16_t handler_time[MAX_PROCESSES];
 	process_handler handler[MAX_PROCESSES];
+	uint16_t tiempoISR;
 }system_tick;
 
 void init_system_tick();

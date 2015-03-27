@@ -1,4 +1,4 @@
-SOURCES=test_d7seg.c test_d7seg_quad.c test_delay_ms_1.c test_spi_block.c test_spi_burst.c test_ir_receive_nolib.c test_lcd.c test_usart.c
+SOURCES=test_d7seg.c test_d7seg_quad.c test_delay_ms_1.c test_spi_block.c test_spi_burst.c test_ir_receive_nolib.c test_lcd.c test_usart.c test_flame_sensor.c test_micros_bug.c test_ir_send.c
 HEADERS=
 
 TARGET=$(SOURCES:%.c=$(TEST_BIN_DIR)/%)
@@ -25,7 +25,7 @@ TEST_OBJ_DIR=$(OBJ_DIR)/test
 #-------------------------------------------------------------
 MCU=atmega328p 
 FREQ=16000000
-CFLAGS=-I$(HEAD_DIR) -Wall -Os -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
+CFLAGS=-I$(HEAD_DIR) -Wall -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
 LDFLAGS=-L$(LIB_BIN_DIR)
 LDLIBS=-laavr
 STRIPFLAGS=--strip-debug
