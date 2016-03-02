@@ -1,7 +1,6 @@
 #====================================================================================================================================
 #  Daniel Pinto Rivero	09-08-2014 Cáceres, Spain
 #  libaavr project makefile 
-#  It's kind of a mess, but it took me a whole day to figure out how to make all this work...
 #=====================================================================================================================================
 
 LIB=aavr
@@ -10,25 +9,29 @@ LIB_TARGET=$(LIB:%=$(LIB_BIN_DIR)/lib%.a)
 #-------------------------------------------------------------
 # Directories
 #-------------------------------------------------------------
-PROJECT_DIR=.
-SRC_DIR = $(PROJECT_DIR)/src
-TEST_SRC_DIR=$(PROJECT_DIR)/test
-BIN_DIR=$(PROJECT_DIR)/bin
-LIB_BIN_DIR=$(BIN_DIR)/lib
-TEST_BIN_DIR=$(BIN_DIR)/test
-HEAD_DIR=$(PROJECT_DIR)/include
-OBJ_DIR=$(PROJECT_DIR)/temp
-LIB_OBJ_DIR=$(OBJ_DIR)/lib
-TEST_OBJ_DIR=$(OBJ_DIR)/test
+export AVR_DIR_NAME=avr
+export ARDUINO_DIR_NAME=arduino
+export PERIPH_DIR_NAME=peripherals
+export TEST_DIR_NAME=test
+
+export PROJECT_DIR := $(shell pwd)
+
+export SRC_DIR := $(PROJECT_DIR)/src
+
+export BIN_DIR=$(PROJECT_DIR)/bin
+export LIB_BIN_DIR=$(BIN_DIR)/lib
+
+export HEAD_DIR=$(PROJECT_DIR)/include
+
+export OBJ_DIR=$(PROJECT_DIR)/temp
+export LIB_OBJ_DIR=$(OBJ_DIR)/lib
 
 
 #-------------------------------------------------------------
-# Test files
+# Installation prefix
 #-------------------------------------------------------------
-TEST_SOURCES=test_delay_ms_1.c test_spi_block.c test_spi_burst.c test_d7seg.c test_d7seg_quad.c
-TEST_TARGETS=$(TEST_SOURCES:%.c=$(TEST_BIN_DIR)/%)
-TEST_COBJ=$(TEST_SOURCES:%.c=$(OBJ_DIR)/%.o)
-TEST_DEPS=$(BIN_DIR)/$(TARGET)
+PREFIX=/usr/local/lib
+LIB_INSTALL_DIR=$(PREFIX)/aavrlib
 
 #-------------------------------------------------------------
 # Programs
@@ -44,18 +47,18 @@ export ISP=avrdude
 #-------------------------------------------------------------
 # Configuration
 #-------------------------------------------------------------
-MCU=atmega328p
-FREQ=16000000
-VARIABLES=F_CPU=$(FREQ) SPI_74HC595N D7SEG_FYQ5641BS
+export MCU=atmega328p
+export FREQ=16000000
+export VARIABLES=F_CPU=$(FREQ) SPI_74HC595N D7SEG_FYQ5641BS
 export CDEFINES=$(VARIABLES:%=-D%) 
-CFLAGS=-I$(HEAD_DIR) -Wall -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
-LDFLAGS=-L$(LIB_BIN_DIR)
-LDLIBS=
-STRIPFLAGS=--strip-debug
+export CFLAGS=-Os -I$(HEAD_DIR) -Wall -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
+export LDFLAGS=-L$(LIB_BIN_DIR)
+export LDLIBS=
+export STRIPFLAGS=--strip-debug
+
 ISPPORT=/dev/ttyACM0
 ISPCONF=/etc/avrdude/avrdude.conf
 ISPFLAGS=-c arduino -p $(MCU) -P $(ISPPORT) -b 115200 -C $(ISPCONF)
-
 
 
 #-------------------------------------------------------------
@@ -74,80 +77,62 @@ ISPFLAGS=-c arduino -p $(MCU) -P $(ISPPORT) -b 115200 -C $(ISPCONF)
 #-------------------------------------------------------------
 
 help:
-	@echo -e "========= RULES ========================================================================"
-	@echo -e "- help			-> prints this help"
-	@echo -e "- all			-> compile everything (aavr library and tests)"
-	@echo -e "- force_all		-> force the compilation of everything"
-	@echo -e "- lib			-> compile aavr library"
-	@echo -e "- tests			-> compile tests (and avr for dependancy, just the same as \"all\")"
-	@echo -e "- clean			-> remove binary and temporary files"
-	@echo -e "- read			-> read the loaded program in the avr device"
-	@echo -e "- write_test_%		-> load the especified program test "test_%" in the avr device\n"
+	@echo "========= RULES ========================================================================"
+	@echo "- help			-> prints this help"
+	@echo "- all			-> compile everything (aavr library and tests)"
+	@echo "- force_all		-> force the compilation of everything"
+	@echo "- lib			-> compile aavr library"
+	@echo "- tests			-> compile tests (and avr for dependancy, just the same as \"all\")"
+	@echo "- clean			-> remove binary and temporary files"
+	@echo "- read			-> read the loaded program in the avr device"
+	@echo "- write_test_%		-> load the especified program test "test_%" in the avr device\n"
 
 
 all: lib tests
 
 force_all: clean all
 
-lib: timer delay spi d7seg systick lcd usart ir
-	@echo -e "\tARCHIVING " $(LIB_TARGET)
+lib:
+	@$(MAKE) -C src lib --no-print-directory
+	@echo "\tARCHIVING " $(LIB_TARGET)
 	@$(STRIP) $(STRIPFLAGS) -g $(LIB_OBJ_DIR)/*
 	@$(AR) rcsv $(LIB_TARGET) $(LIB_OBJ_DIR)/*
 	@$(RANLIB) $(LIB_TARGET)
 
 tests:
-	@$(MAKE) -C test all
-
-timer:
-	@$(MAKE) -C src/timer all
-
-spi:
-	@$(MAKE) -C src/spi all
-
-delay:
-	@$(MAKE) -C src/delay all
-
-d7seg:
-	@$(MAKE) -C src/d7seg all
-
-systick:
-	@$(MAKE) -C src/systick all
-
-lcd:
-	@$(MAKE) -C src/lcd all
-
-usart:
-	@$(MAKE) -C src/usart all
-
-ir:
-	@$(MAKE) -C src/ir all
-
+	@$(MAKE) -C src tests
 
 clean: clean_bin clean_temp
 
 clean_bin:
-	@echo -e "========= cleanup ========"
+	@echo "========= cleanup ========"
 	@echo "removing binaries..."
 	@rm -rf $(BIN_DIR)
 	@mkdir $(BIN_DIR)
 	@mkdir $(TEST_BIN_DIR)
 
 clean_temp:
-	@echo -e "removing temporary files"
+	@echo "removing temporary files"
 	@rm -rf $(OBJ_DIR)
 	@mkdir $(OBJ_DIR)
 
 read:
-	@echo -e "Reading device flash"
+	@echo "Reading device flash"
 	@$(ISP) $(ISPFLAGS) -U flash:r:$(TARGET)_backup.hex:i
 
 write_test_%: $(BIN_DIR)/test/test_%
-	@echo -e "writing program '$<' to device flash"
+	@echo "writing program '$<' to device flash"
 	@sudo $(ISP) $(ISPFLAGS) -U flash:w:$<.hex
 	@sudo putty -load arduino_serial &
 
 open_serial:
 	@sudo putty -load arduino_serial &
 
-libinstall: lib
-	@echo -e "not implemented"
+install: lib
+	@sudo mkdir $(LIB_INSTALL_DIR)
+	@sudo mkdir $(LIB_INSTALL_DIR)/lib
+	@sudo cp $(LIB_TARGET) $(LIB_INSTALL_DIR)/lib
+	@sudo cp -r $(HEAD_DIR) $(LIB_INSTALL_DIR)
+
+uninstall:
+	@sudo rm -r $(LIB_INSTALL_DIR)
