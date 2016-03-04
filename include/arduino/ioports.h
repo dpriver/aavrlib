@@ -19,12 +19,12 @@
 #define PIN7	(1 << PORTD7)
 
 // Digital IOPort B
-#define PIN8	(1 << (PORTB0+8))
-#define PIN9	(1 << (PORTB1+8))
-#define PIN10	(1 << (PORTB2+8))
-#define PIN11	(1 << (PORTB3+8))
-#define PIN12	(1 << (PORTB4+8))
-#define PIN13	(1 << (PORTB5+8))
+#define PIN8	(1 << PORTB0)
+#define PIN9	(1 << PORTB1)
+#define PIN10	(1 << PORTB2)
+#define PIN11	(1 << PORTB3)
+#define PIN12	(1 << PORTB4)
+#define PIN13	(1 << PORTB5)
 
 // Analog IOPort
 #define PINA0	(1 << PORTC0)
@@ -35,13 +35,7 @@
 #define PINA5	(1 << PORTC5)
 
 
-DIGITAL_CONFIG_OUTPUT(pinmask_16b) \
-	DDRD |= (uint8_t)(pinmask_16b); \
-	DDRB |= (uint8_t)((pinmask_16b) >> 8)
-
-DIGITAL_CONFIG_INPUT(pinmask_16b) \
-	DDRD &= (uint8_t)(~(pinmask_16b)); \
-	DDRB &= (uint8_t)(~(pinmask_16b) >> 8)
+#define PWM_0	PIN6
 
 
 // Le pasas una lista de pines y los configura como pines de salida

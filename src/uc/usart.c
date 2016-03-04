@@ -23,7 +23,7 @@
  *
  ********************************************************************************/
  
-#include "avr/usart.h"
+#include "uc/usart.h"
 
 void usart_printnumber32(uint32_t number){
 	uint8_t digits[10] = {'0','0','0','0','0','0','0','0','0','0'};

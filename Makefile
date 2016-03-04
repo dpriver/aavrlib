@@ -9,7 +9,7 @@ LIB_TARGET=$(LIB:%=$(LIB_BIN_DIR)/lib%.a)
 #-------------------------------------------------------------
 # Directories
 #-------------------------------------------------------------
-export AVR_DIR_NAME=avr
+export AVR_DIR_NAME=uc
 export ARDUINO_DIR_NAME=arduino
 export PERIPH_DIR_NAME=peripherals
 export TEST_DIR_NAME=test
@@ -50,9 +50,9 @@ export ISP=avrdude
 export MCU=atmega328p
 export FREQ=16000000
 export VARIABLES=F_CPU=$(FREQ) SPI_74HC595N D7SEG_FYQ5641BS
-export CDEFINES=$(VARIABLES:%=-D%) 
-export CFLAGS=-Os -I$(HEAD_DIR) -Wall -std=gnu99  -mmcu=$(MCU) -c $(CDEFINES)
-export LDFLAGS=-L$(LIB_BIN_DIR)
+export CDEFINES=$(VARIABLES:%=-D%)
+export CFLAGS=-Os -flto -fuse-linker-plugin -Wpedantic -I$(HEAD_DIR) -Wall -std=gnu99 -mmcu=$(MCU) -c $(CDEFINES)
+export LDFLAGS=-Os -flto -fuse-linker-plugin -L$(LIB_BIN_DIR)
 export LDLIBS=
 export STRIPFLAGS=--strip-debug
 
@@ -109,7 +109,6 @@ clean_bin:
 	@echo "removing binaries..."
 	@rm -rf $(BIN_DIR)
 	@mkdir $(BIN_DIR)
-	@mkdir $(TEST_BIN_DIR)
 
 clean_temp:
 	@echo "removing temporary files"

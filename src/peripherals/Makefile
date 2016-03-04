@@ -1,5 +1,6 @@
 # Makefile to compile the avr files
-SOURCES=d7seg.c infrared.c lcd_1602a.c
+#SOURCES=d7seg.c infrared.c lcd_1602a.c
+SOURCES=
 HEADERS=d7seg.h infrared.h lcd_1602a.h
 
 
