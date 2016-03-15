@@ -38,45 +38,42 @@
 #define PWM_0	PIN6
 
 
-// Le pasas una lista de pines y los configura como pines de salida
-DIGITAL_B_CONFIG_OUTPUT(pinmask) \
-	DDRB |= pinmask
+// _MODE values
+// SET can be used for both _CONFIG_MODE and _VALUE_MODE
+#define SET		= (
+
+// _CONFIG_MODE values
+#define INPUT 	|= (
+#define OUTPUT 	&= ~(
+
+//	_VALUE_MODE values
+#define HIGH	|= (
+#define LOW		$= ~(
+
+// _PORT values
+#define PORT_A	DDRD
+#define PORT_B	DDRB
 
 
-DIGITAL_A_CONFIG_OUTPUT(pinmask) \
-	DDRD |= pinmask
+// Configure and set values for digital I/O pins
+// for example:
+// 	pins 0, 3, 5 as output    
+//	DIGITAL_CONFIG(OUTPUT, PORT_A, PIN0 | PIN3 | PIN5);
 
-ANALOG_CONFIG_OUTPUT()
+// 	pins 8, 12, 13 as input    
+//	DIGITAL_CONFIG(OUTPUT, PORT_B, PIN8 | PIN12 | PIN13);
 
+// 	pins 0, 3 as 1, and 11 as 0
+//	DIGITAL_VALUE(HIGH, PORT_A, PIN0 | PIN3);
+//	DIGITAL_VALUE(LOW, PORT_B, PIN11);
 
-DIGITAL_B_CONFIG_INPUT(pinmask) \
-	DDRB &= ~(pinmask)
+// Of course, unless included in the mask, or invoked in SET mode, the other
+// port pins keep their previous value and configuration.
 
-DIGITAL_A_CONFIG_INPUT(pinmask) \
-	DDRD &= ~(pinmask)
-	
-ANALOG_CONFIG_INPUT()
-
-
-DIGITAL_B_CONFIG(pinmask) \
-	DDRB = pinmask
-
-DIGITAL_A_CONFIG() \
-	DDRD = pinmask
-
-ANALOG_CONFIG()
+#define DIGITAL_CONFIG(_CONFIG_MODE, _PORT,  pinmask) \
+	_PORT _CONFIG_MODE pinmask )
 
 
-DIGITAL_A_SET_VALUE_HIGH()
+#define DIGITAL_VALUE(_VALUE_MODE, _PORT, pinmask)
+	_PORT _VALUE_MODE pinmask )
 
-DIGITAL_B_SET_VALUE_HIGH()
-
-
-DIGITAL_A_SET_VALUE_LOW()
-
-DIGITAL_B_SET_VALUE_LOW()
-
-
-DIGITAL_A_SET_VALUE()
-
-DIGITAL_B_SET_VALUE()

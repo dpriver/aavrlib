@@ -1,5 +1,5 @@
 #SOURCES=test_d7seg.c test_d7seg_quad.c test_delay_ms_1.c test_spi_block.c test_spi_burst.c test_ir_receive_nolib.c test_lcd.c test_usart.c test_flame_sensor.c test_micros_bug.c test_ir_send.c
-SOURCES=
+SOURCES=test_pwm.c
 HEADERS=
 
 TARGET=$(SOURCES:%.c=$(TEST_BIN_DIR)/%)

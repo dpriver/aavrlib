@@ -20,11 +20,13 @@ export SRC_DIR := $(PROJECT_DIR)/src
 
 export BIN_DIR=$(PROJECT_DIR)/bin
 export LIB_BIN_DIR=$(BIN_DIR)/lib
+export TEST_BIN_DIR=$(BIN_DIR)/test
 
 export HEAD_DIR=$(PROJECT_DIR)/include
 
 export OBJ_DIR=$(PROJECT_DIR)/temp
 export LIB_OBJ_DIR=$(OBJ_DIR)/lib
+export TEST_OBJ_DIR=$(OBJ_DIR)/test
 
 
 #-------------------------------------------------------------
@@ -49,15 +51,17 @@ export ISP=avrdude
 #-------------------------------------------------------------
 export MCU=atmega328p
 export FREQ=16000000
-export VARIABLES=F_CPU=$(FREQ) SPI_74HC595N D7SEG_FYQ5641BS
+export VARIABLES=F_CPU=$(FREQ)
 export CDEFINES=$(VARIABLES:%=-D%)
 export CFLAGS=-Os -flto -fuse-linker-plugin -Wpedantic -I$(HEAD_DIR) -Wall -std=gnu99 -mmcu=$(MCU) -c $(CDEFINES)
 export LDFLAGS=-Os -flto -fuse-linker-plugin -L$(LIB_BIN_DIR)
+#export CFLAGS=-O0 -Wpedantic -I$(HEAD_DIR) -Wall -std=gnu99 -mmcu=$(MCU) -c $(CDEFINES)
+#export LDFLAGS=-O0 -L$(LIB_BIN_DIR)
 export LDLIBS=
 export STRIPFLAGS=--strip-debug
 
 ISPPORT=/dev/ttyACM0
-ISPCONF=/etc/avrdude/avrdude.conf
+ISPCONF=/etc/avrdude.conf
 ISPFLAGS=-c arduino -p $(MCU) -P $(ISPPORT) -b 115200 -C $(ISPCONF)
 
 
@@ -122,7 +126,7 @@ read:
 write_test_%: $(BIN_DIR)/test/test_%
 	@echo "writing program '$<' to device flash"
 	@sudo $(ISP) $(ISPFLAGS) -U flash:w:$<.hex
-	@sudo putty -load arduino_serial &
+	#@sudo putty -load arduino_serial &
 
 open_serial:
 	@sudo putty -load arduino_serial &

@@ -89,19 +89,20 @@ void timer0_delay(uint8_t ms) {
 }
 
 
-// generate fast PWM in PIN6  
+// generate fast PWM in PIN5 (OC0B)
 //	freq_pwm = F_FPU/((freq_cnt+1)*prescale)
 //	duty	 = duty_cnt/freq_cnt
 void timer0_fast_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
 	// clear OC0B on compare match (with OCR0B)
 	// fast PWM with OCR0A as TOP
+	
 	power_timer0_enable();
 	TCNT0 	= 0;
 	OCR0A 	= freq_cnt;
 	OCR0B 	= duty_cnt;
 	TIMSK0 	= 0;
-	TCCR0A 	= (2 << COM0B0) | (3 << WGM00);
-	TCCR0B 	= (1 << WGM02) | (prescale << CS00);
+	TCCR0A 	= (0x2 << COM0B0) | (0x3 << WGM00);
+	TCCR0B 	= (0x1 << WGM02) | (prescale << CS00);
 }
 
 
@@ -116,8 +117,8 @@ void timer0_pcorrect_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt
 	OCR0A 	= freq_cnt;
 	OCR0B 	= duty_cnt;
 	TIMSK0 	= 0;
-	TCCR0A 	= (2 << COM0B0) | (1 << WGM00);
-	TCCR0B 	= (1 << WGM02) | (prescale << CS00);
+	TCCR0A 	= (0x2 << COM0B0) | (0x1 << WGM00);
+	TCCR0B 	= (0x1 << WGM02) | (prescale << CS00);
 }
 
 
@@ -127,7 +128,7 @@ void timer0_stop() {
 
 
 // Init system tick feature
-void timer1_init_systick() {
+void timer1_systick_init() {
 	curr_ms = 0;
 	curr_min = 0;
 	

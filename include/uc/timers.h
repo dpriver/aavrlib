@@ -65,7 +65,7 @@ void timer0_pcorrect_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt
 void timer0_stop();
 
 // Init system tick feature
-void timer1_init_systick();
+void timer1_systick_init();
 
 // 0-999 us
 uint16_t get_uptime_us();
@@ -78,5 +78,6 @@ uint16_t get_uptime_min();
 
 // complete uptime
 void get_uptime(uint16_t min, uint16_t ms, uint16_t us);
+
 
 #endif /* __TIMERS */
