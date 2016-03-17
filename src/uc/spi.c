@@ -25,7 +25,7 @@
 
 #include <avr/interrupt.h>
 #include <stdint.h>
-#include "avr/spi.h"
+#include "uc/spi.h"
 #include "common.h"
 
 volatile static struct{

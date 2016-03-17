@@ -23,12 +23,14 @@
  *
  ********************************************************************************/
 
+#include <avr/power.h>
+#include <avr/interrupt.h>
 
 /* Clock registers
  * 
  * OSCCAL	-> Oscillator calibration Register
  * CLKPR	-> Clock Prescale Register
-
+*/
 
 /* Power registers
  * 
@@ -71,3 +73,11 @@
  * 3. Configure watchdog (reset when detecting faillures...)
  * 4. Configure initial interrupt vector and interrupt global masks
  */
+ 
+ 
+ void system_init() {
+	 
+	 cli();
+	 power_all_disable();
+	 
+ }

@@ -56,13 +56,19 @@
  * the timer
  */
 
+
+/* TODO
+ * - Implement software PWMs in timer2
+ * - Allow usage of timer1 as system cycle counter for debug pourposes
+ */
+
 #include <stdint.h> 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "uc/timers.h"
 
 // variables to count the system uptime
-static uint16_t curr_min;
+static uint16_t curr_sec;
 static uint16_t curr_ms;
 
 
@@ -130,7 +136,7 @@ void timer0_stop() {
 // Init system tick feature
 void timer1_systick_init() {
 	curr_ms = 0;
-	curr_min = 0;
+	curr_sec = 0;
 	
 	power_timer1_enable();
 	
@@ -155,15 +161,15 @@ uint16_t get_uptime_ms() {
 }
 
 
-// 0-65535 minutes
-uint16_t get_uptime_min() {
-	return curr_min;
+// 0-65535 secods
+uint16_t get_uptime_sec() {
+	return curr_sec;
 }
 
 
 // complete uptime
-void get_uptime(uint16_t min, uint16_t ms, uint16_t us) {
-	min = curr_min;
+void get_uptime(uint16_t sec, uint16_t ms, uint16_t us) {
+	min = curr_sec;
 	ms = curr_ms;
 	us = TCNT1;
 }
@@ -171,8 +177,9 @@ void get_uptime(uint16_t min, uint16_t ms, uint16_t us) {
 
 // System tick ISR
 ISR(TIMER0_COMPA_vect, ISR_BLOCK) {
+	// Counts 60.000 cycles at 1/ms freq 
 	if (curr_ms == 59999) {
-		++curr_min;
+		++curr_sec;
 		curr_ms = 0;
 	}
 	else {

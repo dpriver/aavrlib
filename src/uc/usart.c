@@ -25,6 +25,14 @@
  
 #include "uc/usart.h"
 
+
+void usart_init() {
+	UBRR0H = 0x00;
+	UBRR0L = 0x01;
+	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01);
+	UCSR0B = _BV(TXEN0);
+}
+
 void usart_printnumber32(uint32_t number){
 	uint8_t digits[10] = {'0','0','0','0','0','0','0','0','0','0'};
 	uint8_t index = 9;
@@ -36,7 +44,7 @@ void usart_printnumber32(uint32_t number){
 		usart_send(digits[index]);
 }
 
-void usart_printnumber(uint8_t number){
+void usart_printnumber8(uint8_t number){
 	uint8_t digits[3] = {'0','0','0'};
 	uint8_t index = 2;
 
