@@ -22,16 +22,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ********************************************************************************/
- 
+
 #include "uc/usart.h"
+#include <avr/power.h>
 
-
+/*
 void usart_init() {
+	power_usart0_enable();
 	UBRR0H = 0x00;
 	UBRR0L = 0x01;
-	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01);
 	UCSR0B = _BV(TXEN0);
+	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01);
 }
+*/
 
 void usart_printnumber32(uint32_t number){
 	uint8_t digits[10] = {'0','0','0','0','0','0','0','0','0','0'};
@@ -57,7 +60,7 @@ void usart_printnumber8(uint8_t number){
 	usart_send(digits[2]);
 }
 
-void usart_print(char* string){
+void usart_print(const char *string){
 	while(*string != '\0'){
 		usart_send(*string);
 		string++;

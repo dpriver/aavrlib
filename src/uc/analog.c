@@ -1,5 +1,5 @@
 /*******************************************************************************
- *	analog.h
+ *  analog.h
  *
  *  analog comparator and converter
  *
@@ -22,3 +22,39 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ********************************************************************************/
+#include "uc/analog.h"
+#include <avr/io.h>
+#include <avr/power.h>
+#include <stdint.h>
+
+void adc_init(adc_prescaler_t prescaler, adc_reference_t ref,
+		adc_channel_t channel, uint8_t pinmask) {
+	power_adc_enable();
+    // enable ADC with selected prescaler
+    ADCSRA = (1 << ADEN) | (prescaler << ADPS0);
+    // select Vref source and analog input pin
+    // left adjusted result (8bit resolution)
+    ADCSRB = 0x00;
+    ADMUX = (ref << REFS0) | (1 << ADLAR) | (channel << MUX0);
+    // disable digital input buffer of pins used as analog inputs
+    DIDR0 = pinmask;
+}
+
+void adc_change_channel(adc_channel_t channel) {
+	ADMUX = (ADMUX & ~(0xf)) | (channel << MUX0);
+}
+
+
+uint8_t adc_single_read() {
+	ADCSRA &= ~_BV(ADIF);
+	
+	ADCSRA |= (1 << ADSC);
+	
+	// wait until the conversion finishes
+	while(!(ADCSRA & (1<<ADIF)));
+	
+	// only reads ADCH because ADC is in left adjusted mode for an 8 bits
+	// resoution. is convenient to use ADCH instead of ADCL because ADCH must
+	// be always read in order to allow other conversions to start
+	return ADCH;
+}

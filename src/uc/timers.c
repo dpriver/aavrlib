@@ -91,7 +91,7 @@ void timers_init() {
 // basic delay
 void timer0_delay(uint8_t ms) {
 	power_timer0_enable();
-	
+
 }
 
 
@@ -169,7 +169,7 @@ uint16_t get_uptime_sec() {
 
 // complete uptime
 void get_uptime(uint16_t sec, uint16_t ms, uint16_t us) {
-	min = curr_sec;
+	sec = curr_sec;
 	ms = curr_ms;
 	us = TCNT1;
 }

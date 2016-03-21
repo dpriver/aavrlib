@@ -1,5 +1,5 @@
 # gitignore for the project "Arduino AVR library" or "aavr"
 
-# Ignore temp and bin directories
-temp/
+# Ignore build directories
 bin/
+build/

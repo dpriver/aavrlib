@@ -26,13 +26,6 @@
 #include <avr/io.h>
 
 
-// Arduino pins convenience macros
-// Really, PORTxn is the corresponding PIN for the IOPORT value register, but, 
-// since all 3 IOPORTS registers (PORTx, PINx, DDRx) use the same bit for the 
-// same pin, it works... (by the time) 
-// if this changes in the future, a fix would be mandatory
-
-
 // Digital IOport A
 #define PIN_0	(1 << PORTD0)
 #define PIN_1	(1 << PORTD1)
@@ -68,36 +61,41 @@
 #define SET		= (
 
 // _CONFIG_MODE values
-#define INPUT 	|= (
-#define OUTPUT 	&= ~(
+#define OUTPUT 	|= (
+#define INPUT 	&= ~(
 
 //	_VALUE_MODE values
 #define HIGH	|= (
-#define LOW		$= ~(
+#define LOW		&= ~(
 
 // _PORT values
-#define PORT_A	DDRD
-#define PORT_B	DDRB
+#define PORT_A	DDRC
+#define PORT_B	DDRD
+#define PORT_C	DDRB
 
+
+#define PORT_A_V PORTC
+#define PORT_B_V PORTD
+#define PORT_C_V PORTB
 
 // Configure and set values for digital I/O pins
 // for example:
 // 	pins 0, 3, 5 as output    
-//	DIGITAL_CONFIG(OUTPUT, PORT_A, PIN0 | PIN3 | PIN5);
+//	DIGITAL_CONFIG(OUTPUT, PORT_B, PIN0 | PIN3 | PIN5);
 
 // 	pins 8, 12, 13 as input    
-//	DIGITAL_CONFIG(OUTPUT, PORT_B, PIN8 | PIN12 | PIN13);
+//	DIGITAL_CONFIG(OUTPUT, PORT_C, PIN8 | PIN12 | PIN13);
 
 // 	pins 0, 3 as 1, and 11 as 0
-//	DIGITAL_VALUE(HIGH, PORT_A, PIN0 | PIN3);
-//	DIGITAL_VALUE(LOW, PORT_B, PIN11);
+//	DIGITAL_VALUE(HIGH, PORT_B, PIN0 | PIN3);
+//	DIGITAL_VALUE(LOW, PORT_C, PIN11);
 
 // Of course, unless included in the mask, or invoked in SET mode, the other
 // port pins keep their previous value and configuration.
 
-#define DIGITAL_CONFIG(_CONFIG_MODE, _PORT,  pinmask) \
+#define IOPORT_CONFIG(_CONFIG_MODE, _PORT,  pinmask) \
 	_PORT _CONFIG_MODE pinmask )
 
 
-#define DIGITAL_VALUE(_VALUE_MODE, _PORT, pinmask) \
+#define IOPORT_VALUE(_VALUE_MODE, _PORT, pinmask) \
 	_PORT _VALUE_MODE pinmask )

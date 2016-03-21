@@ -74,7 +74,7 @@ uint16_t get_uptime_us();
 uint16_t get_uptime_ms();
 
 // 0-65535 minutes
-uint16_t get_uptime_min();
+uint16_t get_uptime_sec();
 
 // complete uptime
 void get_uptime(uint16_t min, uint16_t ms, uint16_t us);
