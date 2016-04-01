@@ -16,12 +16,12 @@ int main( void ) {
 
 	timers_init();
 	
-	DDRD |= _BV(DDD3) | _BV(DDD6) | _BV(DDD5); 
-	//IOPORT_CONFIG(OUTPUT, PORT_A, PIN_PWM_0 | PIN3);
-	PORTD |= _BV(PORTD3);
-	//IOPORT_VALUE(HIGH, PORT_A, PIN3);
+	//DDRD |= _BV(DDD3) | _BV(DDD6) | _BV(DDD5); 
+	IOPORT_CONFIG(OUTPUT, PORT_B, PIN_5 | PIN_3);
+	//PORTD |= _BV(PORTD3);
+	IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);
 
-	//timer0_fast_pwm(prescale_1024, 255, 50);
+	timer0_pcorrect_pwm(prescale_8, 255, 125);
 	
 	while(1);
 	
