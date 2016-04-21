@@ -74,6 +74,6 @@
 	_PORT _CONFIG_MODE pinmask )
 
 
-#define DIGITAL_VALUE(_VALUE_MODE, _PORT, pinmask)
+#define DIGITAL_VALUE(_VALUE_MODE, _PORT, pinmask) \
 	_PORT _VALUE_MODE pinmask )
 

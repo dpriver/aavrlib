@@ -175,6 +175,24 @@ void get_uptime(uint16_t sec, uint16_t ms, uint16_t us) {
 }
 
 
+void timer2_ctc(prescale_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
+    
+	power_timer2_enable();
+    ASSR    = 0;
+	TCNT2 	= 0;
+    
+	OCR2A 	= top_cnt;
+	OCR2B 	= interrupt_cnt;
+	TIMSK2 	= (0x1 << OCIE2B);
+	TCCR2A 	= (0x2 << WGM20);
+	TCCR2B 	= (prescale << CS00);
+
+}
+
+void timer2_set_interrupt_cnt(uint8_t interrupt_cnt) {
+    OCR2B = interrupt_cnt;
+}
+
 // System tick ISR
 ISR(TIMER0_COMPA_vect, ISR_BLOCK) {
 	// Counts 60.000 cycles at 1/ms freq 

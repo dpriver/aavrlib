@@ -45,6 +45,11 @@ typedef enum {
 	prescale_256=0x04, prescale_1024=0x05
 } prescale_t;
 
+#define SOFTPWM_DUTY_ISR() ISR(TIMER2_COMPB_vect, ISR_BLOCK)
+
+#define SOFTPWM_TOP_ISR() ISR(TIMER2_COMPA_vect, ISR_BLOCK)
+
+#define PWM_TIMER timer2
 
 
 void timers_init();
@@ -79,5 +84,8 @@ uint16_t get_uptime_sec();
 // complete uptime
 void get_uptime(uint16_t min, uint16_t ms, uint16_t us);
 
+void timer2_ctc(prescale_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt);
+
+void timer2_set_interrupt_cnt(uint8_t interrupt_cnt);
 
 #endif /* __TIMERS */
