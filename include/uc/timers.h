@@ -39,20 +39,46 @@
 #include <avr/power.h>
 #include <stdint.h>
 
-
+// timer 0 and 1
 typedef enum {
-	disabled=0x00, no_prescale=0x01, prescale_8=0x02, prescale_64=0x03, 
+	disabled=0x00, prescale_0=0x01, prescale_8=0x02, prescale_64=0x03, 
 	prescale_256=0x04, prescale_1024=0x05
-} prescale_t;
+} prescale_0_1_t;
+
+// timer2 
+typedef enum {
+	disabled2=0x0, prescale2_0=0x1, prescale2_8=0x2, prescale2_32=0x3, prescale2_64=0x4, 
+	prescale2_128=0x5, prescale2_256=0x6, prescale2_1024=0x7
+} prescale_2_t;
+
+
 
 #define SOFTPWM_DUTY_ISR() ISR(TIMER2_COMPB_vect, ISR_BLOCK)
 
 #define SOFTPWM_TOP_ISR() ISR(TIMER2_COMPA_vect, ISR_BLOCK)
 
-#define PWM_TIMER timer2
+#define SOFTPWM_TIMER timer2
+
+#define SOFTPWM_PRESC(presc) prescale2_ ## presc
+
+
+
+#define SYSTICK_ISR ISR(TIMER0_COMPA_vect, ISR_BLOCK)
+
+#define SYSTICK_TIMER timer1
+
+#define SYSTICK_CURR_COUNT() (TCNT1)
+
+#define SYSTICK_PRESC(presc) prescale_ ## presc
+
 
 
 void timers_init();
+
+/*******************************************************************************
+ *         Timer 0
+ *******************************************************************************
+*/
 
 // basic delay
 void timer0_delay(uint8_t ms);
@@ -60,31 +86,29 @@ void timer0_delay(uint8_t ms);
 // generate fast PWM in PIN6  
 //	freq_pwm = F_CPU/((freq_cnt+1)*prescale)
 //	duty	 = duty_cnt/freq_cnt
-void timer0_fast_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt);
+void timer0_fast_pwm(prescale_0_1_t prescale, uint8_t freq_cnt, uint8_t duty_cnt);
 
 // generate phase corect PWM in PIN6  
 //	freq_pwm = F_CPU/((2*freq_cnt)*prescale)
 //	duty	 = duty_cnt/freq_cnt
-void timer0_pcorrect_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt);
+void timer0_pcorrect_pwm(prescale_0_1_t prescale, uint8_t freq_cnt, uint8_t duty_cnt);
 
 void timer0_stop();
 
-// Init system tick feature
-void timer1_systick_init();
 
-// 0-999 us
-uint16_t get_uptime_us();
 
-// 0-59999 miliseconds
-uint16_t get_uptime_ms();
+/*******************************************************************************
+ *         Timer 1
+ *******************************************************************************
+*/
+void timer1_ctc(prescale_0_1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt);
 
-// 0-65535 minutes
-uint16_t get_uptime_sec();
 
-// complete uptime
-void get_uptime(uint16_t min, uint16_t ms, uint16_t us);
-
-void timer2_ctc(prescale_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt);
+/*******************************************************************************
+ *         Timer 2
+ *******************************************************************************
+*/
+void timer2_ctc(prescale_2_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt);
 
 void timer2_set_interrupt_cnt(uint8_t interrupt_cnt);
 

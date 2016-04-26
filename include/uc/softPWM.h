@@ -22,3 +22,22 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ********************************************************************************/
+
+
+#ifndef __SOFTPWM
+#define __SOFTPWM
+
+void softPWM_init();
+
+uint8_t softPWM_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+    volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width);
+
+uint8_t softPWM_stop_signal(uint8_t slot);
+
+uint8_t softPWM_set_pulse_width(uint8_t slot, uint8_t pulse_width);
+
+void softPWM_start();
+
+void softPWM_stop();
+
+#endif /* SOFTPWM */

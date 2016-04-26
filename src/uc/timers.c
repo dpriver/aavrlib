@@ -67,10 +67,6 @@
 #include <avr/interrupt.h>
 #include "uc/timers.h"
 
-// variables to count the system uptime
-static uint16_t curr_sec;
-static uint16_t curr_ms;
-
 
 
 void timers_init() {
@@ -98,15 +94,17 @@ void timer0_delay(uint8_t ms) {
 // generate fast PWM in PIN5 (OC0B)
 //	freq_pwm = F_FPU/((freq_cnt+1)*prescale)
 //	duty	 = duty_cnt/freq_cnt
-void timer0_fast_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
+void timer0_fast_pwm(prescale_0_1_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
 	// clear OC0B on compare match (with OCR0B)
 	// fast PWM with OCR0A as TOP
 	
 	power_timer0_enable();
 	TCNT0 	= 0;
+    
 	OCR0A 	= freq_cnt;
 	OCR0B 	= duty_cnt;
 	TIMSK0 	= 0;
+    
 	TCCR0A 	= (0x2 << COM0B0) | (0x3 << WGM00);
 	TCCR0B 	= (0x1 << WGM02) | (prescale << CS00);
 }
@@ -115,14 +113,16 @@ void timer0_fast_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
 // generate phase corect PWM in PIN6  
 //	freq_pwm = F_FPU/((2*freq_cnt)*prescale)
 //	duty	 = duty_cnt/freq_cnt
-void timer0_pcorrect_pwm(prescale_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
+void timer0_pcorrect_pwm(prescale_0_1_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
 	// clear OC0B on compare match (with OCR0B)
 	// phase correct PWM with OCR0A as TOP
 	power_timer0_enable();
 	TCNT0 	= 0;
+    
 	OCR0A 	= freq_cnt;
 	OCR0B 	= duty_cnt;
 	TIMSK0 	= 0;
+    
 	TCCR0A 	= (0x2 << COM0B0) | (0x1 << WGM00);
 	TCCR0B 	= (0x1 << WGM02) | (prescale << CS00);
 }
@@ -133,49 +133,22 @@ void timer0_stop() {
 }
 
 
-// Init system tick feature
-void timer1_systick_init() {
-	curr_ms = 0;
-	curr_sec = 0;
-	
-	power_timer1_enable();
-	
-	TCNT1 	= 0;
-	OCR1A 	= 2000;
-	OCR1B 	= 0;
-	TIMSK1 	= (1 << OCIE1A);
-	TCCR1A 	= 0;
-	TCCR1B 	= (1 << WGM12) | (prescale_8 << CS10);
+void timer1_ctc(prescale_0_1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt) {
+    
+    power_timer1_enable();
+    
+    TCNT1 = 0;
+    
+    OCR1A = top_cnt;
+    OCR1B = interrupt_cnt;
+    TIMSK1 = _BV(OCIE1B);
+
+    TCCR1A = 0;
+    TCCR1B = (0x1 << WGM12) | (prescale << CS10);
 }
 
 
-// 0-999 us
-uint16_t get_uptime_us() {
-	return TCNT1;
-}
-
-
-// 0-59999 miliseconds
-uint16_t get_uptime_ms() {
-	return curr_ms;
-}
-
-
-// 0-65535 secods
-uint16_t get_uptime_sec() {
-	return curr_sec;
-}
-
-
-// complete uptime
-void get_uptime(uint16_t sec, uint16_t ms, uint16_t us) {
-	sec = curr_sec;
-	ms = curr_ms;
-	us = TCNT1;
-}
-
-
-void timer2_ctc(prescale_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
+void timer2_ctc(prescale_2_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
     
 	power_timer2_enable();
     ASSR    = 0;
@@ -183,24 +156,13 @@ void timer2_ctc(prescale_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
     
 	OCR2A 	= top_cnt;
 	OCR2B 	= interrupt_cnt;
-	TIMSK2 	= (0x1 << OCIE2B);
+	TIMSK2 	= _BV(OCIE2B) | _BV(OCIE2A);
+    
 	TCCR2A 	= (0x2 << WGM20);
-	TCCR2B 	= (prescale << CS00);
+	TCCR2B 	= (prescale << CS20);
 
 }
 
 void timer2_set_interrupt_cnt(uint8_t interrupt_cnt) {
     OCR2B = interrupt_cnt;
-}
-
-// System tick ISR
-ISR(TIMER0_COMPA_vect, ISR_BLOCK) {
-	// Counts 60.000 cycles at 1/ms freq 
-	if (curr_ms == 59999) {
-		++curr_sec;
-		curr_ms = 0;
-	}
-	else {
-		++curr_ms;
-	}
 }

@@ -30,6 +30,7 @@
 #include "uc/softPWM.h"
 #include "uc/timers.h"
 #include "arduino/arduinoUNO.h"
+#include "uc/usart.h"
 
 
 // max pwm signals
@@ -41,7 +42,7 @@
 // servo max duty should be >= 2ms
 #define SERVO_MAX_DUTY 2
 
-#define PWM_PRESCALE (prescale_256)
+#define PWM_PRESCALE (0x6)
 
 // It fucking complains because of integer overflow...
 //#define PWM_TOP_CNT (F_CPU/(256*SERVO_FREC*MAX_SIGNALS))
@@ -77,79 +78,120 @@
 
 
 // Start the timer configured to use by softpwm
-#define SOFTPWM_TIMER_START() _TIMER_START_EXP1(PWM_TIMER)
+#define SOFTPWM_TIMER_START() _TIMER_START_EXP1(SOFTPWM_TIMER)
+
+// Stop the timer configured to use by softpwm
+#define SOFTPWM_TIMER_STOP()
 
 // Set duty count in the timer configured to use by softpwm
-#define SOFTPWM_TIMER_SET_DUTY_COUNT(count) _TIMER_SET_DUTY_CNT_EXP1(PWM_TIMER, count)
+#define SOFTPWM_TIMER_SET_DUTY_COUNT(count) _TIMER_SET_DUTY_CNT_EXP1(SOFTPWM_TIMER, count)
 
 
 
 // variable definitions
 
 // should have a value between 1 and PWM_TOP_CNT
-static uint8_t duty_count[MAX_SIGNALS];
+uint8_t duty_count[MAX_SIGNALS];
 
 // PIN_x, defined in arduinoUNO.h
-static uint8_t signal_pin[MAX_SIGNALS];
+uint8_t signal_pin[MAX_SIGNALS];
 
 // PORT_x defined in arduinoUNO.h
-static volatile uint8_t *signal_port[MAX_SIGNALS];
+volatile uint8_t *signal_port[MAX_SIGNALS];
 
-uint8_t num_signals;
 uint8_t curr_signal;
 
 
 
 void softPWM_init() {
     int i;
-    num_signals = 0;
     curr_signal = 0;
     
     for(i = MAX_SIGNALS; i>0 ; --i) {
-        duty_count[i] = 0;
+       duty_count[i] = 0;
     }
 }
 
-void softPWM_add_pwm(uint8_t pin, volatile uint8_t *port, uint8_t pwm_duty) {
-    signal_pin[num_signals] = pin;
-    signal_port[num_signals] = port;
-    duty_count[num_signals] = pwm_duty;
+
+uint8_t softPWM_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+    volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width) {
+        
+    if (slot >= MAX_SIGNALS)
+        return -1;
+
+    if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
+        return -1;
+
+    signal_pin[slot] = pin;
+    signal_port[slot] = data_port;
+    duty_count[slot] = pulse_width;
     
-    IOPORT_CONFIG(OUTPUT, *port, pin);
+    IOPORT_CONFIG(OUTPUT, *config_port, pin);
     
-    ++num_signals;
+    return slot;
 }
+
+
+uint8_t softPWM_stop_signal(uint8_t slot) {
+    
+    if (slot >= MAX_SIGNALS)
+        return -1;
+    
+    duty_count[slot] = 0;
+    
+    IOPORT_VALUE(LOW, *(signal_port[slot]), signal_pin[slot]);
+    
+    return 0;
+}
+
+
+uint8_t softPWM_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
+    if (slot >= MAX_SIGNALS)
+        return -1;
+    
+    if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
+        return -1;
+    
+    duty_count[slot] = pulse_width;
+    
+    return pulse_width;
+}
+
 
 void softPWM_start() {
     SOFTPWM_TIMER_START();
-    
 }
 
+
 void softPWM_stop() {
-    
+    SOFTPWM_TIMER_STOP();
 }
+
 
 // ctc top
 SOFTPWM_TOP_ISR() {
-
-    // Set signal pin as 1
-    IOPORT_VALUE(HIGH, *(signal_port[curr_signal]), signal_pin[curr_signal]);
-
     // change to next pwm signal
-    if (curr_signal < (num_signals-1)) {
+
+    if(duty_count[curr_signal] > 0) {
+        // Set signal pin as 1
+        IOPORT_VALUE(HIGH, *(signal_port[curr_signal]), signal_pin[curr_signal]);
+        //IOPORT_VALUE(HIGH, PORT_B_V, PIN_4);
+        
+        // set interrupt count to current signal's duty count
+        SOFTPWM_TIMER_SET_DUTY_COUNT(duty_count[curr_signal]);
+    }
+}
+
+// duty interrupt
+SOFTPWM_DUTY_ISR() {
+    // set signal pin as 0
+    IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
+    //IOPORT_VALUE(LOW, PORT_B_V, PIN_4);
+
+    if (curr_signal < (MAX_SIGNALS-1)) {
         ++curr_signal;
     }
     else {
         curr_signal = 0;
     }
-    
-    // set interrupt count to current signal's duty count
-    SOFTPWM_TIMER_SET_DUTY_COUNT(duty_count[curr_signal]);
-}
-
-// duty interrupt
-SOFTPWM_DUTY_ISR() {
-    
-    // set signal pin as 0
-    IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
 }
