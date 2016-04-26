@@ -28,7 +28,7 @@ SET(CMAKE_AR ${AVRAR})
 SET(CMAKE_BUILD_TYPE debug)
 
 SET(CSTANDARD "-std=gnu99")
-SET(CWARN "-Wall -Wpedantic")
+SET(CWARN "-Wall")
 SET(CTUNING "")
 SET(CDEBUG "")
 #SET(COPT "-Os -flto -fuse-linker-plugin")

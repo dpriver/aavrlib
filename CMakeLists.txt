@@ -36,6 +36,8 @@ add_subdirectory( src )
 add_library(aavr STATIC $<TARGET_OBJECTS:uc_objects>
 	$<TARGET_OBJECTS:arduino_objects> $<TARGET_OBJECTS:peripherals_objects>)
 
+# add_library(aavr STATIC $<TARGET_OBJECTS:uc_objects> $<TARGET_OBJECTS:peripherals_objects>)
+
 # compile tests
 add_subdirectory( test )
 
