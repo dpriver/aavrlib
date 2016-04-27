@@ -61,9 +61,21 @@ typedef enum {
 
 #define SOFTPWM_PRESC(presc) prescale2_ ## presc
 
+#define SOFTPWM_CURR_CNT() (TCNT2)
 
 
-#define SYSTICK_ISR ISR(TIMER0_COMPA_vect, ISR_BLOCK)
+#define SOFTPWM_L_DUTY_ISR() ISR(TIMER0_COMPB_vect, ISR_BLOCK)
+
+#define SOFTPWM_L_TOP_ISR() ISR(TIMER0_COMPA_vect, ISR_BLOCK)
+
+#define SOFTPWM_L_TIMER timer0
+
+#define SOFTPWM_L_PRESC(presc) prescale_ ## presc
+
+#define SOFTPWM_L_CURR_CNT() (TCNT0)
+
+
+#define SYSTICK_ISR ISR(TIMER1_COMPA_vect, ISR_BLOCK)
 
 #define SYSTICK_TIMER timer1
 
@@ -82,6 +94,10 @@ void timers_init();
 
 // basic delay
 void timer0_delay(uint8_t ms);
+
+void timer0_ctc(prescale_0_1_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt);
+
+void timer0_set_interrupt_cnt(uint8_t interrupt_cnt);
 
 // generate fast PWM in PIN6  
 //	freq_pwm = F_CPU/((freq_cnt+1)*prescale)

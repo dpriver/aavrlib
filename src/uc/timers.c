@@ -91,6 +91,24 @@ void timer0_delay(uint8_t ms) {
 }
 
 
+void timer0_ctc(prescale_0_1_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
+	power_timer0_enable();
+	TCNT0 	= 0;
+    
+	OCR0A 	= top_cnt;
+	OCR0B 	= interrupt_cnt;
+	TIMSK0 	= _BV(OCIE2B) | _BV(OCIE2A);
+    
+	TCCR0A 	= (0x2 << WGM20);
+	TCCR0B 	= (prescale << CS20);
+}
+
+
+void timer0_set_interrupt_cnt(uint8_t interrupt_cnt) {
+    OCR0B = interrupt_cnt;
+}
+
+
 // generate fast PWM in PIN5 (OC0B)
 //	freq_pwm = F_FPU/((freq_cnt+1)*prescale)
 //	duty	 = duty_cnt/freq_cnt
