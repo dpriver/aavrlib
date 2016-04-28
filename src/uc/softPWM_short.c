@@ -1,5 +1,5 @@
 /*******************************************************************************
- *	softPWM.h
+ *	softPWM_short.c
  *
  *  Definitions and macros for the arduinoUNO board
  *
@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 
-#include "uc/softPWM.h"
+#include "uc/softPWM_short.h"
 #include "uc/timers.h"
 #include "arduino/arduinoUNO.h"
 #include "uc/usart.h"

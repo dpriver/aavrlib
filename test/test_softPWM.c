@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <avr/power.h>
 #include <uc/timers.h>
-#include <uc/softPWM.h>
+#include <uc/softPWM_short.h>
 #include <uc/usart.h>
 #include <uc/analog.h>
 #include <avr/interrupt.h>

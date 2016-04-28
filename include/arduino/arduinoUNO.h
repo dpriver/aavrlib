@@ -53,9 +53,6 @@
 #define PIN_A5	(1 << PORTC5)
 
 
-#define PIN_PWM_0	PIN_6
-
-
 // _MODE values
 // SET can be used for both _CONFIG_MODE and _VALUE_MODE
 #define SET		= (
