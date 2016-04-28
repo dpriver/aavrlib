@@ -175,7 +175,7 @@ void softPWM_stop() {
 // ctc top
 // Set all signals
 // set the first compare interrupt value
-SOFTPWM_TOP_ISR() {
+SOFTPWM_L_TOP_ISR() {
     // min value greater than current count
     uint8_t i;
     uint8_t min_value = 0;
@@ -199,7 +199,7 @@ SOFTPWM_TOP_ISR() {
 // Clear the corresponding signals and set the new compare interrupt value
 // each timer_prescaler cycles, an interrupt can potencially be triggered, so this function
 // have to be checked for time constraints
-SOFTPWM_DUTY_ISR() {
+SOFTPWM_L_DUTY_ISR() {
     uint8_t i;
     uint8_t min_value = 0;
     uint8_t curr_count = SOFTPWM_L_CURR_CNT();

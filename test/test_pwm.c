@@ -21,7 +21,7 @@ int main( void ) {
 	//PORTD |= _BV(PORTD3);
 	IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);
 
-	timer0_pcorrect_pwm(prescale_1024, 255, 20);
+	timer0_pcorrect_pwm(prescale0_1024, 255, 20);
 	
 	while(1);
 	

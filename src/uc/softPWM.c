@@ -69,7 +69,7 @@
  */
 
 // three level recursion needed to work with PWM_TIMER macro defined in timers.h
-#define _TIMER_START_EXP2(TIMER) TIMER ## _ctc(PWM_PRESCALE, PWM_TOP_CNT, UINT8_MAX)
+#define _TIMER_START_EXP2(TIMER) TIMER ## _ctc(SOFTPWM_S_PRESC(256), PWM_TOP_CNT, UINT8_MAX)
 #define _TIMER_START_EXP1(TIMER) _TIMER_START_EXP2(TIMER)
 
 #define _TIMER_SET_DUTY_CNT_EXP2(TIMER, count) TIMER ## _set_interrupt_cnt(count)
@@ -78,13 +78,13 @@
 
 
 // Start the timer configured to use by softpwm
-#define SOFTPWM_TIMER_START() _TIMER_START_EXP1(SOFTPWM_TIMER)
+#define SOFTPWM_TIMER_START() _TIMER_START_EXP1(SOFTPWM_S_TIMER)
 
 // Stop the timer configured to use by softpwm
 #define SOFTPWM_TIMER_STOP()
 
 // Set duty count in the timer configured to use by softpwm
-#define SOFTPWM_TIMER_SET_DUTY_COUNT(count) _TIMER_SET_DUTY_CNT_EXP1(SOFTPWM_TIMER, count)
+#define SOFTPWM_TIMER_SET_DUTY_COUNT(count) _TIMER_SET_DUTY_CNT_EXP1(SOFTPWM_S_TIMER, count)
 
 
 
@@ -169,7 +169,7 @@ void softPWM_stop() {
 
 
 // ctc top
-SOFTPWM_TOP_ISR() {
+SOFTPWM_S_TOP_ISR() {
     // change to next pwm signal
 
     if(duty_count[curr_signal] > 0) {
@@ -183,7 +183,7 @@ SOFTPWM_TOP_ISR() {
 }
 
 // duty interrupt
-SOFTPWM_DUTY_ISR() {
+SOFTPWM_S_DUTY_ISR() {
     // set signal pin as 0
     IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
     //IOPORT_VALUE(LOW, PORT_B_V, PIN_4);
@@ -194,4 +194,6 @@ SOFTPWM_DUTY_ISR() {
     else {
         curr_signal = 0;
     }
+
 }
+

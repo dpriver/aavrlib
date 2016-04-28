@@ -91,7 +91,7 @@ void timer0_delay(uint8_t ms) {
 }
 
 
-void timer0_ctc(prescale_0_1_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
+void timer0_ctc(prescale0_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
 	power_timer0_enable();
 	TCNT0 	= 0;
     
@@ -112,7 +112,7 @@ void timer0_set_interrupt_cnt(uint8_t interrupt_cnt) {
 // generate fast PWM in PIN5 (OC0B)
 //	freq_pwm = F_FPU/((freq_cnt+1)*prescale)
 //	duty	 = duty_cnt/freq_cnt
-void timer0_fast_pwm(prescale_0_1_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
+void timer0_fast_pwm(prescale0_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
 	// clear OC0B on compare match (with OCR0B)
 	// fast PWM with OCR0A as TOP
 	
@@ -131,7 +131,7 @@ void timer0_fast_pwm(prescale_0_1_t prescale, uint8_t freq_cnt, uint8_t duty_cnt
 // generate phase corect PWM in PIN6  
 //	freq_pwm = F_FPU/((2*freq_cnt)*prescale)
 //	duty	 = duty_cnt/freq_cnt
-void timer0_pcorrect_pwm(prescale_0_1_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
+void timer0_pcorrect_pwm(prescale0_t prescale, uint8_t freq_cnt, uint8_t duty_cnt) {
 	// clear OC0B on compare match (with OCR0B)
 	// phase correct PWM with OCR0A as TOP
 	power_timer0_enable();
@@ -151,7 +151,7 @@ void timer0_stop() {
 }
 
 
-void timer1_ctc(prescale_0_1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt) {
+void timer1_ctc(prescale1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt) {
     
     power_timer1_enable();
     
@@ -166,7 +166,7 @@ void timer1_ctc(prescale_0_1_t prescale, uint16_t top_cnt, uint16_t interrupt_cn
 }
 
 
-void timer2_ctc(prescale_2_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
+void timer2_ctc(prescale2_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
     
 	power_timer2_enable();
     ASSR    = 0;
