@@ -36,18 +36,18 @@
 
 
 
-void softPWM_init();
+void softPWM_l_init();
 
-uint8_t softPWM_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+uint8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 
     volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width);
 
-uint8_t softPWM_stop_signal(uint8_t slot);
+uint8_t softPWM_l_stop_signal(uint8_t slot);
 
-uint8_t softPWM_set_pulse_width(uint8_t slot, uint8_t pulse_width);
+uint8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width);
 
-void softPWM_start();
+void softPWM_l_start();
 
-void softPWM_stop();
+void softPWM_l_stop();
 
 
 #endif /* __SOFTPWM_LONG */

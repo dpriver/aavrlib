@@ -107,7 +107,7 @@ uint8_t curr_signal;
 
 
 
-void softPWM_init() {
+void softPWM_l_init() {
     int i;
     curr_signal = 0;
     
@@ -117,7 +117,7 @@ void softPWM_init() {
 }
 
 
-uint8_t softPWM_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+uint8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 
     volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width) {
         
     if (slot >= MAX_SIGNALS)
@@ -136,7 +136,7 @@ uint8_t softPWM_add_signal(uint8_t pin, volatile uint8_t *config_port,
 }
 
 
-uint8_t softPWM_stop_signal(uint8_t slot) {
+uint8_t softPWM_l_stop_signal(uint8_t slot) {
     
     if (slot >= MAX_SIGNALS)
         return -1;
@@ -149,7 +149,7 @@ uint8_t softPWM_stop_signal(uint8_t slot) {
 }
 
 
-uint8_t softPWM_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
+uint8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
     if (slot >= MAX_SIGNALS)
         return -1;
     
@@ -162,12 +162,12 @@ uint8_t softPWM_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
 }
 
 
-void softPWM_start() {
+void softPWM_l_start() {
     SOFTPWM_TIMER_START();
 }
 
 
-void softPWM_stop() {
+void softPWM_l_stop() {
     SOFTPWM_TIMER_STOP();
 }
 
