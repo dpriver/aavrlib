@@ -94,11 +94,11 @@ typedef enum {
 
 // GENERIC TIMER MACROS (internal use)
 // Needed in order to expand correctly the timer macros
-#define _DUTY_ISR_EXP(TIM)      TIM ## _COMPB_ISR
-#define _DUTY_ISR(TIM)          _DUTY_ISR_EXP(TIM)
+#define _COMPB_ISR_EXP(TIM)      TIM ## _COMPB_ISR
+#define _COMPB_ISR(TIM)          _COMPB_ISR_EXP(TIM)
 
-#define _TOP_ISR_EXP(TIM)       TIM ## _COMPA_ISR
-#define _TOP_ISR(TIM)           _TOP_ISR_EXP(TIM)
+#define _COMPA_ISR_EXP(TIM)       TIM ## _COMPA_ISR
+#define _COMPA_ISR(TIM)           _COMPA_ISR_EXP(TIM)
 
 #define _TIMER_EXP(TIM)         TIM ## _TIMER
 #define _TIMER(TIM)             _TIMER_EXP(TIM)
@@ -129,22 +129,28 @@ typedef enum {
  **/
 #define _SOFTPWM_S_TIMER TIMER0
 #define _SOFTPWM_L_TIMER TIMER2
+#define _SYSTICK_TIMER   TIMER1
 
 
 /* short pulse softPWM macros*/
-#define SOFTPWM_S_DUTY_ISR()     _DUTY_ISR(_SOFTPWM_S_TIMER)
-#define SOFTPWM_S_TOP_ISR()      _TOP_ISR(_SOFTPWM_S_TIMER)
+#define SOFTPWM_S_DUTY_ISR()     _COMPB_ISR(_SOFTPWM_S_TIMER)
+#define SOFTPWM_S_TOP_ISR()      _COMPA_ISR(_SOFTPWM_S_TIMER)
 #define SOFTPWM_S_TIMER          _TIMER(_SOFTPWM_S_TIMER)
 #define SOFTPWM_S_PRESC(presc)   _PRESC(_SOFTPWM_S_TIMER, presc)
 #define SOFTPWM_S_CURR_CNT()     _CURR_CNT(_SOFTPWM_S_TIMER)
 
 /* long pulse softPWM macros*/
-#define SOFTPWM_L_DUTY_ISR()     _DUTY_ISR(_SOFTPWM_L_TIMER)  
-#define SOFTPWM_L_TOP_ISR()      _TOP_ISR(_SOFTPWM_L_TIMER)
+#define SOFTPWM_L_DUTY_ISR()     _COMPB_ISR(_SOFTPWM_L_TIMER)  
+#define SOFTPWM_L_TOP_ISR()      _COMPA_ISR(_SOFTPWM_L_TIMER)
 #define SOFTPWM_L_TIMER          _TIMER(_SOFTPWM_L_TIMER)
 #define SOFTPWM_L_PRESC(presc)   _PRESC(_SOFTPWM_L_TIMER, presc)
 #define SOFTPWM_L_CURR_CNT()     _CURR_CNT(_SOFTPWM_L_TIMER)
 
+/* system tick */
+#define SYSTICK_ISR()            _COMPA_ISR(_SYSTICK_TIMER)
+#define SYSTICK_TIMER            _TIMER(_SYSTICK_TIMER)
+#define SYSTICK_PRESC(presc)     _PRESC(_SYSTICK_TIMER, presc)
+#define SYSTICK_CURR_CNT()       _CURR_CNT(_SYSTICK_TIMER)
 
 
 /*******************************************************************************
