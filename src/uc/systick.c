@@ -32,8 +32,30 @@
 #include "uc/timers.h"
 
 
-#define PRESC       8
-#define SYSTICK_TOP_CNT     2000
+/*
+ * timer1 is a 16bit timer, so a valid configuration can be ctc mode with
+ * presc = 8
+ * top = 2000, 
+ * so frequency results in 16000000/(8*2000) = 1000Hz, with a resolution of
+ * 1/2 ms.
+ * 
+ * If systick is configured to work in a 8bit timer, it can be ctc mode with
+ * presc = 64
+ * top = 250
+ * so frequency is 1000Hz again, with a resolution of 4ms.
+ */
+
+#if SYSTICK_RESOLUTION == 16
+
+    #define PRESC       8
+    #define SYSTICK_TOP_CNT     2000
+    
+#elif SYSTICK_RESOLUTION == 8
+
+    #define PRESC       64
+    #define SYSTICK_TOP_CNT     250
+    
+#endif
 
 
 #define _TIMER_START_EXP2(TIMER)    TIMER ## _ctc(SYSTICK_PRESC(PRESC), SYSTICK_TOP_CNT, 0)
@@ -65,7 +87,13 @@ void systick_init() {
 
 // 0-999 us
 uint16_t get_uptime_us() {
-	return SYSTICK_CURR_CNT();
+    
+#if SYSTICK_RESOLUTION == 16
+	return SYSTICK_CURR_CNT() >> 1;  // 2000/2
+#elif SYSTICK_RESOLUTION == 8
+    return SYSTICK_CURR_CNT() << 2;   // 250 * 4
+#endif
+
 }
 
 
@@ -86,6 +114,13 @@ void get_uptime(uint16_t sec, uint16_t ms, uint16_t us) {
 	sec = curr_sec;
 	ms = curr_ms;
 	us = SYSTICK_CURR_CNT();
+    
+#if SYSTICK_RESOLUTION == 16
+	us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
+#elif SYSTICK_RESOLUTION == 8
+    us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
+#endif
+
 }
 
 

@@ -166,6 +166,11 @@ void timer1_ctc(prescale1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt) 
 }
 
 
+void timer1_set_interrupt_cnt(uint8_t interrupt_cnt) {
+    OCR1B = interrupt_cnt;
+}
+
+
 void timer2_ctc(prescale2_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
     
 	power_timer2_enable();

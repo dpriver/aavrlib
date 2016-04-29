@@ -73,7 +73,8 @@ typedef enum {
 #define TIMER0_TOV_ISR      ISR(TIMER0_TOV_vect, ISR_BLOCK)
 #define TIMER0_TIMER        timer0
 #define TIMER0_PRESCALER(presc) prescale0_ ## presc
-#define TIMER0_CURR_CNT     (TCNT0)    
+#define TIMER0_CURR_CNT     (TCNT0)   
+#define TIMER0_RESOLUTION   (8) 
 
 // TIMER 1 macros
 #define TIMER1_COMPA_ISR    ISR(TIMER1_COMPA_vect, ISR_BLOCK)
@@ -81,7 +82,8 @@ typedef enum {
 #define TIMER1_TOV_ISR      ISR(TIMER1_TOV_vect, ISR_BLOCK)
 #define TIMER1_TIMER        timer1
 #define TIMER1_PRESCALER(presc) prescale1_ ## presc
-#define TIMER1_CURR_CNT     (TCNT1)    
+#define TIMER1_CURR_CNT     (TCNT1)   
+#define TIMER1_RESOLUTION   (16)  
 
 // TIMER 2 macros
 #define TIMER2_COMPA_ISR    ISR(TIMER2_COMPA_vect, ISR_BLOCK)
@@ -89,7 +91,8 @@ typedef enum {
 #define TIMER2_TOV_ISR      ISR(TIMER2_TOV_vect, ISR_BLOCK)
 #define TIMER2_TIMER        timer2
 #define TIMER2_PRESCALER(presc) prescale2_ ## presc
-#define TIMER2_CURR_CNT     (TCNT2)    
+#define TIMER2_CURR_CNT     (TCNT2)
+#define TIMER2_RESOLUTION   (8) 
 
 
 // GENERIC TIMER MACROS (internal use)
@@ -108,6 +111,9 @@ typedef enum {
 
 #define _CURR_CNT_EXP(TIM)      TIM ## _CURR_CNT
 #define _CURR_CNT(TIM)          _CURR_CNT_EXP(TIM)
+
+#define _RESOLUTION_EXP(TIM)    TIM ## _RESOLUTION
+#define _RESOLUTION(TIM)        _RESOLUTION_EXP(TIM)
 
 
 /*******************************************************************************
@@ -151,7 +157,7 @@ typedef enum {
 #define SYSTICK_TIMER            _TIMER(_SYSTICK_TIMER)
 #define SYSTICK_PRESC(presc)     _PRESC(_SYSTICK_TIMER, presc)
 #define SYSTICK_CURR_CNT()       _CURR_CNT(_SYSTICK_TIMER)
-
+#define SYSTICK_RESOLUTION       _RESOLUTION(_SYSTICK_TIMER)
 
 /*******************************************************************************
  *   TIMERS FUNCTIONALITY
@@ -187,6 +193,7 @@ void timer0_stop();
 */
 void timer1_ctc(prescale1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt);
 
+void timer1_set_interrupt_cnt(uint8_t interrupt_cnt);
 
 /*******************************************************************************
  *         Timer 2
