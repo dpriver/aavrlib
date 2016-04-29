@@ -21,7 +21,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- ********************************************************************************/
+ *******************************************************************************/
 
 #include <avr/io.h>
 #include <stdint.h>
@@ -42,15 +42,15 @@
 
 
 // max pwm signals
-#define MAX_SIGNALS 4
+#define MAX_SIGNALS 10
 
-#define PWM_FREC 500
+#define PWM_FREC 200
 
 #define PWM_PRESCALE SOFTPWM_L_PRESC(1024)
 
 // It fucking complains because of integer overflow...
-//#define PWM_TOP_CNT (F_CPU/(256*SERVO_FREC*MAX_SIGNALS))
-#define PWM_TOP_CNT 31
+//#define PWM_TOP_CNT (F_CPU/(PRESC*PWM_FREC*MAX_SIGNALS))
+#define PWM_TOP_CNT 77
 
 /*
  * The idea here is that softPWM.c does not need to worry about the assigned timer.
@@ -108,19 +108,19 @@ uint8_t curr_signal;
 
 
 void softPWM_l_init() {
-    int i;
+    int8_t i;
     curr_signal = 0;
     
-    for(i = MAX_SIGNALS-1; i>0 ; --i) {
+    for(i = MAX_SIGNALS-1; i>=0 ; i--) {
        duty_count[i] = 0;
     }
 }
 
 
-uint8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 
     volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width) {
         
-    if (slot >= MAX_SIGNALS)
+    if ((slot < 0) || (slot >= MAX_SIGNALS))
         return -1;
 
     if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
@@ -136,7 +136,7 @@ uint8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port,
 }
 
 
-uint8_t softPWM_l_stop_signal(uint8_t slot) {
+int8_t softPWM_l_stop_signal(uint8_t slot) {
     
     if (slot >= MAX_SIGNALS)
         return -1;
@@ -149,11 +149,11 @@ uint8_t softPWM_l_stop_signal(uint8_t slot) {
 }
 
 
-uint8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
+int8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
     if (slot >= MAX_SIGNALS)
         return -1;
     
-    if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
+    if ((pulse_width < 0) || (pulse_width > PWM_TOP_CNT))
         return -1;
     
     duty_count[slot] = pulse_width;
@@ -177,22 +177,23 @@ void softPWM_l_stop() {
 // set the first compare interrupt value
 SOFTPWM_L_TOP_ISR() {
     // min value greater than current count
-    uint8_t i;
-    uint8_t min_value = 0;
+    int8_t i;
+    uint8_t min_value = UINT8_MAX;
     
     // Set all signals
-    for(i = MAX_SIGNALS-1 ; i >= 0 ; i++ ) {
-        IOPORT_VALUE(HIGH, *(signal_port[i]), signal_pin[i]);
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        if ( duty_count[i] > 0) {
+            IOPORT_VALUE(HIGH, *(signal_port[i]), signal_pin[i]);
+        }
     }
 
-    for(i = MAX_SIGNALS-1 ; i >= 0 ; i++ ) {
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
         if( (duty_count[i] > 0) && (duty_count[i] < min_value)) {
             min_value = duty_count[i];
         }
     }
-
-    SOFTPWM_TIMER_SET_DUTY_COUNT(min_value);
     
+    SOFTPWM_TIMER_SET_DUTY_COUNT(min_value);
 }
 
 // ctc compare interrupt
@@ -200,13 +201,12 @@ SOFTPWM_L_TOP_ISR() {
 // each timer_prescaler cycles, an interrupt can potencially be triggered, so this function
 // have to be checked for time constraints
 SOFTPWM_L_DUTY_ISR() {
-    uint8_t i;
-    uint8_t min_value = 0;
+    int8_t i;
+    uint8_t min_value = UINT8_MAX;
     uint8_t curr_count = SOFTPWM_L_CURR_CNT();
-    
 
-    for(i = MAX_SIGNALS-1 ; i >= 0 ; i++ ) {
-        if( duty_count[i] == curr_count ) {
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        if( duty_count[i] == curr_count-1 ) {
             IOPORT_VALUE(LOW, *(signal_port[i]), signal_pin[i]);
         }
         if( (duty_count[i] > curr_count) && (duty_count[i] < min_value)) {
@@ -214,6 +214,7 @@ SOFTPWM_L_DUTY_ISR() {
         }
     }
     
+    
+    
     SOFTPWM_TIMER_SET_DUTY_COUNT(min_value);
-
 }
