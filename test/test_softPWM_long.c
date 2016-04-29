@@ -1,11 +1,11 @@
 /*******************************************************************************
- *	test_softPWMlong.h
+ *  test_softPWMlong.h
  *
- *  timers
+ *  long pulse software PWM test
  *
  *
  *  This file is part of aavrlib
- * 
+ *
  *  Copyright (C) 2015  Dennis Pinto Rivero
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@
 #include <avr/io.h>
 #include <arduino/arduinoUNO.h>
 #include <uc/timers.h>
-#include <uc/softPWM_long.h>
+#include <util/softPWM_long.h>
 #include <uc/analog.h>
 #include <uc/usart.h>
 

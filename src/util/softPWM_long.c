@@ -1,11 +1,11 @@
 /*******************************************************************************
- *	softPWM_short.c
+ *  softPWM_long.h
  *
- *  Definitions and macros for the arduinoUNO board
+ *  Short pulse software PWM generation
  *
  *
  *  This file is part of aavrlib
- * 
+ *
  *  Copyright (C) 2015  Dennis Pinto Rivero
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -21,32 +21,36 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- ********************************************************************************/
+ *******************************************************************************/
 
 #include <avr/io.h>
 #include <stdint.h>
 #include <avr/interrupt.h>
 
-#include "uc/softPWM_short.h"
+#include "util/softPWM_long.h"
 #include "uc/timers.h"
 #include "arduino/arduinoUNO.h"
 #include "uc/usart.h"
 
 
+// NEEDS
+/*
+ * Change the pwm frequency in runtime
+ * Change the duty cycle for each motor indepently
+ * 
+ */
+
+
 // max pwm signals
 #define MAX_SIGNALS 10
 
-// servo frecuency must be set to ~(40, 200)
-#define SERVO_FREC 50
+#define PWM_FREC 200
 
-// servo max duty should be >= 2ms
-#define SERVO_MAX_DUTY 2
-
-#define PWM_PRESCALE (0x6)
+#define PWM_PRESCALE SOFTPWM_L_PRESC(1024)
 
 // It fucking complains because of integer overflow...
-//#define PWM_TOP_CNT (F_CPU/(256*SERVO_FREC*MAX_SIGNALS))
-#define PWM_TOP_CNT 125
+//#define PWM_TOP_CNT (F_CPU/(PRESC*PWM_FREC*MAX_SIGNALS))
+#define PWM_TOP_CNT 77
 
 /*
  * The idea here is that softPWM.c does not need to worry about the assigned timer.
@@ -69,7 +73,7 @@
  */
 
 // three level recursion needed to work with PWM_TIMER macro defined in timers.h
-#define _TIMER_START_EXP2(TIMER) TIMER ## _ctc(SOFTPWM_S_PRESC(256), PWM_TOP_CNT, UINT8_MAX)
+#define _TIMER_START_EXP2(TIMER) TIMER ## _ctc(PWM_PRESCALE, PWM_TOP_CNT, UINT8_MAX)
 #define _TIMER_START_EXP1(TIMER) _TIMER_START_EXP2(TIMER)
 
 #define _TIMER_SET_DUTY_CNT_EXP2(TIMER, count) TIMER ## _set_interrupt_cnt(count)
@@ -78,13 +82,13 @@
 
 
 // Start the timer configured to use by softpwm
-#define SOFTPWM_TIMER_START() _TIMER_START_EXP1(SOFTPWM_S_TIMER)
+#define SOFTPWM_TIMER_START() _TIMER_START_EXP1(SOFTPWM_L_TIMER)
 
 // Stop the timer configured to use by softpwm
 #define SOFTPWM_TIMER_STOP()
 
 // Set duty count in the timer configured to use by softpwm
-#define SOFTPWM_TIMER_SET_DUTY_COUNT(count) _TIMER_SET_DUTY_CNT_EXP1(SOFTPWM_S_TIMER, count)
+#define SOFTPWM_TIMER_SET_DUTY_COUNT(count) _TIMER_SET_DUTY_CNT_EXP1(SOFTPWM_L_TIMER, count)
 
 
 
@@ -103,20 +107,20 @@ uint8_t curr_signal;
 
 
 
-void softPWM_s_init() {
-    int i;
+void softPWM_l_init() {
+    int8_t i;
     curr_signal = 0;
     
-    for(i = MAX_SIGNALS; i>0 ; --i) {
+    for(i = MAX_SIGNALS-1; i>=0 ; i--) {
        duty_count[i] = 0;
     }
 }
 
 
-uint8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 
     volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width) {
         
-    if (slot >= MAX_SIGNALS)
+    if ((slot < 0) || (slot >= MAX_SIGNALS))
         return -1;
 
     if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
@@ -132,7 +136,7 @@ uint8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port,
 }
 
 
-uint8_t softPWM_s_stop_signal(uint8_t slot) {
+int8_t softPWM_l_stop_signal(uint8_t slot) {
     
     if (slot >= MAX_SIGNALS)
         return -1;
@@ -145,11 +149,11 @@ uint8_t softPWM_s_stop_signal(uint8_t slot) {
 }
 
 
-uint8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
+int8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
     if (slot >= MAX_SIGNALS)
         return -1;
     
-    if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
+    if ((pulse_width < 0) || (pulse_width > PWM_TOP_CNT))
         return -1;
     
     duty_count[slot] = pulse_width;
@@ -158,42 +162,59 @@ uint8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
 }
 
 
-void softPWM_s_start() {
+void softPWM_l_start() {
     SOFTPWM_TIMER_START();
 }
 
 
-void softPWM_s_stop() {
+void softPWM_l_stop() {
     SOFTPWM_TIMER_STOP();
 }
 
 
 // ctc top
-SOFTPWM_S_TOP_ISR() {
-    // change to next pwm signal
-
-    if(duty_count[curr_signal] > 0) {
-        // Set signal pin as 1
-        IOPORT_VALUE(HIGH, *(signal_port[curr_signal]), signal_pin[curr_signal]);
-        //IOPORT_VALUE(HIGH, PORT_B_V, PIN_4);
-        
-        // set interrupt count to current signal's duty count
-        SOFTPWM_TIMER_SET_DUTY_COUNT(duty_count[curr_signal]);
+// Set all signals
+// set the first compare interrupt value
+SOFTPWM_L_TOP_ISR() {
+    // min value greater than current count
+    int8_t i;
+    uint8_t min_value = UINT8_MAX;
+    
+    // Set all signals
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        if ( duty_count[i] > 0) {
+            IOPORT_VALUE(HIGH, *(signal_port[i]), signal_pin[i]);
+        }
     }
+
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        if( (duty_count[i] > 0) && (duty_count[i] < min_value)) {
+            min_value = duty_count[i];
+        }
+    }
+    
+    SOFTPWM_TIMER_SET_DUTY_COUNT(min_value);
 }
 
-// duty interrupt
-SOFTPWM_S_DUTY_ISR() {
-    // set signal pin as 0
-    IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
-    //IOPORT_VALUE(LOW, PORT_B_V, PIN_4);
+// ctc compare interrupt
+// Clear the corresponding signals and set the new compare interrupt value
+// each timer_prescaler cycles, an interrupt can potencially be triggered, so this function
+// have to be checked for time constraints
+SOFTPWM_L_DUTY_ISR() {
+    int8_t i;
+    uint8_t min_value = UINT8_MAX;
+    uint8_t curr_count = SOFTPWM_L_CURR_CNT();
 
-    if (curr_signal < (MAX_SIGNALS-1)) {
-        ++curr_signal;
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        if( duty_count[i] == curr_count-1 ) {
+            IOPORT_VALUE(LOW, *(signal_port[i]), signal_pin[i]);
+        }
+        if( (duty_count[i] > curr_count) && (duty_count[i] < min_value)) {
+            min_value = duty_count[i];
+        }
     }
-    else {
-        curr_signal = 0;
-    }
-
+    
+    
+    
+    SOFTPWM_TIMER_SET_DUTY_COUNT(min_value);
 }
-

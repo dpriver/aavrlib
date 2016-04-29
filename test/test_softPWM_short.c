@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <avr/power.h>
 #include <uc/timers.h>
-#include <uc/softPWM_short.h>
+#include <util/softPWM_short.h>
 #include <uc/usart.h>
 #include <uc/analog.h>
 #include <avr/interrupt.h>
@@ -19,10 +19,10 @@
 void delay();
 
 int main( void ) {
-    
+
     uint8_t analog_read = 0;
     uint8_t duty_count = 0;
-    
+
     cli();
 	timers_init();
     usart_init();

@@ -4,3 +4,4 @@
 add_subdirectory(uc)
 add_subdirectory(arduino)
 add_subdirectory(peripherals)
+add_subdirectory(util)

@@ -28,7 +28,7 @@
 #include <stdint.h> 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "uc/systick.h"
+#include "util/systick.h"
 #include "uc/timers.h"
 
 
