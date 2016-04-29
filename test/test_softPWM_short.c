@@ -26,7 +26,7 @@ int main( void ) {
     cli();
 	timers_init();
     usart_init();
-    softPWM_init();
+    softPWM_s_init();
     adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
     
     sei();
@@ -40,9 +40,9 @@ int main( void ) {
 	//PORTD |= _BV(PORTD3);
 	//IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);    
 
-    softPWM_add_signal(PIN_4, &PORT_B, &PORT_B_V, 0, 124);
+    softPWM_s_add_signal(PIN_4, &PORT_B, &PORT_B_V, 0, 124);
     
-    softPWM_start();
+    softPWM_s_start();
     
     //timer2_ctc(0x7, 255, 130);
     
@@ -56,7 +56,7 @@ int main( void ) {
         usart_printnumber8(duty_count);
         usart_print("\n");
         
-        softPWM_set_pulse_width(0, duty_count);
+        softPWM_s_set_pulse_width(0, duty_count);
         
         delay();
     }
