@@ -31,7 +31,7 @@
 #include <avr/interrupt.h>
 
 #include "uc/timers.h"
-#include "arduino/arduinoUNO.h"
+#include "boards/arduinoUNO.h"
 #include "uc/usart.h"
 
 

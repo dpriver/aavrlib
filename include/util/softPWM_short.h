@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	timer.h
+ *	softPWM_short.h
  *
- *  timers
+ *  Short pulse softwape PWM generation
  *
  *
  *  This file is part of aavrlib

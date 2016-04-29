@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include <avr/io.h>
-#include <arduino/arduinoUNO.h>
+#include <boards/arduinoUNO.h>
 #include <uc/timers.h>
 #include <util/softPWM_long.h>
 #include <uc/analog.h>

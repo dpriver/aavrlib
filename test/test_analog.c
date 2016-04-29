@@ -1,5 +1,5 @@
 
-#include "arduino/arduinoUNO.h"
+#include "boards/arduinoUNO.h"
 #include "uc/usart.h"
 #include "uc/timers.h"
 #include "uc/analog.h"

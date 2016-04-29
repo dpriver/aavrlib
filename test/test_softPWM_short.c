@@ -1,6 +1,6 @@
 // softPWM test
 
-#include <arduino/arduinoUNO.h>
+#include <boards/arduinoUNO.h>
 #include <avr/io.h>
 #include <stdint.h>
 #include <avr/power.h>
