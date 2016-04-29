@@ -3,3 +3,6 @@
 # Ignore build directories
 bin/
 build/
+
+
+*.log
