@@ -73,19 +73,27 @@
  */
 
 // three level recursion needed to work with PWM_TIMER macro defined in timers.h
-#define _TIMER_START_EXP2(TIMER) TIMER ## _ctc(PWM_PRESCALE, PWM_TOP_CNT, UINT8_MAX)
+#define _TIMER_START_EXP2(TIMER) TIMER ## _ctc(PWM_PRESCALE, PWM_TOP_CNT)
 #define _TIMER_START_EXP1(TIMER) _TIMER_START_EXP2(TIMER)
 
-#define _TIMER_SET_DUTY_CNT_EXP2(TIMER, count) TIMER ## _set_interrupt_cnt(count)
+#define _TIMER_STOP_EXP2(TIMER)   TIMER ## _stop();
+#define _TIMER_STOP_EXP1(TIMER)   _TIMER_STOP_EXP2(TIMER);
+
+#define _TIMER_SET_DUTY_CNT_EXP2(TIMER, count) TIMER ## _ctc_set_interrupt_cnt(count)
 #define _TIMER_SET_DUTY_CNT_EXP1(TIMER, count) _TIMER_SET_DUTY_CNT_EXP2(TIMER, count)
 
+#define _TIMER_ENABLE_DUTY_EXP2(TIMER, count) TIMER ## _ctc_extra_interrupt(count)
+#define _TIMER_ENABLE_DUTY_EXP1(TIMER, count) _TIMER_SET_DUTY_CNT_EXP2(TIMER, count)
 
 
 // Start the timer configured to use by softpwm
 #define SOFTPWM_TIMER_START() _TIMER_START_EXP1(SOFTPWM_L_TIMER)
 
 // Stop the timer configured to use by softpwm
-#define SOFTPWM_TIMER_STOP()
+#define SOFTPWM_TIMER_STOP() _TIMER_STOP_EXP1(SOFTPWM_L_TIMER)
+
+// Enable the extra ctc interrupt for duty
+#define SOFTPWM_TIMER_ENABLE_DUTY() _TIMER_ENABLE_DUTY_EXP1(SOFTPWM_L_TIMER, UINT8_MAX)
 
 // Set duty count in the timer configured to use by softpwm
 #define SOFTPWM_TIMER_SET_DUTY_COUNT(count) _TIMER_SET_DUTY_CNT_EXP1(SOFTPWM_L_TIMER, count)
@@ -114,6 +122,9 @@ void softPWM_l_init() {
     for(i = MAX_SIGNALS-1; i>=0 ; i--) {
        duty_count[i] = 0;
     }
+    
+    SOFTPWM_TIMER_START();
+    SOFTPWM_TIMER_ENABLE_DUTY();
 }
 
 
@@ -164,6 +175,7 @@ int8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
 
 void softPWM_l_start() {
     SOFTPWM_TIMER_START();
+    SOFTPWM_TIMER_ENABLE_DUTY();
 }
 
 

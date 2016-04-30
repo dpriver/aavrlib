@@ -153,7 +153,7 @@ typedef enum {
 #define SOFTPWM_L_CURR_CNT()     _CURR_CNT(_SOFTPWM_L_TIMER)
 
 /* system tick */
-#define SYSTICK_ISR()            _COMPB_ISR(_SYSTICK_TIMER)
+#define SYSTICK_ISR()            _COMPA_ISR(_SYSTICK_TIMER)
 #define SYSTICK_TIMER            _TIMER(_SYSTICK_TIMER)
 #define SYSTICK_PRESC(presc)     _PRESC(_SYSTICK_TIMER, presc)
 #define SYSTICK_CURR_CNT()       _CURR_CNT(_SYSTICK_TIMER)
@@ -166,12 +166,12 @@ typedef enum {
 void timers_init();
 
 
-// basic delay
-void timer0_delay(uint8_t ms);
 
-void timer0_ctc(prescale0_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt);
+void timer0_ctc(prescale0_t prescale, uint8_t top_cnt);
 
-void timer0_set_interrupt_cnt(uint8_t interrupt_cnt);
+void timer0_ctc_extra_interrupt(uint8_t interrupt_cnt);
+
+void timer0_ctc_set_interrupt_cnt(uint8_t interrupt_cnt);
 
 // generate fast PWM in PIN6  
 //	freq_pwm = F_CPU/((freq_cnt+1)*prescale)
@@ -191,16 +191,24 @@ void timer0_stop();
  *         Timer 1
  *******************************************************************************
 */
-void timer1_ctc(prescale1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt);
+void timer1_ctc(prescale1_t prescale, uint16_t top_cnt);
 
-void timer1_set_interrupt_cnt(uint8_t interrupt_cnt);
+void timer1_ctc_extra_interrupt(uint16_t interrupt_cnt);
+
+void timer1_ctc_set_interrupt_cnt(uint16_t interrupt_cnt);
+
+void timer1_stop();
 
 /*******************************************************************************
  *         Timer 2
  *******************************************************************************
 */
-void timer2_ctc(prescale2_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt);
+void timer2_ctc(prescale2_t prescale, uint8_t top_cnt);
 
-void timer2_set_interrupt_cnt(uint8_t interrupt_cnt);
+void timer2_ctc_extra_interrupt(uint8_t interrupt_cnt);
+
+void timer2_ctc_set_interrupt_cnt(uint8_t interrupt_cnt);
+
+void timer2_stop();
 
 #endif /* __TIMERS */

@@ -84,27 +84,26 @@ void timers_init() {
 }
 
 
-// basic delay
-void timer0_delay(uint8_t ms) {
-	power_timer0_enable();
 
-}
-
-
-void timer0_ctc(prescale0_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
+void timer0_ctc(prescale0_t prescale, uint8_t top_cnt) {
 	power_timer0_enable();
 	TCNT0 	= 0;
     
 	OCR0A 	= top_cnt;
-	OCR0B 	= interrupt_cnt;
-	TIMSK0 	= _BV(OCIE2B) | _BV(OCIE2A);
+	TIMSK0 	= _BV(OCIE0A);
     
 	TCCR0A 	= (0x2 << WGM20);
 	TCCR0B 	= (prescale << CS20);
 }
 
 
-void timer0_set_interrupt_cnt(uint8_t interrupt_cnt) {
+void timer0_ctc_extra_interrupt(uint8_t interrupt_cnt) {
+    OCR0B = interrupt_cnt;
+    TIMSK0 |= _BV(OCIE0B);
+}
+
+
+void timer0_ctc_set_interrupt_cnt(uint8_t interrupt_cnt) {
     OCR0B = interrupt_cnt;
 }
 
@@ -151,41 +150,57 @@ void timer0_stop() {
 }
 
 
-void timer1_ctc(prescale1_t prescale, uint16_t top_cnt, uint16_t interrupt_cnt) {
+void timer1_ctc(prescale1_t prescale, uint16_t top_cnt) {
     
     power_timer1_enable();
     
     TCNT1 = 0;
     
     OCR1A = top_cnt;
-    OCR1B = interrupt_cnt;
-    TIMSK1 = _BV(OCIE1B);
+    TIMSK1 = _BV(OCIE1A);
 
     TCCR1A = 0;
     TCCR1B = (0x1 << WGM12) | (prescale << CS10);
 }
 
+void timer1_ctc_extra_interrupt(uint16_t interrupt_cnt) {
+    OCR1B = interrupt_cnt;
+    TIMSK1 |= _BV(OCIE1B);
+}
 
-void timer1_set_interrupt_cnt(uint8_t interrupt_cnt) {
+void timer1_ctc_set_interrupt_cnt(uint16_t interrupt_cnt) {
     OCR1B = interrupt_cnt;
 }
 
+void timer1_stop() {
+	power_timer1_disable();
+}
 
-void timer2_ctc(prescale2_t prescale, uint8_t top_cnt, uint8_t interrupt_cnt) {
+
+void timer2_ctc(prescale2_t prescale, uint8_t top_cnt) {
     
 	power_timer2_enable();
     ASSR    = 0;
 	TCNT2 	= 0;
     
 	OCR2A 	= top_cnt;
-	OCR2B 	= interrupt_cnt;
-	TIMSK2 	= _BV(OCIE2B) | _BV(OCIE2A);
+	TIMSK2 	= _BV(OCIE2A);
     
 	TCCR2A 	= (0x2 << WGM20);
 	TCCR2B 	= (prescale << CS20);
 
 }
 
-void timer2_set_interrupt_cnt(uint8_t interrupt_cnt) {
+void timer2_ctc_extra_interrupt(uint8_t interrupt_cnt) {
     OCR2B = interrupt_cnt;
+    TIMSK2 |= _BV(OCIE2B);
+}
+
+
+void timer2_ctc_set_interrupt_cnt(uint8_t interrupt_cnt) {
+    OCR2B = interrupt_cnt;
+}
+
+void timer2_stop() {
+	power_timer2_disable();
 }
