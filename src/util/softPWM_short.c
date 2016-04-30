@@ -132,7 +132,7 @@ uint8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port,
     if (slot >= MAX_SIGNALS)
         return -1;
 
-    if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
+    if (pulse_width > PWM_TOP_CNT)
         return -1;
 
     signal_pin[slot] = pin;
@@ -162,7 +162,7 @@ uint8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
     if (slot >= MAX_SIGNALS)
         return -1;
     
-    if ((pulse_width <= 0) || (pulse_width >= PWM_TOP_CNT))
+    if (pulse_width > PWM_TOP_CNT)
         return -1;
     
     duty_count[slot] = pulse_width;
