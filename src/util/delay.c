@@ -33,7 +33,7 @@
 #include <util/delay.h>
 
 
-void delay_ms(uint16_t ms) {
+void delay_software_ms(uint16_t ms) {
     int16_t ms_loop;
     
     while(ms--) {

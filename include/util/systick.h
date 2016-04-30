@@ -43,11 +43,13 @@ uint16_t get_uptime_us();
 uint16_t get_uptime_ms();
 
 
-// 0-65535 secods
-uint16_t get_uptime_sec();
+// 0-65535 minutes
+uint16_t get_uptime_min();
 
 
 // complete uptime
-void get_uptime(uint16_t sec, uint16_t ms, uint16_t us);
+void get_uptime(uint16_t *min, uint16_t *ms, uint16_t *us);
+
+void delay_ms(uint16_t ms);
 
 #endif /* __SYSTICK */

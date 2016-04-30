@@ -57,6 +57,10 @@
     
 #endif
 
+#define MAX_MIN UINT16_MAX
+#define MAX_MS  59999
+#define MAX_US  999
+
 
 #define _TIMER_START_EXP2(TIMER)    TIMER ## _ctc(SYSTICK_PRESC(PRESC), SYSTICK_TOP_CNT, 0)
 #define _TIMER_START_EXP1(TIMER)    _TIMER_START_EXP2(TIMER)
@@ -68,8 +72,8 @@
 
 
 // variables to count the system uptime
-static uint16_t curr_sec;
 static uint16_t curr_ms;
+static uint16_t curr_min;
 
 
 
@@ -78,7 +82,7 @@ static uint16_t curr_ms;
 void systick_init() {
     
 	curr_ms = 0;
-	curr_sec = 0;
+	curr_min = 0;
 	
     SYSTICK_TIMER_START();
 
@@ -103,32 +107,48 @@ uint16_t get_uptime_ms() {
 }
 
 
-// 0-65535 secods
-uint16_t get_uptime_sec() {
-	return curr_sec;
+// 0-65535 minutes
+uint16_t get_uptime_min() {
+	return curr_min;
 }
 
 
 // complete uptime
-void get_uptime(uint16_t sec, uint16_t ms, uint16_t us) {
-	sec = curr_sec;
-	ms = curr_ms;
-	us = SYSTICK_CURR_CNT();
+void get_uptime(uint16_t *min, uint16_t *ms, uint16_t *us) {
+	*min = curr_min;
+	*ms = curr_ms;
     
 #if SYSTICK_RESOLUTION == 16
-	us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
+	*us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
 #elif SYSTICK_RESOLUTION == 8
-    us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
+    *us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
 #endif
 
+}
+
+
+void delay_ms(uint16_t ms) {
+    uint16_t _min = curr_min;
+    uint16_t _ms = curr_ms;
+    
+    // calculate ms and min to stop looping
+    if ((_ms + ms) > MAX_MS) {
+        _min = _min + 1;
+        _ms = _ms + ms - MAX_MS;
+    }
+    else {
+        _ms = _ms + ms;
+    }
+    
+    while( (_min > curr_min) || ( (_min == curr_min) && (_ms > curr_ms) ));
 }
 
 
 SYSTICK_ISR() {
     
 	// Counts 60.000 cycles at 1/ms freq 
-	if (curr_ms == 59999) {
-		++curr_sec;
+	if (curr_ms == MAX_MS) {
+		++curr_min;
 		curr_ms = 0;
 	}
 	else {

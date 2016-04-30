@@ -35,7 +35,7 @@
 #include <stdint.h>
 
 
-void delay_ms(uint16_t ms);
+void delay_software_ms(uint16_t ms);
 
 
 #endif /* __DELAY */
