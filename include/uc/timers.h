@@ -153,7 +153,7 @@ typedef enum {
 #define SOFTPWM_L_CURR_CNT()     _CURR_CNT(_SOFTPWM_L_TIMER)
 
 /* system tick */
-#define SYSTICK_ISR()            _COMPA_ISR(_SYSTICK_TIMER)
+#define SYSTICK_ISR()            _COMPB_ISR(_SYSTICK_TIMER)
 #define SYSTICK_TIMER            _TIMER(_SYSTICK_TIMER)
 #define SYSTICK_PRESC(presc)     _PRESC(_SYSTICK_TIMER, presc)
 #define SYSTICK_CURR_CNT()       _CURR_CNT(_SYSTICK_TIMER)

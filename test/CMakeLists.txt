@@ -1,7 +1,7 @@
 # uc library files
 #cmake_minimum_required(VERSION 2.8)
 
-set(tests test_pwm test_analog test_softPWM_long test_softPWM_short)
+set(tests test_pwm test_analog test_delay test_softPWM_long test_softPWM_short)
 
 
 SET(CMAKE_C_FLAGS ${CFLAGS} CACHE STRING "" FORCE)

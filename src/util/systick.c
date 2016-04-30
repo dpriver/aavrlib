@@ -30,6 +30,7 @@
 #include <avr/interrupt.h>
 #include "util/systick.h"
 #include "uc/timers.h"
+#include "uc/usart.h"
 
 
 /*
@@ -72,8 +73,8 @@
 
 
 // variables to count the system uptime
-static uint16_t curr_ms;
-static uint16_t curr_min;
+static volatile uint16_t curr_ms;
+static volatile uint16_t curr_min;
 
 
 
@@ -83,7 +84,8 @@ void systick_init() {
     
 	curr_ms = 0;
 	curr_min = 0;
-	
+	sei();
+    
     SYSTICK_TIMER_START();
 
 }
@@ -140,6 +142,7 @@ void delay_ms(uint16_t ms) {
         _ms = _ms + ms;
     }
     
+    // This loop is not optimized because of volatile acces in curr_min and curr_ms
     while( (_min > curr_min) || ( (_min == curr_min) && (_ms > curr_ms) ));
 }
 
