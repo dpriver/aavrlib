@@ -83,7 +83,7 @@
 #define _TIMER_SET_DUTY_CNT_EXP1(TIMER, count) _TIMER_SET_DUTY_CNT_EXP2(TIMER, count)
 
 #define _TIMER_ENABLE_DUTY_EXP2(TIMER, count) TIMER ## _ctc_extra_interrupt(count)
-#define _TIMER_ENABLE_DUTY_EXP1(TIMER, count) _TIMER_SET_DUTY_CNT_EXP2(TIMER, count)
+#define _TIMER_ENABLE_DUTY_EXP1(TIMER, count)_TIMER_ENABLE_DUTY_EXP2(TIMER, count)
 
 
 // Start the timer configured to use by softpwm
@@ -105,8 +105,16 @@
 // should have a value between 1 and PWM_TOP_CNT
 uint8_t duty_count[MAX_SIGNALS];
 
+// duty count set is made in two steps, so no signal is hanged in the middle of a pulse
+uint8_t updated_duty_count[MAX_SIGNALS];
+
+// The current duty count, This is usefull to compare the signals' duty in DUTY_ISR
+uint8_t curr_duty;
+
 // PIN_x, defined in arduinoUNO.h
 uint8_t signal_pin[MAX_SIGNALS];
+
+uint8_t signal_enabled[MAX_SIGNALS];
 
 // PORT_x defined in arduinoUNO.h
 volatile uint8_t *signal_port[MAX_SIGNALS];
@@ -121,6 +129,8 @@ void softPWM_l_init() {
     
     for(i = MAX_SIGNALS-1; i>=0 ; i--) {
        duty_count[i] = 0;
+       updated_duty_count[i] = 0;
+       signal_enabled[i] = 0;
     }
     
     SOFTPWM_TIMER_START();
@@ -137,9 +147,13 @@ int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port,
     if (pulse_width > PWM_TOP_CNT)
         return -1;
 
+    if (signal_enabled[slot])
+        return -1;
+
     signal_pin[slot] = pin;
     signal_port[slot] = data_port;
-    duty_count[slot] = pulse_width;
+    signal_enabled[slot] = 1;
+    updated_duty_count[slot] = pulse_width;
     
     IOPORT_CONFIG(OUTPUT, *config_port, pin);
     
@@ -147,12 +161,13 @@ int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port,
 }
 
 
-int8_t softPWM_l_stop_signal(uint8_t slot) {
+int8_t softPWM_l_remove_signal(uint8_t slot) {
     
     if (slot >= MAX_SIGNALS)
         return -1;
     
-    duty_count[slot] = 0;
+    updated_duty_count[slot] = 0;
+    signal_enabled[slot] = 0;
     
     IOPORT_VALUE(LOW, *(signal_port[slot]), signal_pin[slot]);
     
@@ -166,8 +181,11 @@ int8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
     
     if (pulse_width > PWM_TOP_CNT)
         return -1;
+
+    if (!signal_enabled[slot])
+        return -1;
     
-    duty_count[slot] = pulse_width;
+    updated_duty_count[slot] = pulse_width;
     
     return pulse_width;
 }
@@ -191,21 +209,29 @@ SOFTPWM_L_TOP_ISR() {
     // min value greater than current count
     int8_t i;
     uint8_t min_value = UINT8_MAX;
-    
+  
+    usart_print("\n[TOP]");
+
     // Set all signals
     for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        
+        // update duty counts
+        duty_count[i] = updated_duty_count[i];
+        
         if ( duty_count[i] > 0) {
+            // set signals' pin and look for the next to clear
             IOPORT_VALUE(HIGH, *(signal_port[i]), signal_pin[i]);
-        }
-    }
-
-    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
-        if( (duty_count[i] > 0) && (duty_count[i] < min_value)) {
-            min_value = duty_count[i];
+            if(duty_count[i] < min_value) {
+                min_value = duty_count[i];
+            }
         }
     }
     
-    SOFTPWM_TIMER_SET_DUTY_COUNT(min_value);
+    usart_print("\nnext_cnt: ");
+    
+    curr_duty = min_value;
+    usart_printnumber8(curr_duty);
+    SOFTPWM_TIMER_SET_DUTY_COUNT(curr_duty);
 }
 
 // ctc compare interrupt
@@ -215,18 +241,18 @@ SOFTPWM_L_TOP_ISR() {
 SOFTPWM_L_DUTY_ISR() {
     int8_t i;
     uint8_t min_value = UINT8_MAX;
-    uint8_t curr_count = SOFTPWM_L_CURR_CNT();
+
+    usart_print("\n[DUTY]");
 
     for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
-        if( duty_count[i] == curr_count-1 ) {
+        if( duty_count[i] == curr_duty ) {
             IOPORT_VALUE(LOW, *(signal_port[i]), signal_pin[i]);
         }
-        if( (duty_count[i] > curr_count) && (duty_count[i] < min_value)) {
+        if( (duty_count[i] > curr_duty) && (duty_count[i] < min_value)) {
             min_value = duty_count[i];
         }
     }
     
-    
-    
-    SOFTPWM_TIMER_SET_DUTY_COUNT(min_value);
+    curr_duty = min_value;
+    SOFTPWM_TIMER_SET_DUTY_COUNT(curr_duty);
 }

@@ -80,7 +80,7 @@
 #define _TIMER_SET_DUTY_CNT_EXP1(TIMER, count) _TIMER_SET_DUTY_CNT_EXP2(TIMER, count)
 
 #define _TIMER_ENABLE_DUTY_EXP2(TIMER, count) TIMER ## _ctc_extra_interrupt(count)
-#define _TIMER_ENABLE_DUTY_EXP1(TIMER, count) _TIMER_SET_DUTY_CNT_EXP2(TIMER, count)
+#define _TIMER_ENABLE_DUTY_EXP1(TIMER, count) _TIMER_ENABLE_DUTY_EXP2(TIMER, count)
 
 
 

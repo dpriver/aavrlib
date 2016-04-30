@@ -128,7 +128,7 @@ int main( void ) {
             softPWM_l_set_pulse_width(1, analog_read);
         }
         */
-        delay();
+        //delay();
     }
     
     return 0;
@@ -138,7 +138,7 @@ int main( void ) {
 
 void delay() {
 	//uint16_t t;
-	uint16_t i, j;
+	uint16_t volatile i, j;
 	
 	for(i = 0 ; i < 100 ; i++){
 		for(j = 0 ; j < 6000 ; j++) {
