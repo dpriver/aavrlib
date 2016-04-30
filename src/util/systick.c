@@ -134,12 +134,12 @@ void delay_ms(uint16_t ms) {
     uint16_t _ms = curr_ms;
     
     // calculate ms and min to stop looping
-    if ((_ms + ms) > MAX_MS) {
+    if ((_ms + ms - 1) > MAX_MS) {
         _min = _min + 1;
-        _ms = _ms + ms - MAX_MS;
+        _ms = _ms + ms -1 - MAX_MS;
     }
     else {
-        _ms = _ms + ms;
+        _ms = _ms + ms - 1;
     }
     
     // This loop is not optimized because of volatile acces in curr_min and curr_ms
