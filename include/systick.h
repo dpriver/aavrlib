@@ -31,6 +31,12 @@
 #include <stdint.h> 
 
 
+typedef struct {
+    uint16_t us;
+    uint16_t ms;
+    uint16_t min;
+} time_t;
+
 
 void systick_init();
 
@@ -51,5 +57,10 @@ uint16_t get_uptime_min();
 void get_uptime(uint16_t *min, uint16_t *ms, uint16_t *us);
 
 void delay_ms(uint16_t ms);
+
+
+void start_timeout(uint16_t ms, time_t *timeout);
+
+uint8_t timeout_expired(time_t *timeout);
 
 #endif /* __SYSTICK */

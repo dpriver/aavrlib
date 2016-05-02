@@ -40,7 +40,7 @@
 
 int main( void ) {
 
-    uint16_t distance;
+    int16_t distance;
 
     timers_init();
     systick_init();
@@ -60,9 +60,14 @@ int main( void ) {
     while(1) {
         distance = ultrasonic_measure(&PORT_B_V, ULTRASONIC_TRIGGER_PIN, &PORT_B_R, ULTRASONIC_ECHO_PIN);
      
-        usart_print("\nDistance: ");
-        usart_printnumber32(distance);
-        usart_print(" cm");
+        if (distance >= 0) {
+            usart_print("\nDistance: ");
+            usart_printnumber32(distance);
+            usart_print(" cm");
+        }
+        else {
+            usart_print("\ntimedout... !!");
+        }
         
         delay_ms(1000);
     }

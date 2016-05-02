@@ -130,6 +130,26 @@ void get_uptime(uint16_t *min, uint16_t *ms, uint16_t *us) {
 }
 
 
+void start_timeout(uint16_t ms, time_t *timeout) {
+    
+    timeout->ms = curr_ms;
+    timeout->min = curr_min;
+    
+    if ((timeout->ms + ms - 1) > MAX_MS) {
+        timeout->min = timeout->min + 1;
+        timeout->ms = timeout->ms + ms - 1 - MAX_MS;
+    }
+    else {
+        timeout->ms = timeout->ms + ms - 1;
+    }
+}
+
+
+uint8_t timeout_expired(time_t *timeout) {
+    return ( (curr_min > timeout->min) || ( (curr_min == timeout->min) && (curr_ms > timeout->ms) ));
+}
+
+
 void delay_ms(uint16_t ms) {
     uint16_t _min = curr_min;
     uint16_t _ms = curr_ms;

@@ -32,7 +32,7 @@
 void ultrasonic_init();
 
 
-uint16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin, 
+int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin, 
         uint8_t volatile *echo_port, uint8_t echo_pin);
 
 

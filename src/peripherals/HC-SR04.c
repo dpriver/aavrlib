@@ -36,13 +36,13 @@ void ultrasonic_init() {
 }
 
 
-uint16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin, 
+int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin, 
         uint8_t volatile *echo_port, uint8_t echo_pin) {
     
     uint16_t min_1, ms_1, us_1;
     uint16_t min_2, ms_2, us_2;
     uint16_t time;
-    
+    time_t timeout;
 
     IOPORT_VALUE(HIGH, *trig_port, trig_pin);
     // wait 10us
@@ -50,22 +50,31 @@ uint16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
     IOPORT_VALUE(LOW, *trig_port, trig_pin);
     // wait for echo to be set (timeout is needed)
 
-    while ( !IOPORT_READ(*echo_port, echo_pin) );
+    start_timeout(1, &timeout);
+    while ( !IOPORT_READ(*echo_port, echo_pin) ) {
+        if (timeout_expired(&timeout)) {
+            return -1;
+        }
+    }
     
     get_uptime(&min_1, &ms_1, &us_1);
+    
     // wait for echo to be clear (timeout is needed)
-    while (IOPORT_READ(*echo_port, echo_pin));
+    start_timeout(30, &timeout);
+    while (IOPORT_READ(*echo_port, echo_pin)){
+        if (timeout_expired(&timeout)) {
+            return -1;
+        }
+    }
+    
     get_uptime(&min_2, &ms_2, &us_2);
     
-    
-
     if (us_2 > us_1) {
         time = ((ms_2 - ms_1) << 10) + (us_2 - us_1);
     }
     else {
         time = ((ms_2 - ms_1) << 10) + (us_1 - us_2);
     }
-    
     
     // aproximate time/58 with time/64 to optimize calculations
     return time >> 6;
