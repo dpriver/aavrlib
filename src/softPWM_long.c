@@ -23,14 +23,15 @@
  *
  *******************************************************************************/
 
+// avr defines
 #include <avr/io.h>
-#include <stdint.h>
 #include <avr/interrupt.h>
+#include <stdint.h>
 
-#include "util/softPWM_long.h"
 #include "uc/timers.h"
-#include "boards/arduinoUNO.h"
 #include "uc/usart.h"
+#include "boards/arduinoUNO.h"
+#include "softPWM_long.h"
 
 
 // NEEDS

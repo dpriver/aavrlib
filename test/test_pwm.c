@@ -1,24 +1,47 @@
-// PWM test
+/*******************************************************************************
+ *  test_pwm.c
+ *
+ *  PWM test
+ *
+ *
+ *  This file is part of aavrlib
+ *
+ *  Copyright (C) 2015  Dennis Pinto Rivero
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
 
-#include <boards/arduinoUNO.h>
 #include <avr/io.h>
-#include <stdint.h>
 #include <avr/power.h>
+#include <stdint.h>
+
 #include <uc/timers.h>
+#include <boards/arduinoUNO.h>
+
+
 
 #define FREQ_CNT (20)
 #define DUTY_HALF (FREQ_CNT/2)
 
 
-//void timer0_fast_pwm(uint8_t freq_cnt, uint8_t duty_cnt);
 
 int main( void ) {
 
 	timers_init();
 	
-	//DDRD |= _BV(DDD3) | _BV(DDD6) | _BV(DDD5); 
 	IOPORT_CONFIG(OUTPUT, PORT_B, PIN_5 | PIN_3);
-	//PORTD |= _BV(PORTD3);
 	IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);
 
 	timer0_pcorrect_pwm(prescale0_1024, 255, 20);

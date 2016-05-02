@@ -23,8 +23,8 @@
  *
  ********************************************************************************/
 
-#ifndef _SPI_
-#define _SPI_
+#ifndef __SPI
+#define __SPI
 
 // Values to SPI_TEST:
 // SPI_STANDARD
@@ -104,4 +104,4 @@ void spi_send_burst(uint8_t caracters[], uint8_t length, transsmision_end_handle
 // In normal situations is hardly recommended to use the provided functions spi_send_block() and spi_send_burst()
 
 
-#endif
+#endif /* __SPI */

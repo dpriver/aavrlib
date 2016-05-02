@@ -23,10 +23,14 @@
  *
  ********************************************************************************/
 
+// avr defines
 #include <avr/interrupt.h>
 #include <stdint.h>
+
 #include "uc/spi.h"
 #include "common.h"
+
+
 
 volatile static struct{
 	uint8_t buffer[1<<8];

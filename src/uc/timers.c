@@ -62,9 +62,11 @@
  * - Allow usage of timer1 as system cycle counter for debug pourposes
  */
 
-#include <stdint.h> 
+// avr defines
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdint.h> 
+
 #include "uc/timers.h"
 
 

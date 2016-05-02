@@ -75,6 +75,10 @@
 #define PORT_B_V PORTD
 #define PORT_C_V PORTB
 
+#define PORT_A_R PINC
+#define PORT_B_R PIND
+#define PORT_C_R PINB
+
 // Configure and set values for digital I/O pins
 // for example:
 // 	pins 0, 3, 5 as output    
@@ -96,3 +100,6 @@
 
 #define IOPORT_VALUE(_VALUE_MODE, _PORT, pinmask) \
 	_PORT _VALUE_MODE pinmask )
+    
+#define IOPORT_READ(_PORT, pinmask) \
+	(_PORT & pinmask )

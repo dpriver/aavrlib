@@ -24,13 +24,14 @@
  ******************************************************************************/
 
 
-
-#include <stdint.h> 
+// avr defines
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "util/systick.h"
+#include <stdint.h> 
+
 #include "uc/timers.h"
 #include "uc/usart.h"
+#include "systick.h"
 
 
 /*

@@ -29,7 +29,7 @@ endforeach()
 message("-- AVR-libc library found")
 
 
-include_directories( include /usr/lib/avr/include)
+include_directories( /usr/lib/avr/include include)
 
 # compile library
 add_subdirectory( src )

@@ -23,8 +23,10 @@
  *
  ********************************************************************************/
 
-#include "uc/usart.h"
+// avr defines
 #include <avr/power.h>
+
+#include "uc/usart.h"
 
 /*
 void usart_init() {

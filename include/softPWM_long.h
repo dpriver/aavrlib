@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	d7seg.h
+ *	softPWM_long.h
  *
- *  d7seg
+ *  softPWM_long
  *
  *
  *  This file is part of aavrlib
@@ -22,3 +22,26 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ********************************************************************************/
+
+#ifndef __SOFTPWM_LONG
+#define __SOFTPWM_LONG
+
+
+#include <stdint.h>
+
+
+void softPWM_l_init();
+
+int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+    volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width);
+
+int8_t softPWM_l_stop_signal(uint8_t slot);
+
+int8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width);
+
+void softPWM_l_start();
+
+void softPWM_l_stop();
+
+
+#endif /* __SOFTPWM_LONG */

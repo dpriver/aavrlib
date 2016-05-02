@@ -1,7 +1,7 @@
 /*******************************************************************************
  *  test_softPWMlong.h
  *
- *  long pulse software PWM test
+ *  long pulse software generated PWM test
  *
  *
  *  This file is part of aavrlib
@@ -23,12 +23,15 @@
  *
  ******************************************************************************/
 
+
 #include <avr/io.h>
-#include <boards/arduinoUNO.h>
+#include <avr/interrupt.h>
+
 #include <uc/timers.h>
-#include <util/softPWM_long.h>
 #include <uc/analog.h>
 #include <uc/usart.h>
+#include <boards/arduinoUNO.h>
+#include <softPWM_long.h>
 
 
 /*
@@ -48,19 +51,14 @@
  */
 
 
-void delay();
-
 int main( void ) {
     
     uint8_t analog_read, pulse_width;
-    //uint8_t direction = 0;
     
     timers_init();
     usart_init();
     softPWM_l_init();
     adc_init(adc_presc_128, adc_ref_vcc ,adc_channel_a0, 0);
-    
-    // 2 PWMs are needed in order to handle a dc motor, both directions
     
     sei();
     
@@ -85,10 +83,6 @@ int main( void ) {
         return 0;
     }
     
-    // long pulse PWM in pin 5, with duty at 50%
-    //softPWM_l_add_signal(PIN_5, &PORT_B, &PORT_B_V, 1, 15);
-    
-    
     
     while(1) {
         
@@ -108,44 +102,7 @@ int main( void ) {
             usart_print("\n\nError, could not add PWM signal\n");
             return 0;
         }
-        
-        
-        // get direction
-        //direction = 0;
-        
-        // set motor direction and speed
-        /*
-        if (direction == 0) {
-            IOPORT_VALUE(HIGH, PORT_B_V, PIN_2);
-            IOPORT_VALUE(LOW, PORT_B_V, PIN_3);
-            
-            softPWM_l_set_pulse_width(0, analog_read);
-        }
-        else {
-            IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);
-            IOPORT_VALUE(LOW, PORT_B_V, PIN_2); 
-        
-            softPWM_l_set_pulse_width(1, analog_read);
-        }
-        */
-        //delay();
     }
     
     return 0;
-}
-    
-
-
-void delay() {
-	//uint16_t t;
-	uint16_t volatile i, j;
-	
-	for(i = 0 ; i < 100 ; i++){
-		for(j = 0 ; j < 6000 ; j++) {
-			//for(k = 0 ; k < 99999 ; k++);
-		}
-	}
-	//t = get_uptime_sec() + ms;
-	
-	//while(get_uptime_sec() != t);
 }

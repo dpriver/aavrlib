@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	softPWM_long.h
+ *	softPWM_short.h
  *
- *  softPWM_long
+ *  Short pulse softwape PWM generation
  *
  *
  *  This file is part of aavrlib
@@ -23,31 +23,25 @@
  *
  ********************************************************************************/
 
-#ifndef __SOFTPWM_LONG
-#define __SOFTPWM_LONG
 
-#include <avr/io.h>
+#ifndef __SOFTPWM
+#define __SOFTPWM
+
+
 #include <stdint.h>
-#include <avr/interrupt.h>
-
-#include "uc/timers.h"
-#include "boards/arduinoUNO.h"
-#include "uc/usart.h"
 
 
+void softPWM_s_init();
 
-void softPWM_l_init();
-
-int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+uint8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
     volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width);
 
-int8_t softPWM_l_stop_signal(uint8_t slot);
+uint8_t softPWM_s_stop_signal(uint8_t slot);
 
-int8_t softPWM_l_set_pulse_width(uint8_t slot, uint8_t pulse_width);
+uint8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width);
 
-void softPWM_l_start();
+void softPWM_s_start();
 
-void softPWM_l_stop();
+void softPWM_s_stop();
 
-
-#endif /* __SOFTPWM_LONG */
+#endif /* SOFTPWM */

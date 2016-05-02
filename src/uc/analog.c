@@ -22,10 +22,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ********************************************************************************/
-#include "uc/analog.h"
+
+// avr defines
 #include <avr/io.h>
 #include <avr/power.h>
 #include <stdint.h>
+
+#include "uc/analog.h"
+
 
 void adc_init(adc_prescaler_t prescaler, adc_reference_t ref,
 		adc_channel_t channel, uint8_t pinmask) {

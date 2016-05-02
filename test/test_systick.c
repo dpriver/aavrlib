@@ -1,7 +1,7 @@
 /*******************************************************************************
  *	test_systick.c
  *
- *  systick test
+ *  system tick test
  *
  *
  *  This file is part of aavrlib
@@ -23,9 +23,10 @@
  *
  ******************************************************************************/
 
-#include <boards/arduinoUNO.h>
+
 #include <uc/usart.h>
-#include <util/systick.h>
+#include <boards/arduinoUNO.h>
+#include <systick.h>
 
 
 int main( void ) {
@@ -68,7 +69,6 @@ int main( void ) {
         delay_ms(1000);
         
     }
-    
     
     return 0;
 }

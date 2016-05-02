@@ -1,22 +1,47 @@
-// softPWM test
+/*******************************************************************************
+ *  test_softPWM_short.c
+ *
+ *  short pulse software generated PWM test
+ *
+ *
+ *  This file is part of aavrlib
+ *
+ *  Copyright (C) 2015  Dennis Pinto Rivero
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
 
-#include <boards/arduinoUNO.h>
 #include <avr/io.h>
-#include <stdint.h>
 #include <avr/power.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+#include <stdint.h>
+
 #include <uc/timers.h>
-#include <util/softPWM_short.h>
 #include <uc/usart.h>
 #include <uc/analog.h>
-#include <avr/interrupt.h>
+#include <boards/arduinoUNO.h>
+#include <softPWM_short.h>
+
+
 
 #define FREQ_CNT (20)
 #define DUTY_HALF (FREQ_CNT/2)
 #define ADC_MASK (0x0)
 
-//void timer0_fast_pwm(uint8_t freq_cnt, uint8_t duty_cnt);
 
-void delay();
 
 int main( void ) {
 
@@ -35,16 +60,12 @@ int main( void ) {
     IOPORT_VALUE(LOW, PORT_C_V, PIN_13);
     
     IOPORT_CONFIG(INPUT, PORT_A, PIN_A0);
-	//DDRD |= _BV(DDD3) | _BV(DDD6) | _BV(DDD5); 
-	//IOPORT_CONFIG(OUTPUT, PORT_B, PIN_5 | PIN_3);
-	//PORTD |= _BV(PORTD3);
-	//IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);    
+
+    softPWM_s_start();
 
     softPWM_s_add_signal(PIN_4, &PORT_B, &PORT_B_V, 0, 124);
     
-    softPWM_s_start();
     
-    //timer2_ctc(0x7, 255, 130);
     
 	while(1) {
         analog_read = adc_single_read();
@@ -58,40 +79,8 @@ int main( void ) {
         
         softPWM_s_set_pulse_width(0, duty_count);
         
-        delay();
+        _delay_ms(300);
     }
 	
 	return 0;
 }
-
-
-// bad delay... only for this test
-void delay() {
-	//uint16_t t;
-	uint16_t i, j;
-	
-	for(i = 0 ; i < 100 ; i++){
-		for(j = 0 ; j < 6000 ; j++) {
-			//for(k = 0 ; k < 99999 ; k++);
-		}
-	}
-	//t = get_uptime_sec() + ms;
-	
-	//while(get_uptime_sec() != t);
-}
-
-/*
-SOFTPWM_TOP_ISR() {
-
-    usart_print(" - TOP\n");
-    // change to next pwm signal
-
-    IOPORT_VALUE(HIGH, PORT_B_V, PIN_4);
-}
-
-SOFTPWM_DUTY_ISR() {
-    usart_print(" - DUTY\n");
-
-    IOPORT_VALUE(LOW, PORT_B_V, PIN_4);
-}
-*/
