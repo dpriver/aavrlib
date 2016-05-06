@@ -69,7 +69,7 @@ int main( void ) {
     
 	while(1) {
         analog_read = adc_single_read();
-        duty_count = analog_read %124;
+        duty_count = (124./255) * analog_read;
         
 		usart_print("Readed value: ");
 		usart_printnumber8(analog_read);
