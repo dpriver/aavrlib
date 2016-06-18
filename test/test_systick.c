@@ -31,9 +31,7 @@
 
 int main( void ) {
     
-    uint16_t min;
-    uint16_t ms;
-    uint16_t us;
+    time_t time;
     
     uint8_t led_state;
     
@@ -58,13 +56,11 @@ int main( void ) {
             led_state = 1;
         }
         
-        get_uptime(&min, &ms, &us);
-        usart_print("\nuptime => min: ");
-        usart_printnumber32((uint32_t)min);
-        usart_print("  ms: ");
-        usart_printnumber32((uint32_t)ms);
+        get_uptime(&time);
+        usart_print("\nuptime => ms: ");
+        usart_printnumber32((uint32_t)time.ms);
         usart_print("  us: ");
-        usart_printnumber32((uint32_t)us);
+        usart_printnumber32((uint32_t)time.us);
         
         delay_ms(1000);
         

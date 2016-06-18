@@ -33,8 +33,7 @@
 
 typedef struct {
     uint16_t us;
-    uint16_t ms;
-    uint16_t min;
+    uint32_t ms;
 } time_t;
 
 
@@ -45,16 +44,12 @@ void systick_init();
 uint16_t get_uptime_us();
 
 
-// 0-59999 miliseconds
-uint16_t get_uptime_ms();
-
-
-// 0-65535 minutes
-uint16_t get_uptime_min();
+uint32_t get_uptime_ms();
 
 
 // complete uptime
-void get_uptime(uint16_t *min, uint16_t *ms, uint16_t *us);
+void get_uptime(time_t *time);
+
 
 void delay_ms(uint16_t ms);
 

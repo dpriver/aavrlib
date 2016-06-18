@@ -74,8 +74,7 @@
 
 
 // variables to count the system uptime
-static volatile uint16_t curr_ms;
-static volatile uint16_t curr_min;
+static volatile uint32_t curr_ms;
 
 
 
@@ -84,7 +83,6 @@ static volatile uint16_t curr_min;
 void systick_init() {
     
 	curr_ms = 0;
-	curr_min = 0;
 	sei();
     
     SYSTICK_TIMER_START();
@@ -96,86 +94,63 @@ void systick_init() {
 uint16_t get_uptime_us() {
     
 #if SYSTICK_RESOLUTION == 16
-	return SYSTICK_CURR_CNT() >> 1;  // 2000/2
+	return (uint16_t)SYSTICK_CURR_CNT() >> 1;  // 2000/2
 #elif SYSTICK_RESOLUTION == 8
-    return SYSTICK_CURR_CNT() << 2;   // 250 * 4
+    return (uint16_t)SYSTICK_CURR_CNT() << 2;   // 250 * 4
 #endif
 
 }
 
 
-// 0-59999 miliseconds
-uint16_t get_uptime_ms() {
-	return curr_ms;
+uint32_t get_uptime_ms() {
+	return (uint32_t)curr_ms;
 }
 
 
-// 0-65535 minutes
-uint16_t get_uptime_min() {
-	return curr_min;
-}
-
-
-// complete uptime
-void get_uptime(uint16_t *min, uint16_t *ms, uint16_t *us) {
-	*min = curr_min;
-	*ms = curr_ms;
+// BUG -> Race condition
+void get_uptime(time_t *time) {
     
 #if SYSTICK_RESOLUTION == 16
-	*us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
+	time->us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
 #elif SYSTICK_RESOLUTION == 8
-    *us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
+    time->us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
 #endif
 
+    time->ms = curr_ms;
 }
 
 
 void start_timeout(uint16_t ms, time_t *timeout) {
-    
-    timeout->ms = curr_ms;
-    timeout->min = curr_min;
-    
-    if ((timeout->ms + ms - 1) > MAX_MS) {
-        timeout->min = timeout->min + 1;
-        timeout->ms = timeout->ms + ms - 1 - MAX_MS;
-    }
-    else {
-        timeout->ms = timeout->ms + ms - 1;
-    }
+
+    timeout->ms = curr_ms + ms;    
 }
 
 
 uint8_t timeout_expired(time_t *timeout) {
-    return ( (curr_min > timeout->min) || ( (curr_min == timeout->min) && (curr_ms > timeout->ms) ));
+    return (curr_ms > timeout->ms);
 }
 
 
 void delay_ms(uint16_t ms) {
-    uint16_t _min = curr_min;
-    uint16_t _ms = curr_ms;
+    uint32_t _ms = curr_ms + ms;
     
-    // calculate ms and min to stop looping
-    if ((_ms + ms - 1) > MAX_MS) {
-        _min = _min + 1;
-        _ms = _ms + ms -1 - MAX_MS;
-    }
-    else {
-        _ms = _ms + ms - 1;
-    }
+    // if _ms overflows, this loop prevents from skiping the delay, waiting for 
+    // curr_ms to also overflow
+    //while (curr_ms > _ms);
     
-    // This loop is not optimized because of volatile acces in curr_min and curr_ms
-    while( (_min > curr_min) || ( (_min == curr_min) && (_ms > curr_ms) ));
+    // There is a problem with the previous loop... if something interrupts 
+    // just before it, time enought to actually overpass "ms", this will 
+    // keep the system delaying for 2^(32) ms... which is ~50 days...
+    
+    
+    // A possible aproach is to disable interrupts,
+    // then execute the loop while (curr_ms > _ms);
+    
+    // actual delay busy wait
+    while (curr_ms < _ms);
 }
 
 
 SYSTICK_ISR() {
-    
-	// Counts 60.000 cycles at 1/ms freq 
-	if (curr_ms == MAX_MS) {
-		++curr_min;
-		curr_ms = 0;
-	}
-	else {
-		++curr_ms;
-	}
+    ++curr_ms;
 }
