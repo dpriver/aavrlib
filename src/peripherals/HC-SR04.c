@@ -39,9 +39,8 @@ void ultrasonic_init() {
 int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin, 
         uint8_t volatile *echo_port, uint8_t echo_pin) {
     
-    uint16_t min_1, ms_1, us_1;
-    uint16_t min_2, ms_2, us_2;
-    uint16_t time;
+    time_t time1, time2, time_interval;
+    //uint16_t time;
     time_t timeout;
 
     IOPORT_VALUE(HIGH, *trig_port, trig_pin);
@@ -57,7 +56,7 @@ int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
         }
     }
     
-    get_uptime(&min_1, &ms_1, &us_1);
+    get_uptime(&time1);
     
     // wait for echo to be clear (timeout is needed)
     start_timeout(30, &timeout);
@@ -67,8 +66,14 @@ int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
         }
     }
     
-    get_uptime(&min_2, &ms_2, &us_2);
+    get_uptime(&time2);
     
+    time_sub(&time2, &time1, &time_interval);
+    
+    return ((time_interval.ms << 10) + time_interval.us) >> 6;
+    
+    
+    /*
     if (us_2 > us_1) {
         time = ((ms_2 - ms_1) << 10) + (us_2 - us_1);
     }
@@ -79,4 +84,6 @@ int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
     // aproximate time/58 with time/64 to optimize calculations
     return time >> 6;
     
+    return 0;
+    */
 }

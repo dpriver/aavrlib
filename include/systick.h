@@ -37,6 +37,11 @@ typedef struct {
 } time_t;
 
 
+
+uint8_t time_add(time_t *op1, time_t *op2, time_t *result);
+uint8_t time_sub(time_t *op1, time_t *op2, time_t *result);
+
+
 void systick_init();
 
 
