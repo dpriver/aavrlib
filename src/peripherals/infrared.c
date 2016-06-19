@@ -92,7 +92,7 @@ int8_t ir_remove_from_buffer(uint8_t n_positions) {
     // if more than the actual data positions are meant to be read, 
     // read the whole buffer instead of interpreting it as an error.
     if (n_positions > data_length) {
-        n_positions = data_lenght;
+        n_positions = data_length;
     }
     
     // stream_buffer is a circular buffer, so if we reach the end of the array,
@@ -106,14 +106,14 @@ int8_t ir_remove_from_buffer(uint8_t n_positions) {
         data_start += n_positions;
     }
     
-    data_lenght -= n_positions;
+    data_length -= n_positions;
     
     return n_positions;
 }
 
 
 ISR(INT0_vect, ISR_BLOCK) {
-    time_t curr_time, time_interval, time_temp;
+    time_t curr_time, time_interval;
     uint16_t time;
     
     // get current time
@@ -128,13 +128,13 @@ ISR(INT0_vect, ISR_BLOCK) {
     // (time_interval.ms / 1024) => 2,34% relative error
     time = (time_interval.ms << 10) + time_interval.us;
     
-    if ((time < 20000) && (data_lenght < BUFFER_LENGTH) {
+    if ((time < 20000) && (data_length < BUFFER_LENGTH)) {
         stream_buffer[data_end] = time;
         if (data_end == BUFFER_LENGTH-1) {
             data_end = 0;
         }
         else {
-            data_end++
+            data_end++;
         }
         data_length++;
     }
