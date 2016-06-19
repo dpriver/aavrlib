@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	infrared.h
+ *	ir_nec.c
  *
- *  infrared
+ *  infrared NEC protocol
  *
  *
  *  This file is part of aavrlib
@@ -22,19 +22,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-
-#ifndef __INFRARED
-#define __INFRARED
+ 
+#ifndef __IR_NEC
+#define __IR_NEC
 
 #include <stdint.h>
 
-void ir_init();
+typedef struct ir_nec_packet ir_nec_packet;
+struct ir_nec_packet{
+    uint8_t repeat;
+    uint8_t addr;
+    uint8_t data;  
+};
+
+ 
+int8_t translate(uint8_t* raw, uint8_t n_pulses, ir_nec_packet* packet);
 
 
-uint8_t ir_get_buffer(uint16_t* buffer);
-
-
-int8_t ir_remove_from_buffer(uint8_t n_positions);
-
-
-#endif /* __INFRARED */
+#endif /* __IR_NEC */
