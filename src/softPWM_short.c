@@ -28,6 +28,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 
+#include "uc/interrupt.h"
 #include "uc/timers.h"
 #include "uc/usart.h"
 #include "boards/arduinoUNO.h"
@@ -113,6 +114,38 @@ volatile uint8_t *signal_port[MAX_SIGNALS];
 uint8_t curr_signal;
 
 
+// ctc top
+//SOFTPWM_S_TOP_ISR() {
+void softpwm_s_top_isr(interrupt_t interrupt) {
+    // change to next pwm signal
+
+    if(duty_count[curr_signal] > 0) {
+        // Set signal pin as 1
+        IOPORT_VALUE(HIGH, *(signal_port[curr_signal]), signal_pin[curr_signal]);
+        //IOPORT_VALUE(HIGH, PORT_B_V, PIN_4);
+        
+        // set interrupt count to current signal's duty count
+        SOFTPWM_TIMER_SET_DUTY_COUNT(duty_count[curr_signal]);
+    }
+}
+
+// duty interrupt
+//SOFTPWM_S_DUTY_ISR() {
+void softpwm_s_duty_isr(interrupt_t interrupt) {
+    // set signal pin as 0
+    IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
+    //IOPORT_VALUE(LOW, PORT_B_V, PIN_4);
+
+    if (curr_signal < (MAX_SIGNALS-1)) {
+        ++curr_signal;
+    }
+    else {
+        curr_signal = 0;
+    }
+
+}
+
+
 
 void softPWM_s_init() {
     int i;
@@ -121,6 +154,9 @@ void softPWM_s_init() {
     for(i = MAX_SIGNALS; i>0 ; --i) {
        duty_count[i] = 0;
     }
+    
+    interrupt_attach(SOFTPWM_S_TOP_int, softpwm_s_top_isr);
+    interrupt_attach(SOFTPWM_S_DUTY_int, softpwm_s_duty_isr);
     
     SOFTPWM_TIMER_START();
     SOFTPWM_TIMER_ENABLE_DUTY();
@@ -181,34 +217,3 @@ void softPWM_s_start() {
 void softPWM_s_stop() {
     SOFTPWM_TIMER_STOP();
 }
-
-
-// ctc top
-SOFTPWM_S_TOP_ISR() {
-    // change to next pwm signal
-
-    if(duty_count[curr_signal] > 0) {
-        // Set signal pin as 1
-        IOPORT_VALUE(HIGH, *(signal_port[curr_signal]), signal_pin[curr_signal]);
-        //IOPORT_VALUE(HIGH, PORT_B_V, PIN_4);
-        
-        // set interrupt count to current signal's duty count
-        SOFTPWM_TIMER_SET_DUTY_COUNT(duty_count[curr_signal]);
-    }
-}
-
-// duty interrupt
-SOFTPWM_S_DUTY_ISR() {
-    // set signal pin as 0
-    IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
-    //IOPORT_VALUE(LOW, PORT_B_V, PIN_4);
-
-    if (curr_signal < (MAX_SIGNALS-1)) {
-        ++curr_signal;
-    }
-    else {
-        curr_signal = 0;
-    }
-
-}
-

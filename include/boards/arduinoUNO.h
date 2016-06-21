@@ -102,4 +102,4 @@
 	_PORT _VALUE_MODE pinmask )
     
 #define IOPORT_READ(_PORT, pinmask) \
-	(_PORT & pinmask )
+	(_PORT & pinmask)

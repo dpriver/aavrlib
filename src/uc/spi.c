@@ -27,6 +27,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 
+#include "uc/interrupt.h"
 #include "uc/spi.h"
 #include "common.h"
 
@@ -41,6 +42,12 @@ volatile static struct{
 }spi_attr;
 
 
+
+void spi_stc_isr(interrupt_t interrupt);
+
+void spi_init() {
+    interrupt_attach(SPI_STC_int, spi_stc_isr);
+}
 
 void spi_send_block(uint8_t caracters[], uint8_t length){
 	spi_setup_master();
@@ -82,7 +89,8 @@ void isr_receive_handler(){
 	spi_receivebyte();
 }
 
-ISR(SPI_STC_vect, ISR_BLOCK){
+
+void spi_stc_isr(interrupt_t interrupt){
 	if( spi_attr.last < spi_attr.length-1 ){
 		if(spi_attr.sending == 1)
 			isr_send_handler();

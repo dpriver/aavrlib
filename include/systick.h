@@ -31,6 +31,8 @@
 #include <stdint.h> 
 
 
+#define MAX_MICROS_COUNT (UINT16_MAX*1000) + 999
+
 typedef struct {
     uint16_t us;
     uint32_t ms;
@@ -45,16 +47,11 @@ uint8_t time_sub(time_t *op1, time_t *op2, time_t *result);
 void systick_init();
 
 
-// 0-999 us
-uint16_t get_uptime_us();
-
-
-uint32_t get_uptime_ms();
-
 
 // complete uptime
 void get_uptime(time_t *time);
 
+uint32_t get_micros();
 
 void delay_ms(uint16_t ms);
 

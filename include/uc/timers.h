@@ -68,27 +68,27 @@ typedef enum {
  ******************************************************************************/
  
 // TIMER 0 macros
-#define TIMER0_COMPA_ISR    ISR(TIMER0_COMPA_vect, ISR_BLOCK)
-#define TIMER0_COMPB_ISR    ISR(TIMER0_COMPB_vect, ISR_BLOCK)
-#define TIMER0_TOV_ISR      ISR(TIMER0_TOV_vect, ISR_BLOCK)
+#define TIMER0_COMPA_ISR    TIMER0_COMPA_int
+#define TIMER0_COMPB_ISR    TIMER0_COMPB_int
+#define TIMER0_TOV_ISR      TIMER0_TOV_int
 #define TIMER0_TIMER        timer0
 #define TIMER0_PRESCALER(presc) prescale0_ ## presc
 #define TIMER0_CURR_CNT     (TCNT0)   
 #define TIMER0_RESOLUTION   (8) 
 
 // TIMER 1 macros
-#define TIMER1_COMPA_ISR    ISR(TIMER1_COMPA_vect, ISR_BLOCK)
-#define TIMER1_COMPB_ISR    ISR(TIMER1_COMPB_vect, ISR_BLOCK)
-#define TIMER1_TOV_ISR      ISR(TIMER1_TOV_vect, ISR_BLOCK)
+#define TIMER1_COMPA_ISR    TIMER1_COMPA_int
+#define TIMER1_COMPB_ISR    TIMER1_COMPB_int
+#define TIMER1_TOV_ISR      TIMER1_TOV_int
 #define TIMER1_TIMER        timer1
 #define TIMER1_PRESCALER(presc) prescale1_ ## presc
 #define TIMER1_CURR_CNT     (TCNT1)   
 #define TIMER1_RESOLUTION   (16)  
 
 // TIMER 2 macros
-#define TIMER2_COMPA_ISR    ISR(TIMER2_COMPA_vect, ISR_BLOCK)
-#define TIMER2_COMPB_ISR    ISR(TIMER2_COMPB_vect, ISR_BLOCK)
-#define TIMER2_TOV_ISR      ISR(TIMER2_TOV_vect, ISR_BLOCK)
+#define TIMER2_COMPA_ISR    TIMER2_COMPA_int
+#define TIMER2_COMPB_ISR    TIMER2_COMPB_int
+#define TIMER2_TOV_ISR      TIMER2_TOV_int
 #define TIMER2_TIMER        timer2
 #define TIMER2_PRESCALER(presc) prescale2_ ## presc
 #define TIMER2_CURR_CNT     (TCNT2)
@@ -139,21 +139,21 @@ typedef enum {
 
 
 /* short pulse softPWM macros*/
-#define SOFTPWM_S_DUTY_ISR()     _COMPB_ISR(_SOFTPWM_S_TIMER)
-#define SOFTPWM_S_TOP_ISR()      _COMPA_ISR(_SOFTPWM_S_TIMER)
+#define SOFTPWM_S_DUTY_int       _COMPB_ISR(_SOFTPWM_S_TIMER)
+#define SOFTPWM_S_TOP_int        _COMPA_ISR(_SOFTPWM_S_TIMER)
 #define SOFTPWM_S_TIMER          _TIMER(_SOFTPWM_S_TIMER)
 #define SOFTPWM_S_PRESC(presc)   _PRESC(_SOFTPWM_S_TIMER, presc)
 #define SOFTPWM_S_CURR_CNT()     _CURR_CNT(_SOFTPWM_S_TIMER)
 
 /* long pulse softPWM macros*/
-#define SOFTPWM_L_DUTY_ISR()     _COMPB_ISR(_SOFTPWM_L_TIMER)  
-#define SOFTPWM_L_TOP_ISR()      _COMPA_ISR(_SOFTPWM_L_TIMER)
+#define SOFTPWM_L_DUTY_int       _COMPB_ISR(_SOFTPWM_L_TIMER)  
+#define SOFTPWM_L_TOP_int        _COMPA_ISR(_SOFTPWM_L_TIMER)
 #define SOFTPWM_L_TIMER          _TIMER(_SOFTPWM_L_TIMER)
 #define SOFTPWM_L_PRESC(presc)   _PRESC(_SOFTPWM_L_TIMER, presc)
 #define SOFTPWM_L_CURR_CNT()     _CURR_CNT(_SOFTPWM_L_TIMER)
 
 /* system tick */
-#define SYSTICK_ISR()            _COMPA_ISR(_SYSTICK_TIMER)
+#define SYSTICK_int              _COMPA_ISR(_SYSTICK_TIMER)
 #define SYSTICK_TIMER            _TIMER(_SYSTICK_TIMER)
 #define SYSTICK_PRESC(presc)     _PRESC(_SYSTICK_TIMER, presc)
 #define SYSTICK_CURR_CNT()       _CURR_CNT(_SYSTICK_TIMER)

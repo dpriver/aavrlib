@@ -42,6 +42,7 @@
 
 typedef void (*transsmision_end_handler)(void);
 
+void spi_init();
 void spi_send_block(uint8_t caracteres[], uint8_t length);
 void spi_send_burst(uint8_t caracters[], uint8_t length, transsmision_end_handler end_handler);
 

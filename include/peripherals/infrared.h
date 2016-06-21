@@ -1,7 +1,7 @@
 /*******************************************************************************
  *	infrared.h
  *
- *  infrared
+ *  infrared receiver
  *
  *
  *  This file is part of aavrlib
@@ -26,15 +26,10 @@
 #ifndef __INFRARED
 #define __INFRARED
 
-#include <stdint.h>
 
-void ir_init();
+typedef void (*completion_handler)(uint16_t address, uint8_t command);
 
-
-uint8_t ir_get_buffer(uint16_t* buffer);
-
-
-int8_t ir_remove_from_buffer(uint8_t n_positions);
+void init_IR_receiver(completion_handler handler);
 
 
 #endif /* __INFRARED */

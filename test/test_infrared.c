@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	test_analog.c
+ *	test_infrared.c
  *
- *  analog test
+ *  infrared NEC protocol test
  *
  *
  *  This file is part of aavrlib
@@ -23,42 +23,39 @@
  *
  ******************************************************************************/
 
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#include <stdint.h>
+#include <uc/usart.h>
+#include <boards/arduinoUNO.h>
+#include <systick.h>
+#include <peripherals/infrared.h>
 
-#include "uc/usart.h"
-#include "uc/timers.h"
-#include "uc/analog.h"
-#include "boards/arduinoUNO.h"
+uint8_t packet_count;
+uint8_t packet_address;
+uint8_t packet_command;
 
 
-
-#define ADC_MASK (0x0)
-
+void ir_callback(uint16_t address, uint8_t command);
 
 int main( void ) {
-	uint8_t analog_read = 0;
-	timers_init();
-	usart_init();
-	adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
-	
-	IOPORT_CONFIG(INPUT, PORT_A, PIN_A0);
-	IOPORT_CONFIG(OUTPUT, PORT_B, PIN_7);
-	
-    IOPORT_CONFIG(INPUT, PORT_B,  PIN_2);
+    
+    uint16_t* ir_buffer = 0; 
+    uint8_t buff_length;
+    uint8_t i;
+    
+    systick_init();
+    usart_init();
+    init_IR_receiver(ir_callback);
+    
+    while(1) {
+        delay_ms(5000);
+    }
+    
+    return 0;
+}
 
-	while(1) {
-		IOPORT_VALUE(HIGH, PORT_B_V, PIN_7);
-		analog_read = adc_single_read();
-		usart_print("Readed value: ");
-		usart_printnumber8(analog_read);
-		usart_print("\n");
 
-		//_delay_ms(300);
-		//IOPORT_VALUE(LOW, PORT_B_V, PIN_7);
-		//_delay_ms(300);
-	}
-	
-	return 0;
+void ir_callback(uint16_t address, uint8_t command) {
+    usart_print("\nReceived [");
+    usart_printnumber8(address);
+    usart_print("]: ");
+    usart_printnumber8(command);
 }

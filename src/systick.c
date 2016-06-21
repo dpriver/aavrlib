@@ -29,6 +29,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h> 
 
+#include "uc/interrupt.h"
 #include "uc/timers.h"
 #include "uc/usart.h"
 #include "systick.h"
@@ -124,36 +125,24 @@ uint8_t time_sub(time_t *op1, time_t *op2, time_t *result) {
 }
 
 
+void systick_isr(interrupt_t interrupt) {
+    ++curr_ms;
+}
+
 // Init system tick feature
 void systick_init() {
     
 	curr_ms = 0;
-	sei();
+    interrupt_attach(SYSTICK_int, systick_isr);
     
     SYSTICK_TIMER_START();
-
-}
-
-
-// 0-999 us
-uint16_t get_uptime_us() {
-    
-#if SYSTICK_RESOLUTION == 16
-	return (uint16_t)SYSTICK_CURR_CNT() >> 1;  // 2000/2
-#elif SYSTICK_RESOLUTION == 8
-    return (uint16_t)SYSTICK_CURR_CNT() << 2;   // 250 * 4
-#endif
-
-}
-
-
-uint32_t get_uptime_ms() {
-	return (uint32_t)curr_ms;
 }
 
 
 // BUG -> Race condition
 void get_uptime(time_t *time) {
+    
+    time_t aux_time;
     
 #if SYSTICK_RESOLUTION == 16
 	time->us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
@@ -162,8 +151,52 @@ void get_uptime(time_t *time) {
 #endif
 
     time->ms = curr_ms;
+    
+    do {
+        aux_time.ms = time->ms;
+        aux_time.us = time->us;
+        
+#if SYSTICK_RESOLUTION == 16
+        time->us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
+#elif SYSTICK_RESOLUTION == 8
+        time->us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
+#endif
+        time->ms = curr_ms;
+    } while (time->ms != aux_time.ms);
 }
 
+
+uint32_t get_micros() {
+    uint16_t ms, us, aux_ms, aux_us;
+    
+    uint8_t oldSREG;
+    
+    oldSREG = SREG;
+    sei();
+    
+    aux_ms = curr_ms;
+    aux_us = SYSTICK_CURR_CNT();
+    
+    do {
+        ms = aux_ms;
+        us = aux_us;
+        
+        aux_ms = curr_ms;
+        aux_us = SYSTICK_CURR_CNT();
+        
+    } while (curr_ms != aux_ms);
+   
+   
+#if SYSTICK_RESOLUTION == 16
+    us = us >> 1;  // 2000/2
+#elif SYSTICK_RESOLUTION == 8
+    us = us << 2;   // 250 * 4
+#endif
+    
+    SREG = oldSREG;
+    
+    return (uint32_t)((ms << 10) + (uint32_t)us);
+}
 
 void start_timeout(uint16_t ms, time_t *timeout) {
 
@@ -193,9 +226,4 @@ void delay_ms(uint16_t ms) {
     
     // actual delay busy wait
     while (curr_ms < _ms);
-}
-
-
-SYSTICK_ISR() {
-    ++curr_ms;
 }

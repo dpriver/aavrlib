@@ -28,6 +28,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 
+#include "uc/interrupt.h"
 #include "uc/timers.h"
 #include "uc/usart.h"
 #include "boards/arduinoUNO.h"
@@ -124,6 +125,65 @@ uint8_t curr_signal;
 
 
 
+
+// ctc top
+// Set all signals
+// set the first compare interrupt value
+//SOFTPWM_L_TOP_ISR() {
+void softpwm_l_top_isr(interrupt_t interrupt) {
+    // min value greater than current count
+    int8_t i;
+    uint8_t min_value = UINT8_MAX;
+  
+    usart_print("\n[TOP]");
+
+    // Set all signals
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        
+        // update duty counts
+        duty_count[i] = updated_duty_count[i];
+        
+        if ( duty_count[i] > 0) {
+            // set signals' pin and look for the next to clear
+            IOPORT_VALUE(HIGH, *(signal_port[i]), signal_pin[i]);
+            if(duty_count[i] < min_value) {
+                min_value = duty_count[i];
+            }
+        }
+    }
+    
+    usart_print("\nnext_cnt: ");
+    
+    curr_duty = min_value;
+    usart_printnumber8(curr_duty);
+    SOFTPWM_TIMER_SET_DUTY_COUNT(curr_duty);
+}
+
+// ctc compare interrupt
+// Clear the corresponding signals and set the new compare interrupt value
+// each timer_prescaler cycles, an interrupt can potencially be triggered, so this function
+// have to be checked for time constraints
+//SOFTPWM_L_DUTY_ISR() {
+void softpwm_l_duty_isr(interrupt_t interrupt) {
+    int8_t i;
+    uint8_t min_value = UINT8_MAX;
+
+    usart_print("\n[DUTY]");
+
+    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
+        if( duty_count[i] == curr_duty ) {
+            IOPORT_VALUE(LOW, *(signal_port[i]), signal_pin[i]);
+        }
+        if( (duty_count[i] > curr_duty) && (duty_count[i] < min_value)) {
+            min_value = duty_count[i];
+        }
+    }
+    
+    curr_duty = min_value;
+    SOFTPWM_TIMER_SET_DUTY_COUNT(curr_duty);
+}
+
+
 void softPWM_l_init() {
     int8_t i;
     curr_signal = 0;
@@ -133,6 +193,9 @@ void softPWM_l_init() {
        updated_duty_count[i] = 0;
        signal_enabled[i] = 0;
     }
+    
+    interrupt_attach(SOFTPWM_L_TOP_int, softpwm_l_top_isr);
+    interrupt_attach(SOFTPWM_L_DUTY_int, softpwm_l_duty_isr);
     
     SOFTPWM_TIMER_START();
     SOFTPWM_TIMER_ENABLE_DUTY();
@@ -200,60 +263,4 @@ void softPWM_l_start() {
 
 void softPWM_l_stop() {
     SOFTPWM_TIMER_STOP();
-}
-
-
-// ctc top
-// Set all signals
-// set the first compare interrupt value
-SOFTPWM_L_TOP_ISR() {
-    // min value greater than current count
-    int8_t i;
-    uint8_t min_value = UINT8_MAX;
-  
-    usart_print("\n[TOP]");
-
-    // Set all signals
-    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
-        
-        // update duty counts
-        duty_count[i] = updated_duty_count[i];
-        
-        if ( duty_count[i] > 0) {
-            // set signals' pin and look for the next to clear
-            IOPORT_VALUE(HIGH, *(signal_port[i]), signal_pin[i]);
-            if(duty_count[i] < min_value) {
-                min_value = duty_count[i];
-            }
-        }
-    }
-    
-    usart_print("\nnext_cnt: ");
-    
-    curr_duty = min_value;
-    usart_printnumber8(curr_duty);
-    SOFTPWM_TIMER_SET_DUTY_COUNT(curr_duty);
-}
-
-// ctc compare interrupt
-// Clear the corresponding signals and set the new compare interrupt value
-// each timer_prescaler cycles, an interrupt can potencially be triggered, so this function
-// have to be checked for time constraints
-SOFTPWM_L_DUTY_ISR() {
-    int8_t i;
-    uint8_t min_value = UINT8_MAX;
-
-    usart_print("\n[DUTY]");
-
-    for(i = MAX_SIGNALS-1 ; i >= 0 ; i-- ) {
-        if( duty_count[i] == curr_duty ) {
-            IOPORT_VALUE(LOW, *(signal_port[i]), signal_pin[i]);
-        }
-        if( (duty_count[i] > curr_duty) && (duty_count[i] < min_value)) {
-            min_value = duty_count[i];
-        }
-    }
-    
-    curr_duty = min_value;
-    SOFTPWM_TIMER_SET_DUTY_COUNT(curr_duty);
 }

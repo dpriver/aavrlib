@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	ir_nec.c
+ *	interrupt.h
  *
- *  infrared NEC protocol
+ *  interrupt management
  *
  *
  *  This file is part of aavrlib
@@ -22,21 +22,26 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
- 
-#ifndef __IR_NEC
-#define __IR_NEC
-
-#include <stdint.h>
-
-typedef struct ir_nec_packet ir_nec_packet;
-struct ir_nec_packet{
-    uint8_t repeat;
-    uint8_t addr;
-    uint8_t data;  
-};
-
- 
-int8_t translate(uint8_t* raw, uint8_t n_pulses, ir_nec_packet* packet);
 
 
-#endif /* __IR_NEC */
+#ifndef __INTERRUPT
+#define __INTERRUPT
+
+
+#define N_INTERRUPTS 25
+
+typedef enum {INT0_int, INT1_int, PCINT0_int, PCINT1_int, PCINT2_int, WDT_int, TIMER2_COMPA_int, 
+            TIMER2_COMPB_int, TIMER2_OVF_int, TIMER1_CAPT_int, TIMER1_COMPA_int, TIMER1_COMPB_int, 
+            TIMER1_OVF_int, TIMER0_COMPA_int, TIMER0_COMPB_int, TIMER0_OVF_int, SPI_STC_int, 
+            USART_RX_int, USART_UDRE_int, USART_TX_int, ADC_int, EE_READY_int, ANALOG_COMP_int, TWI_int, 
+            SPM_READY_int} interrupt_t;
+
+typedef void (*isr_function)(interrupt_t interrupt);
+
+
+
+void interrupt_attach(interrupt_t interrupt, isr_function isr);
+void interrupt_detach(interrupt_t interrupt);
+
+
+#endif /* __INTERRUPT */
