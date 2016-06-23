@@ -33,7 +33,6 @@
 
 #define IR_BUFF_LENGTH 1
 
-#define DATA_BIT(index) 0x80000000 >> index
 #define EQUALS(value, intervale) ( (value >= intervale*0.8) && \
         (value <= intervale*1.2) )
 
@@ -152,7 +151,8 @@ void ir_receiver_init(completion_handler completion, decode_protocol decode){
 
 
 uint8_t nec_decode(uint32_t interval) {
-    uint8_t data, data_red, addr, addr_red;
+    uint8_t data, addr;
+    //uint8_t data_red, addr_red;
 
     usart_print("\ninterval: ");
     usart_printnumber32(interval);
@@ -191,12 +191,14 @@ uint8_t nec_decode(uint32_t interval) {
     if (ir_data.decode_state == NEC_COMPLETED_ST) {
         usart_print("\t[COMPLETED]");
         //if (EQUALS(interval, NEC_TAIL)) {
+        #warning "[TODO] NEC ir protocol: Not checking TAIL"
             addr = (ir_data.data >> 24) & 0xFF;
-            addr_red = ~(ir_data.data >> 16) & 0xFF;
+            //addr_red = ~(ir_data.data >> 16) & 0xFF;
             data = (ir_data.data >> 8) & 0xFF;
-            data_red = ~(ir_data.data) & 0xFF;                
+            //data_red = ~(ir_data.data) & 0xFF;                
             
            //if ((addr == addr_red) && (data == data_red)) {
+           #warning "[TODO] NEC ir protocol: Not checking redundancy"
                ir_data.addr_buffer[ir_data.data_end] = addr;
                ir_data.data_buffer[ir_data.data_end] = data;
                if (ir_data.completion != 0) {

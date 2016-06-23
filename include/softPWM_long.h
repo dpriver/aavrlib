@@ -30,6 +30,9 @@
 #include <stdint.h>
 
 
+// max pwm signals
+#define SOFTPWM_L_MAX_SIGNALS 10
+
 void softPWM_l_init();
 
 int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port, 

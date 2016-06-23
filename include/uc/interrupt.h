@@ -30,14 +30,36 @@
 
 #define N_INTERRUPTS 25
 
-typedef enum {INT0_int, INT1_int, PCINT0_int, PCINT1_int, PCINT2_int, WDT_int, TIMER2_COMPA_int, 
-            TIMER2_COMPB_int, TIMER2_OVF_int, TIMER1_CAPT_int, TIMER1_COMPA_int, TIMER1_COMPB_int, 
-            TIMER1_OVF_int, TIMER0_COMPA_int, TIMER0_COMPB_int, TIMER0_OVF_int, SPI_STC_int, 
-            USART_RX_int, USART_UDRE_int, USART_TX_int, ADC_int, EE_READY_int, ANALOG_COMP_int, TWI_int, 
-            SPM_READY_int} interrupt_t;
+typedef enum {  
+    INT0_int, 
+    INT1_int, 
+    PCINT0_int, 
+    PCINT1_int, 
+    PCINT2_int, 
+    WDT_int, 
+    TIMER2_COMPA_int, 
+    TIMER2_COMPB_int, 
+    TIMER2_OVF_int, 
+    TIMER1_CAPT_int, 
+    TIMER1_COMPA_int, 
+    TIMER1_COMPB_int, 
+    TIMER1_OVF_int, 
+    TIMER0_COMPA_int, 
+    TIMER0_COMPB_int, 
+    TIMER0_OVF_int, 
+    SPI_STC_int, 
+    USART_RX_int, 
+    USART_UDRE_int, 
+    USART_TX_int, 
+    ADC_int, 
+    EE_READY_int, 
+    ANALOG_COMP_int, 
+    TWI_int, 
+    SPM_READY_int
+} interrupt_t;
+
 
 typedef void (*isr_function)(interrupt_t interrupt);
-
 
 
 void interrupt_attach(interrupt_t interrupt, isr_function isr);
