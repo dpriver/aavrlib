@@ -28,325 +28,184 @@
 #include "uc/interrupt.h"
 #include "systick.h"
 #include "peripherals/infrared.h"
-
-#define IR_DEBUG
-
-#ifdef IR_DEBUG
 #include "uc/usart.h"
-#endif
 
-#define TRUE 1
-#define FALSE 0
-#define NULL 0
 
-#ifdef IR_DEBUG
-#define IR_ERROR_NUM_VALUES 40
-#endif
+#define IR_BUFF_LENGTH 1
 
 #define DATA_BIT(index) 0x80000000 >> index
-#define EQUALS(value, intervale) ( (value >= intervale*0.5) && (value <= intervale*1.5) )
-
-#define PULSE_TIME 562
-
-#define TOKEN_D_START 9000
-#define TOKEN_U_START 4500
-#define TOKEN_D_DATA PULSE_TIME
-#define TOKEN_U_0 PULSE_TIME
-#define TOKEN_U_1 PULSE_TIME*3
-#define TOKEN_D_REP 9000
-#define TOKEN_U_REP 2000
-#define MIN_REP_TIME 80000
-
-
-#ifdef IR_DEBUG 
-    #define NEXT_STATUS_IDLE() IR_receiver.status = IDLE;
-    #define NEXT_STATUS_START_D() IR_receiver.status = START_D;
-    #define NEXT_STATUS_START_U() IR_receiver.status = START_U;
-    #define NEXT_STATUS_DATA_D() IR_receiver.status = DATA_D;
-    #define NEXT_STATUS_DATA_U() IR_receiver.status = DATA_U;
-    #define NEXT_STATUS_COMPLETED() IR_receiver.status = COMPLETED;
-    #define SUCCESS() dump_lecture();
-    #define ERROR(cadena) \
-            usart_print("\nERROR: "); \
-            usart_print(cadena); \
-            dump_lecture();
-#else
-    #define NEXT_STATUS_IDLE() IR_receiver.status = IDLE;
-    #define NEXT_STATUS_START_D() IR_receiver.status = START_D;
-    #define NEXT_STATUS_START_U() IR_receiver.status = START_U;
-    #define NEXT_STATUS_DATA_D() IR_receiver.status = DATA_D;
-    #define NEXT_STATUS_DATA_U() IR_receiver.status = DATA_U;
-    #define NEXT_STATUS_COMPLETED() IR_receiver.status = COMPLETED;
-    #define SUCCESS()   usart_print("\n[Recibido]");
-    #define ERROR(cadena) usart_print(cadena);
-#endif
-
-#ifdef IR_DEBUG
-volatile struct{
-	uint32_t vueltas_micro[IR_ERROR_NUM_VALUES];
-	uint32_t mili[IR_ERROR_NUM_VALUES];
-	uint32_t micro[IR_ERROR_NUM_VALUES];
-	uint32_t diff[IR_ERROR_NUM_VALUES];
-	uint8_t fails[IR_ERROR_NUM_VALUES];
-	uint8_t fails_post[IR_ERROR_NUM_VALUES];
-	uint8_t index;
-	uint8_t num_fails;
-}IR_error;
-#endif
-
-enum{IDLE, START_D, START_U, DATA_D, DATA_U, COMPLETED};
-
-volatile struct{
-	uint32_t last_lecture_time;
-	uint32_t data;
-	uint8_t status;
-	uint8_t index;
-	uint8_t passed_min_time;
-	completion_handler command_handler;
-}IR_receiver;
+#define EQUALS(value, intervale) ( (value >= intervale*0.8) && \
+        (value <= intervale*1.2) )
 
 
 
+/*==============================================================================
+ *   Protocol state definitions
+ *============================================================================*/
+
+#define IDLE_ST 0
+
+/* NEC protocol states */
+#define NEC_DATA_ST         1
+#define NEC_COMPLETED_ST    2
 
 
-#ifdef IR_DEBUG
-// ============================ DEBUG ====================================
-// =======================================================================
+/*==============================================================================
+ *   Protocol intervale definitions
+ *============================================================================*/
+ 
+/* NEC protocol intervales */
+#define NEC_PULSE (562)
 
-void ir_error_initialize(){
-	cli();
-	for(uint8_t i = 0; i < IR_ERROR_NUM_VALUES ; i++){
-		IR_error.vueltas_micro[i] = 0;
-		IR_error.micro[i] = 0;
-		IR_error.mili[i] = 0;
-		IR_error.diff[i] = 0;
-		IR_error.fails[i] = FALSE;
-		IR_error.fails_post[i] = FALSE;
-	}
-	IR_error.num_fails = 0;
-	IR_error.index = 0;
-	sei();
-}
-
-void print_status(uint8_t status){
-	switch(status){
-		case IDLE:
-			usart_print("IDLE");
-			break;
-		case START_D:
-			usart_print("START_D");
-			break;
-		case START_U:
-			usart_print("START_U");
-			break;
-		case DATA_D:
-			usart_print("DATA_D");
-			break;
-		case DATA_U:
-			usart_print("DATA_U");
-			break;
-		case COMPLETED:
-			usart_print("COMPLETED");
-			break;
-	}
-}
-
-void print_data(){
-
-	for(int i = 0 ; i < 16 ; i++){
-		if(IR_receiver.data & DATA_BIT(i) )
-			usart_print("1");
-		else
-			usart_print("0");
-	}
-	usart_print(" ");
-	for(int i = 16 ; i < 24 ; i++){
-		if(IR_receiver.data & DATA_BIT(i) )
-			usart_print("1");
-		else
-			usart_print("0");
-	}
-	usart_print(" ");
-	for(int i = 24 ; i < 32 ; i++){
-		if(IR_receiver.data & DATA_BIT(i) )
-			usart_print("1");
-		else
-			usart_print("0");
-	}
-}
-
-void dump_lecture(){
-	usart_print("\n========== DUMP ============");
-	usart_print("\nSTATUS: ");
-	print_status(IR_receiver.status);
-	usart_print("\nDATA  : ");
-	print_data();
-	usart_print("\nposition    micro      mili       ciclos_us      dif");
-	for(uint32_t i = 0; i < IR_ERROR_NUM_VALUES ; i++){
-		usart_print("\n");
-		usart_printnumber32(i);
-		usart_print(": ");
-		usart_printnumber32(IR_error.micro[i]);
-		usart_print(" ");
-		usart_printnumber32(IR_error.mili[i]);
-		usart_print(" ");
-		usart_printnumber32(IR_error.vueltas_micro[i]);
-		usart_print(" --> [");
-		usart_printnumber32(IR_error.diff[i]);
-		usart_print("]");
-		if(IR_error.fails[i])
-			usart_print("  FAIL");
-		if(IR_error.fails_post[i])
-			usart_print("  FAIL_POST");
-	}
-	usart_print("\nNUM. FAILS: ");
-	usart_printnumber32(IR_error.num_fails);
-	//usart_print("\nTiempo ISR: ");
-	//usart_printnumber32((uint32_t)system_tick.tiempoISR);
-	usart_print("\n============================");
-}
-
-// =======================================================================
-// =======================================================================
-#endif
+#define NEC_HEAD        (9000+4500)
+#define NEC_DATA_0      (NEC_PULSE*2)
+#define NEC_DATA_1      (NEC_PULSE*4)
+#define NEC_TAIL        NEC_PULSE
 
 
 
-void nec_protocol_isr(interrupt_t interrupt) {
-	// obtener tiempo
-	uint32_t timevalue, intervale;
+/*==============================================================================
+ *   Infrared structures
+ *============================================================================*/
 
-
-	timevalue = get_micros();
-
-	// determinar el significado del intervalo recibido
-	// comparando con la última marca de tiempo
-	if(timevalue > IR_receiver.last_lecture_time)
-		intervale = timevalue - IR_receiver.last_lecture_time;
-	else
-		intervale = MAX_MICROS_COUNT - IR_receiver.last_lecture_time + timevalue;
-
-	if(IR_receiver.passed_min_time)
-		IR_receiver.last_lecture_time = timevalue;
-
-#ifdef IR_DEBUG
-    usart_print("\nintervale: ");
-    usart_printnumber32(intervale);
-
-	IR_error.diff[IR_error.index] = intervale;
-#endif
-
-	switch(IR_receiver.status){
-		case IDLE:
-			if(EQUALS(intervale, TOKEN_D_START)){
-				NEXT_STATUS_START_D();
-			}
-			break;
-		case START_D:
-			if(EQUALS(intervale, TOKEN_U_START)){
-				IR_receiver.data = 0;
-				IR_receiver.index = 0;
-				NEXT_STATUS_START_U();
-			}
-			else if(EQUALS(intervale, TOKEN_U_REP)){
-				if( !((IR_receiver.data >> 8) & (IR_receiver.data & 0x000000FF)) ){	// Ya se han leído todos los datos y la trama es correcta
-					NEXT_STATUS_COMPLETED();
-					SUCCESS();
-					IR_receiver.passed_min_time = FALSE;
-					if(IR_receiver.command_handler != NULL)		// Si todo es correcto y existe un completion_handler, se le invoca
-						IR_receiver.command_handler((uint16_t)(IR_receiver.data >> 16), (uint8_t)(IR_receiver.data >> 8));
-				}
-			}
-			else{
-				ERROR("START mal formado");
-				NEXT_STATUS_IDLE();
-			}
-			break;
-		case START_U:
-			if(EQUALS(intervale, TOKEN_D_DATA)){
-				NEXT_STATUS_DATA_D();
-			}
-			else{
-				ERROR("START DOWN mal formado");
-				NEXT_STATUS_IDLE();
-			}
-			break;
-		case DATA_D:
-			if(EQUALS(intervale, TOKEN_U_0)){		// Almaceno un 0
-				IR_receiver.index++;
-			}
-			else if(EQUALS(intervale, TOKEN_U_1)){	// Almaceno un 1
-				IR_receiver.data |= DATA_BIT(IR_receiver.index);
-				IR_receiver.index++;
-			}
-			else{
-				ERROR("DATA UP mal formado");
-				NEXT_STATUS_IDLE();
-				break;
-			}
-			if(IR_receiver.index < 32){  // Aún quedan datos por leer
-				NEXT_STATUS_DATA_U();
-			}
-			else if( !((IR_receiver.data >> 8) & (IR_receiver.data & 0x000000FF)) ){	// Ya se han leído todos los datos y la trama es correcta
-				NEXT_STATUS_COMPLETED();
-				SUCCESS();
-				IR_receiver.passed_min_time = FALSE;
-				if(IR_receiver.command_handler != NULL)		// Si todo es correcto y existe un completion_handler, se le invoca
-					IR_receiver.command_handler((uint16_t)(IR_receiver.data >> 16), (uint8_t)(IR_receiver.data >> 8));
-			}
-			else{	// Ya se han leido todos los datos pero la trama es incorrecta
-				ERROR("TRAMA mal formada");
-				NEXT_STATUS_IDLE();
-			}
-			break;
-		case DATA_U:
-			if(EQUALS(intervale, TOKEN_D_DATA)){
-				NEXT_STATUS_DATA_D();
-			}
-			else{
-				ERROR("DATA DOWN mal formado");
-				NEXT_STATUS_IDLE();
-			}
-			break;
-		case COMPLETED:
-			if(!IR_receiver.passed_min_time){
-				if(intervale > MIN_REP_TIME){
-					IR_receiver.passed_min_time = TRUE;
-					IR_receiver.last_lecture_time = timevalue;
-				}
-				break;
-			}
-			if(EQUALS(intervale, TOKEN_D_START)){
-				NEXT_STATUS_START_D();
-			}
-			break;
-	}
+struct {
+    completion_handler completion;
+    decode_protocol decode;
     
-#ifdef IR_DEBUG
-    if(IR_error.index >= IR_ERROR_NUM_VALUES)
-        ir_error_initialize();
-    else
-        IR_error.index++;
-#endif
+    uint32_t last_lecture;
+    uint8_t decode_state;
+    
+    uint8_t data_length;
+    uint8_t data_start;
+    uint8_t data_end;
+    uint8_t data_buffer[IR_BUFF_LENGTH];
+    uint8_t addr_buffer[IR_BUFF_LENGTH];
+    
+    uint32_t data;
+    uint8_t index;
+} ir_data;
+
+
+/*==============================================================================
+ *   Infrared ISR
+ *============================================================================*/
+
+void ir_receiver_isr(interrupt_t interrupt) {
+	uint32_t timevalue, intervale;
+    uint8_t oldSREG;
+    oldSREG = SREG;
+
+    timevalue = get_micros();
+
+    cli();
+    
+
+    if(timevalue > ir_data.last_lecture)
+		intervale = timevalue - ir_data.last_lecture;
+	else
+		intervale = MAX_MICROS_COUNT - ir_data.last_lecture + timevalue;
+        
+    //time[debug_index] = timevalue;
+    //diff[debug_index] = intervale;
+
+    ir_data.decode(intervale);
+    ir_data.last_lecture = timevalue;
+
+    SREG = oldSREG;
 }
 
 
 
-void init_IR_receiver(completion_handler handler){
+/*==============================================================================
+ *   Infrared functions
+ *============================================================================*/
 
-	IR_receiver.status = IDLE;
-	IR_receiver.last_lecture_time = 0;
-	IR_receiver.command_handler = handler;
-	IR_receiver.passed_min_time = TRUE;
+void ir_receiver_init(completion_handler completion, decode_protocol decode){
 
-#ifdef IR_DEBUG
-	ir_error_initialize();
-#endif
+    //int i;
+    //debug_index = 0;
+    //for(i = 0 ; i < DEBUG_VALS; i++) {
+    //    milis[i] = 0;
+    //    micros[i] = 0;
+    //    diff[i] = 0;
+    //    time[i] = 0;
+    //}
+    
+    ir_data.decode = decode;
+    ir_data.completion = completion;
+    
+    ir_data.last_lecture = 0;
+    ir_data.decode_state = IDLE_ST;
+    
+    ir_data.data_length = 0;
+    ir_data.data_start = 0;
+    ir_data.data_end = 0;
+    
+    ir_data.index = 0;
+    
+    interrupt_attach(INT0_int, ir_receiver_isr);
 
-    interrupt_attach(INT0_int, nec_protocol_isr);
+	EICRA = (EICRA | _BV(ISC01)) & ~_BV(ISC00);
+	//EICRA = (EICRA | _BV(ISC00)) & ~_BV(ISC01);
+    EIMSK |= _BV(INT0);
+}
 
-	EICRA = 0x01;
 
-	EIMSK = 0x01;
-	PCICR = 0x00;
+uint8_t nec_decode(uint32_t interval) {
+    uint8_t data, data_red, addr, addr_red;
+
+    usart_print("\ninterval: ");
+    usart_printnumber32(interval);
+
+    switch(ir_data.decode_state) {
+        case NEC_DATA_ST:
+            usart_print("\t[DATA]");
+            if (EQUALS(interval, NEC_DATA_0)) {                 // DATA 0 correct
+                ir_data.index++;
+                if (ir_data.index == 32) {
+                    ir_data.decode_state = NEC_COMPLETED_ST;
+                }
+            }
+            else if (EQUALS(interval, NEC_DATA_1)) {            // DATA 1 correct
+                ir_data.data |= 0x80000000 >> ir_data.index;
+                ir_data.index++;
+                if (ir_data.index == 32) {
+                    ir_data.decode_state = NEC_COMPLETED_ST;
+                }
+            }
+            else {                                             // DATA fail
+                ir_data.decode_state = IDLE_ST;
+            } 
+            break;
+
+        case IDLE_ST:
+            usart_print("\t[IDLE]");
+            if (EQUALS(interval, NEC_HEAD)) {           // HEAD correct
+                ir_data.index = 0;
+                ir_data.data = 0;
+                ir_data.decode_state = NEC_DATA_ST;
+            }
+            break; 
+    }
+    
+    if (ir_data.decode_state == NEC_COMPLETED_ST) {
+        usart_print("\t[COMPLETED]");
+        //if (EQUALS(interval, NEC_TAIL)) {
+            addr = (ir_data.data >> 24) & 0xFF;
+            addr_red = ~(ir_data.data >> 16) & 0xFF;
+            data = (ir_data.data >> 8) & 0xFF;
+            data_red = ~(ir_data.data) & 0xFF;                
+            
+           //if ((addr == addr_red) && (data == data_red)) {
+               ir_data.addr_buffer[ir_data.data_end] = addr;
+               ir_data.data_buffer[ir_data.data_end] = data;
+               if (ir_data.completion != 0) {
+                   ir_data.completion(addr, data);
+               }
+           //}
+        //}
+        ir_data.decode_state = IDLE_ST;
+    }
+
+    return 0;
 }

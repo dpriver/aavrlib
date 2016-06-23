@@ -66,42 +66,69 @@ typedef enum {
 /*******************************************************************************
  *   MACROS
  ******************************************************************************/
- 
-// TIMER 0 macros
-#define TIMER0_COMPA_ISR    TIMER0_COMPA_int
-#define TIMER0_COMPB_ISR    TIMER0_COMPB_int
-#define TIMER0_TOV_ISR      TIMER0_TOV_int
-#define TIMER0_TIMER        timer0
-#define TIMER0_PRESCALER(presc) prescale0_ ## presc
-#define TIMER0_CURR_CNT     (TCNT0)   
-#define TIMER0_RESOLUTION   (8) 
+#if defined(__AVR_ATmega48A__) || defined(__AVR_ATmega48PA__) || \
+    defined(__AVR_ATmega88A__) || defined(__AVR_ATmega88PA__) || \
+    defined(__AVR_ATmega168A__) || defined(__AVR_ATmega168PA__) || \
+    defined(__AVR_ATmega328__) || defined(__AVR_ATmega328P__)
+    // TIMER 0 macros
+    #define TIMER0_COMPA_ISR    TIMER0_COMPA_int
+    #define TIMER0_COMPB_ISR    TIMER0_COMPB_int
+    #define TIMER0_TOV_ISR      TIMER0_TOV_int
+    #define TIMER0_COMPA_PEND   (TIFR0 & _BV(OCF0A))
+    #define TIMER0_COMPB_PEND   (TIFR0 & _BV(OCF0B))
+    #define TIMER0_TOV_PEND     (TIFR0 & _BV(TOV0))
+    #define TIMER0_TIMER        timer0
+    #define TIMER0_PRESCALER(presc) prescale0_ ## presc
+    #define TIMER0_CURR_CNT     (TCNT0)   
+    #define TIMER0_RESOLUTION   (8) 
 
-// TIMER 1 macros
-#define TIMER1_COMPA_ISR    TIMER1_COMPA_int
-#define TIMER1_COMPB_ISR    TIMER1_COMPB_int
-#define TIMER1_TOV_ISR      TIMER1_TOV_int
-#define TIMER1_TIMER        timer1
-#define TIMER1_PRESCALER(presc) prescale1_ ## presc
-#define TIMER1_CURR_CNT     (TCNT1)   
-#define TIMER1_RESOLUTION   (16)  
+    // TIMER 1 macros
+    #define TIMER1_COMPA_ISR    TIMER1_COMPA_int
+    #define TIMER1_COMPB_ISR    TIMER1_COMPB_int
+    #define TIMER1_TOV_ISR      TIMER1_TOV_int
+    #define TIMER1_COMPA_PEND   (TIFR1 & _BV(OCF1A))
+    #define TIMER1_COMPB_PEND   (TIFR1 & _BV(OCF1B))
+    #define TIMER1_TOV_PEND     (TIFR1 & _BV(TOV1))
+    #define TIMER1_TIMER        timer1
+    #define TIMER1_PRESCALER(presc) prescale1_ ## presc
+    #define TIMER1_CURR_CNT     (TCNT1)   
+    #define TIMER1_RESOLUTION   (16)  
 
-// TIMER 2 macros
-#define TIMER2_COMPA_ISR    TIMER2_COMPA_int
-#define TIMER2_COMPB_ISR    TIMER2_COMPB_int
-#define TIMER2_TOV_ISR      TIMER2_TOV_int
-#define TIMER2_TIMER        timer2
-#define TIMER2_PRESCALER(presc) prescale2_ ## presc
-#define TIMER2_CURR_CNT     (TCNT2)
-#define TIMER2_RESOLUTION   (8) 
+    // TIMER 2 macros
+    #define TIMER2_COMPA_ISR    TIMER2_COMPA_int
+    #define TIMER2_COMPB_ISR    TIMER2_COMPB_int
+    #define TIMER2_TOV_ISR      TIMER2_TOV_int
+    #define TIMER2_COMPA_PEND   (TIFR0 & _BV(OCF2A))
+    #define TIMER2_COMPB_PEND   (TIFR0 & _BV(OCF2B))
+    #define TIMER2_TOV_PEND     (TIFR0 & _BV(TOV2))
+    #define TIMER2_TIMER        timer2
+    #define TIMER2_PRESCALER(presc) prescale2_ ## presc
+    #define TIMER2_CURR_CNT     (TCNT2)
+    #define TIMER2_RESOLUTION   (8)
+#else
+    #error "A valid MMU must be defined"
+#endif
 
 
 // GENERIC TIMER MACROS (internal use)
 // Needed in order to expand correctly the timer macros
-#define _COMPB_ISR_EXP(TIM)      TIM ## _COMPB_ISR
-#define _COMPB_ISR(TIM)          _COMPB_ISR_EXP(TIM)
+#define _COMPB_ISR_EXP(TIM)     TIM ## _COMPB_ISR
+#define _COMPB_ISR(TIM)         _COMPB_ISR_EXP(TIM)
 
-#define _COMPA_ISR_EXP(TIM)       TIM ## _COMPA_ISR
-#define _COMPA_ISR(TIM)           _COMPA_ISR_EXP(TIM)
+#define _COMPA_ISR_EXP(TIM)     TIM ## _COMPA_ISR
+#define _COMPA_ISR(TIM)         _COMPA_ISR_EXP(TIM)
+
+#define _TOV_ISR_EXP(TIM)       TIM ## _TOV_ISR
+#define _TOV_ISR(TIM)           _TOV_ISR_EXP(TIM)
+
+#define _COMPB_PEND_EXP(TIM)     TIM ## _COMPB_PEND
+#define _COMPB_PEND(TIM)         _COMPB_PEND_EXP(TIM)
+
+#define _COMPA_PEND_EXP(TIM)     TIM ## _COMPA_PEND
+#define _COMPA_PEND(TIM)         _COMPA_PEND_EXP(TIM)
+
+#define _TOV_PEND_EXP(TIM)       TIM ## _TOV_PEND
+#define _TOV_PEND(TIM)           _TOV_PEND_EXP(TIM)
 
 #define _TIMER_EXP(TIM)         TIM ## _TIMER
 #define _TIMER(TIM)             _TIMER_EXP(TIM)
@@ -154,6 +181,7 @@ typedef enum {
 
 /* system tick */
 #define SYSTICK_int              _COMPA_ISR(_SYSTICK_TIMER)
+#define SYSTICK_PEND()           _COMPA_PEND(_SYSTICK_TIMER)
 #define SYSTICK_TIMER            _TIMER(_SYSTICK_TIMER)
 #define SYSTICK_PRESC(presc)     _PRESC(_SYSTICK_TIMER, presc)
 #define SYSTICK_CURR_CNT()       _CURR_CNT(_SYSTICK_TIMER)

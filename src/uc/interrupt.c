@@ -25,12 +25,14 @@
 
 #include <avr/interrupt.h>
 #include "uc/interrupt.h"
+#include "uc/usart.h"
 
 #define N_INTERRUPTS 25
 
 
 void default_ISR(interrupt_t interrupt) {
-    //print something
+    usart_print("\nERROR: not implemented int");
+    usart_printnumber32(interrupt);
 }
 
 isr_function isr[N_INTERRUPTS] = {
@@ -149,6 +151,6 @@ ISR(TWI_vect, ISR_BLOCK) {
     isr[TWI_int](TWI_int);
 }
 
-ISR(SPM_READY_vect, ISR_BLOCK) {
+ISR(SPM_READY_vect, ISR_NOBLOCK) {
     isr[SPM_READY_int](SPM_READY_int);
 }

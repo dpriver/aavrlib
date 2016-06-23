@@ -26,10 +26,15 @@
 #ifndef __INFRARED
 #define __INFRARED
 
+#define DEBUG_VALS 60
 
-typedef void (*completion_handler)(uint16_t address, uint8_t command);
 
-void init_IR_receiver(completion_handler handler);
 
+typedef void (*completion_handler)(uint8_t address, uint8_t command);
+typedef uint8_t (*decode_protocol)(uint32_t interval);
+
+void ir_receiver_init(completion_handler handler, decode_protocol decode);
+
+uint8_t nec_decode(uint32_t interval);
 
 #endif /* __INFRARED */

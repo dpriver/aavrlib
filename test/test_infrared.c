@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include <avr/interrupt.h>
 #include <uc/usart.h>
 #include <boards/arduinoUNO.h>
 #include <systick.h>
@@ -33,27 +34,51 @@ uint8_t packet_address;
 uint8_t packet_command;
 
 
-void ir_callback(uint16_t address, uint8_t command);
+void ir_callback(uint8_t address, uint8_t command);
 
 int main( void ) {
     
-    uint16_t* ir_buffer = 0; 
-    uint8_t buff_length;
-    uint8_t i;
-    
     systick_init();
     usart_init();
-    init_IR_receiver(ir_callback);
+    ir_receiver_init(ir_callback, nec_decode);
     
-    while(1) {
-        delay_ms(5000);
+    sei();
+    
+    IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
+    IOPORT_VALUE(LOW, PORT_C_V, PIN_13);
+    
+    while(1);
+    
+    /*
+    while(debug_index < 31) {
+        delay_ms(500);
     }
     
+    usart_print("\nPOS      MILIS      MICROS      TIME         DIFF");
+    usart_print("\n==================================================");
+    uint8_t i;
+    for( i = 0; i < debug_index; i++) {
+        usart_print("\n[");
+        usart_printnumber8(i);
+        usart_print("]: ");
+        usart_printnumber32(milis[i]);
+        usart_print(" ");
+        usart_printnumber32(micros[i]);
+        usart_print(" -> ");
+        usart_printnumber32(time[i]);
+        usart_print("  =  ");
+        usart_printnumber32(diff[i]);
+        
+        usart_print("  [");
+        usart_printnumber32(isr_time[i]);
+        usart_print("]");
+    }
+    */
     return 0;
 }
 
 
-void ir_callback(uint16_t address, uint8_t command) {
+void ir_callback(uint8_t address, uint8_t command) {
     usart_print("\nReceived [");
     usart_printnumber8(address);
     usart_print("]: ");

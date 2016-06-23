@@ -51,17 +51,16 @@
 #if SYSTICK_RESOLUTION == 16
 
     #define PRESC       8
-    #define SYSTICK_TOP_CNT     2000
+    #define SYSTICK_TOP_CNT     1998
     
 #elif SYSTICK_RESOLUTION == 8
 
     #define PRESC       64
-    #define SYSTICK_TOP_CNT     250
+    #define SYSTICK_TOP_CNT     248
     
 #endif
 
-#define MAX_MIN UINT16_MAX
-#define MAX_MS  59999
+#define MAX_MS  UINT32_MAX
 #define MAX_US  999
 
 
@@ -75,8 +74,8 @@
 
 
 // variables to count the system uptime
+//static volatile uint32_t curr_ms;
 static volatile uint32_t curr_ms;
-
 
 // the 16 and 32 bit registers used in time_t makes this an ineficient calculation
 uint8_t time_add(time_t *op1, time_t *op2, time_t *result) {
@@ -167,33 +166,47 @@ void get_uptime(time_t *time) {
 
 
 uint32_t get_micros() {
-    uint16_t ms, us, aux_ms, aux_us;
+    uint32_t ms, aux_ms;
+    uint16_t us, aux_us;
+    uint8_t extra, aux_extra;
     
     uint8_t oldSREG;
     
     oldSREG = SREG;
-    sei();
     
     aux_ms = curr_ms;
     aux_us = SYSTICK_CURR_CNT();
+    aux_extra = SYSTICK_PEND();
+    
+    sei();
     
     do {
         ms = aux_ms;
         us = aux_us;
+        extra = aux_extra;
         
+        /* Atomic access to systick variables, so it is not interrupted by 
+         * the systick ISR, which would cause a race condition */
+        cli();
         aux_ms = curr_ms;
         aux_us = SYSTICK_CURR_CNT();
+        aux_extra = SYSTICK_PEND();
+        sei();
         
-    } while (curr_ms != aux_ms);
+    } while ((curr_ms != aux_ms) || (extra != aux_extra) || 
+            ((aux_us < us) && (ms == aux_ms) ));
    
+   
+   if (extra) {
+       ms++;
+   }
+    SREG = oldSREG;
    
 #if SYSTICK_RESOLUTION == 16
     us = us >> 1;  // 2000/2
 #elif SYSTICK_RESOLUTION == 8
     us = us << 2;   // 250 * 4
 #endif
-    
-    SREG = oldSREG;
     
     return (uint32_t)((ms << 10) + (uint32_t)us);
 }
