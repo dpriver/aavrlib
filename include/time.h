@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	systick.h
+ *	time.h
  *
- *  system tick
+ *  Time related definitions and functions
  *
  *
  *  This file is part of aavrlib
@@ -21,34 +21,21 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- ********************************************************************************/
+ ******************************************************************************/
 
-
- 
-#ifndef __SYSTICK
-#define __SYSTICK
+#ifndef __TIME
+#define __TIME
 
 #include <stdint.h>
-#include "time.h"
+
+typedef struct {
+    uint16_t us;
+    uint32_t ms;
+} time_t;
+
+// the 16 and 32 bit registers used in time_t makes this an ineficient calculation
+int8_t time_add(time_t *op1, time_t *op2, time_t *result);
+int8_t time_sub(time_t *op1, time_t *op2, time_t *result);
 
 
-#define MAX_MICROS_COUNT (UINT16_MAX*1000) + 999
-
-
-void systick_init();
-
-
-
-// complete uptime
-void get_uptime(time_t *time);
-
-uint32_t get_micros();
-
-void delay_ms(uint16_t ms);
-
-
-void start_timeout(uint16_t ms, time_t *timeout);
-
-uint8_t timeout_expired(time_t *timeout);
-
-#endif /* __SYSTICK */
+#endif /* __TIME */

@@ -32,6 +32,7 @@
 #include "uc/interrupt.h"
 #include "uc/timers.h"
 #include "uc/usart.h"
+#include "time.h"
 #include "systick.h"
 
 
@@ -76,52 +77,6 @@
 // variables to count the system uptime
 //static volatile uint32_t curr_ms;
 static volatile uint32_t curr_ms;
-
-// the 16 and 32 bit registers used in time_t makes this an ineficient calculation
-uint8_t time_add(time_t *op1, time_t *op2, time_t *result) {
-    
-    result->ms = op1->ms + op2->ms;
-    result->us = op1->us + op2->us;
-
-    // us overflow
-    if ( (result->us < op1->us) || (result->us < op2->us) ) {
-        result->ms ++;
-    }
-        
-    // ms overflow
-    if ( (result->ms < op1->ms) || (result->ms < op2->ms) ) {
-        return -1;
-    }
-        
-    return 0;
-}
-
-uint8_t time_sub(time_t *op1, time_t *op2, time_t *result) {
-    uint8_t overflow;
-
-    if (op2->ms > op1->ms) {
-        result->ms = op2->ms - op1->ms;
-        overflow = 1;
-    }
-    else {
-        result->ms = op1->ms - op2->ms;
-        overflow = 0;
-    }
-    
-    if (op2->us > op1->us) {
-        result->us = 1000 + op1->us - op2->us;
-        result->ms--;
-    }
-    else {
-        result->us = op1->us - op2->us;
-    }
-    
-    if ( overflow ) {
-        return -1;
-    }
-    
-    return 0;
-}
 
 
 void systick_isr(interrupt_t interrupt) {
