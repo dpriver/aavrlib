@@ -45,9 +45,7 @@
 
 #define PWM_PRESCALE SOFTPWM_L_PRESC(1024)
 
-// It fucking complains because of integer overflow...
-//#define PWM_TOP_CNT (F_CPU/(PRESC*PWM_FREC))
-#define PWM_TOP_CNT 78
+#define PWM_TOP_CNT SOFTPWM_L_MAX_WIDTH
 
 /*
  * The idea here is that softPWM.c does not need to worry about the assigned timer.
