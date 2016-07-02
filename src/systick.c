@@ -5,7 +5,7 @@
  *
  *
  *  This file is part of aavrlib
- * 
+ *
  *  Copyright (C) 2015  Dennis Pinto Rivero
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@
 // avr defines
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdint.h> 
+#include <stdint.h>
 
 #include "uc/interrupt.h"
 #include "uc/timers.h"
@@ -39,10 +39,10 @@
 /*
  * timer1 is a 16bit timer, so a valid configuration can be ctc mode with
  * presc = 8
- * top = 2000, 
+ * top = 2000,
  * so frequency results in 16000000/(8*2000) = 1000Hz, with a resolution of
  * 1/2 ms.
- * 
+ *
  * If systick is configured to work in a 8bit timer, it can be ctc mode with
  * presc = 64
  * top = 250
@@ -53,12 +53,12 @@
 
     #define PRESC       8
     #define SYSTICK_TOP_CNT     1998
-    
+
 #elif SYSTICK_RESOLUTION == 8
 
     #define PRESC       64
     #define SYSTICK_TOP_CNT     248
-    
+
 #endif
 
 #define MAX_MS  UINT32_MAX
@@ -73,6 +73,18 @@
 #define SYSTICK_TIMER_START()       _TIMER_START_EXP1(SYSTICK_TIMER)
 
 
+#if SYSTICK_RESOLUTION == 16
+    #define GET_RAW_MICROS()        (SYSTICK_CURR_CNT() >> 1)
+#elif SYSTICK_RESOLUTION == 8
+    #define GET_RAW_MICROS()        (SYSTICK_CURR_CNT() << 2)
+#endif
+
+#if SYSTICK_RESOLUTION == 16
+    #define COUNT_TO_MICROS(count)        (count >> 1)
+#elif SYSTICK_RESOLUTION == 8
+    #define COUNT_TO_MICROS(count)        (count << 2)
+#endif
+
 
 // variables to count the system uptime
 //static volatile uint32_t curr_ms;
@@ -85,38 +97,55 @@ void systick_isr(interrupt_t interrupt) {
 
 // Init system tick feature
 void systick_init() {
-    
+
 	curr_ms = 0;
     interrupt_attach(SYSTICK_int, systick_isr);
-    
+
     SYSTICK_TIMER_START();
 }
 
 
 // BUG -> Race condition
 void get_uptime(time_t *time) {
-    
-    time_t aux_time;
-    
-#if SYSTICK_RESOLUTION == 16
-	time->us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
-#elif SYSTICK_RESOLUTION == 8
-    time->us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
-#endif
 
-    time->ms = curr_ms;
-    
+    uint32_t ms, aux_ms;
+    uint16_t us, aux_us;
+    uint8_t extra, aux_extra;
+
+    uint8_t oldSREG;
+
+    oldSREG = SREG;
+
+    aux_ms = curr_ms;
+    aux_us = SYSTICK_CURR_CNT();
+    aux_extra = SYSTICK_PEND();
+
+    sei();
+
     do {
-        aux_time.ms = time->ms;
-        aux_time.us = time->us;
-        
-#if SYSTICK_RESOLUTION == 16
-        time->us = SYSTICK_CURR_CNT() >> 1;  // 2000/2
-#elif SYSTICK_RESOLUTION == 8
-        time->us = SYSTICK_CURR_CNT() << 2;   // 250 * 4
-#endif
-        time->ms = curr_ms;
-    } while (time->ms != aux_time.ms);
+        ms = aux_ms;
+        us = aux_us;
+        extra = aux_extra;
+
+        /* Atomic access to systick variables, so it is not interrupted by
+         * the systick ISR, which would cause a race condition */
+        cli();
+        aux_ms = curr_ms;
+        aux_us = SYSTICK_CURR_CNT();
+        aux_extra = SYSTICK_PEND();
+        sei();
+
+    } while ((curr_ms != aux_ms) || (extra != aux_extra) ||
+            ((aux_us < us) && (ms == aux_ms) ));
+
+
+   if (extra) {
+       ms++;
+   }
+    SREG = oldSREG;
+
+    time->ms = ms;
+    time->us = COUNT_TO_MICROS(us);
 }
 
 
@@ -124,51 +153,47 @@ uint32_t get_micros() {
     uint32_t ms, aux_ms;
     uint16_t us, aux_us;
     uint8_t extra, aux_extra;
-    
+
     uint8_t oldSREG;
-    
+
     oldSREG = SREG;
-    
+
     aux_ms = curr_ms;
     aux_us = SYSTICK_CURR_CNT();
     aux_extra = SYSTICK_PEND();
-    
+
     sei();
-    
+
     do {
         ms = aux_ms;
         us = aux_us;
         extra = aux_extra;
-        
-        /* Atomic access to systick variables, so it is not interrupted by 
+
+        /* Atomic access to systick variables, so it is not interrupted by
          * the systick ISR, which would cause a race condition */
         cli();
         aux_ms = curr_ms;
         aux_us = SYSTICK_CURR_CNT();
         aux_extra = SYSTICK_PEND();
         sei();
-        
-    } while ((curr_ms != aux_ms) || (extra != aux_extra) || 
+
+    } while ((curr_ms != aux_ms) || (extra != aux_extra) ||
             ((aux_us < us) && (ms == aux_ms) ));
-   
-   
+
+
    if (extra) {
        ms++;
    }
     SREG = oldSREG;
-   
-#if SYSTICK_RESOLUTION == 16
-    us = us >> 1;  // 2000/2
-#elif SYSTICK_RESOLUTION == 8
-    us = us << 2;   // 250 * 4
-#endif
-    
+
+    us = COUNT_TO_MICROS(us);
+
     return (uint32_t)((ms << 10) + (uint32_t)us);
 }
 
 void start_timeout(uint16_t ms, time_t *timeout) {
 
-    timeout->ms = curr_ms + ms;    
+    timeout->ms = curr_ms + ms;
 }
 
 
@@ -179,19 +204,19 @@ uint8_t timeout_expired(time_t *timeout) {
 
 void delay_ms(uint16_t ms) {
     uint32_t _ms = curr_ms + ms;
-    
-    // if _ms overflows, this loop prevents from skiping the delay, waiting for 
+
+    // if _ms overflows, this loop prevents from skiping the delay, waiting for
     // curr_ms to also overflow
     //while (curr_ms > _ms);
-    
-    // There is a problem with the previous loop... if something interrupts 
-    // just before it, time enought to actually overpass "ms", this will 
+
+    // There is a problem with the previous loop... if something interrupts
+    // just before it, time enought to actually overpass "ms", this will
     // keep the system delaying for 2^(32) ms... which is ~50 days...
-    
-    
+
+
     // A possible aproach is to disable interrupts,
     // then execute the loop while (curr_ms > _ms);
-    
+
     // actual delay busy wait
     while (curr_ms < _ms);
 }
