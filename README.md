@@ -12,21 +12,25 @@ By now, the objective is to create a general AVR library, with functionality to 
 ### Suported μcontrollers
 * atmega328p
 
-
 ### Suported boards
 * Arduino UNO
 
+### Characteristics
+ * Macros for "easy" pin usage
+ * Vectored interrupts
 
 ### Functionality
-* digital and analog I/O
-* timers (ctc, pwm,...)
-* spi
-* usart
-* long pulse software PWM (~0-100% duty at 200Hz)
-* short pulse software PWM (~0-10% duty at 50Hz)
+* Digital and analog I/O
+* Timers (ctc, pwm,...)
+* SPI
+* USART
+* System tick (uptime, delay, timeout,...)
+* Long pulse software PWM (~0-100% duty at 200Hz)
+* Short pulse software PWM (~0-10% duty at 50Hz)
 
 ### Peripherals
 * HC-SR04 ultrasonic sensor
+* Infared receive (NEC protocol)
 
 
 ## Dependencies
@@ -38,10 +42,12 @@ If that is not the case, the following commands can be used in a debian based sy
 sudo apt-get update
 sudo apt-get install gcc-avr avr-libc
 ```
+Also note that link-time optimizations and the linker-plugin are used, so make sure that your compiler does support this feature. If not, you can change the compile options in cmake/toolchain/Toolchain-avr.cmake . 
+NOTE: Since lto is not supported by many compilers, it is disabled by now.
 
 
 ## Compilation
-To compile the project, cmake is used, so the following commands should be executed in the project directory
+To compile the project, cmake is used, so the following commands should be executed in the project directory.
 ```bash
 mkdir build
 cd build
@@ -50,6 +56,18 @@ cmake ..
 make
 ```
 
+## Generate Documentation
+Documentation is made with doxygen, so it must be installed.
+```bash
+doxygen Doxyfile
+```
+Once doxygen is executed, doc/latex and doc/html directories should have been created. Open doc/latex/html/index.html to view the html version. To create the pdf from latex, execute
+```bash
+cd doc/latex
+make
+```
+The pdf documentation file should have been created in doc/latex.
+
 ## Installation
 To install the library, the following command should be used in the project's build directory after compilation
 ```bash
@@ -57,4 +75,4 @@ make install
 ```
 
 ## Use
-Once installed, to use this library, the flag -laavr has to be included in compiler invocation, as any other library.
+Once installed, to use this library, the flag -laavr has to be included in compiler invocation, as any other library. To take advantage of link-time optimizations, the flags -flto -fuse-linker-plugin should also be included.
