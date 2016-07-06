@@ -42,11 +42,39 @@ volatile static struct{
 }spi_attr;
 
 
+void isr_send_handler(){
+	spi_attr.last++;
+	spi_sendbyte(spi_attr.buffer[spi_attr.last]);
+}
 
-void spi_stc_isr(interrupt_t interrupt);
+void isr_receive_handler(){
+	spi_attr.last++;
+	spi_readbyte(spi_attr.buffer[spi_attr.last]);
+	spi_receivebyte();
+}
+
+INTERRUPT(__vector_spi_stc_isr) {
+	if( spi_attr.last < spi_attr.length-1 ){
+		if(spi_attr.sending == 1)
+			isr_send_handler();
+		else
+			isr_receive_handler();
+	}
+	else{
+		if(spi_attr.sending == 0)	// I don't like this, but we have to read the last value
+			spi_readbyte(spi_attr.buffer[spi_attr.last]);
+
+		spi_end_transmission();
+		if(spi_attr.end_handler != NULL){
+			sei();						// enable interrupts beyong this point
+			spi_attr.end_handler();
+		}
+	}
+}
+
 
 void spi_init() {
-    interrupt_attach(SPI_STC_int, spi_stc_isr);
+    interrupt_attach(SPI_STC_int, __vector_spi_stc_isr);
 }
 
 void spi_send_block(uint8_t caracters[], uint8_t length){
@@ -77,34 +105,3 @@ void spi_send_burst(uint8_t characters[], uint8_t length, transsmision_end_handl
 		end_handler();
 }
 
-
-void isr_send_handler(){
-	spi_attr.last++;
-	spi_sendbyte(spi_attr.buffer[spi_attr.last]);
-}
-
-void isr_receive_handler(){
-	spi_attr.last++;
-	spi_readbyte(spi_attr.buffer[spi_attr.last]);
-	spi_receivebyte();
-}
-
-
-void spi_stc_isr(interrupt_t interrupt){
-	if( spi_attr.last < spi_attr.length-1 ){
-		if(spi_attr.sending == 1)
-			isr_send_handler();
-		else
-			isr_receive_handler();
-	}
-	else{
-		if(spi_attr.sending == 0)	// I don't like this, but we have to read the last value
-			spi_readbyte(spi_attr.buffer[spi_attr.last]);
-
-		spi_end_transmission();
-		if(spi_attr.end_handler != NULL){
-			sei();						// enable interrupts beyong this point
-			spi_attr.end_handler();
-		}
-	}
-}

@@ -89,7 +89,7 @@ struct {
  *   Infrared ISR
  *============================================================================*/
 
-void ir_receiver_isr(interrupt_t interrupt) {
+INTERRUPT(__vector_ir_receiver_isr) {
 	uint32_t timevalue, intervale;
     uint8_t oldSREG;
     oldSREG = SREG;
@@ -142,7 +142,7 @@ void ir_receiver_init(completion_handler completion, decode_protocol decode){
     
     ir_data.index = 0;
     
-    interrupt_attach(INT0_int, ir_receiver_isr);
+    interrupt_attach(INT0_int, __vector_ir_receiver_isr);
 
 	EICRA = (EICRA | _BV(ISC01)) & ~_BV(ISC00);
 	//EICRA = (EICRA | _BV(ISC00)) & ~_BV(ISC01);

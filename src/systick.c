@@ -91,7 +91,7 @@
 static volatile uint32_t curr_ms;
 
 
-void systick_isr(interrupt_t interrupt) {
+INTERRUPT(__vector_systick_isr) {
     ++curr_ms;
 }
 
@@ -99,7 +99,7 @@ void systick_isr(interrupt_t interrupt) {
 void systick_init() {
 
 	curr_ms = 0;
-    interrupt_attach(SYSTICK_int, systick_isr);
+    interrupt_attach(SYSTICK_int, __vector_systick_isr);
 
     SYSTICK_TIMER_START();
 }

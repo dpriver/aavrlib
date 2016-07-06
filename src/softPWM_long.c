@@ -123,7 +123,7 @@ uint8_t curr_signal;
 // Set all signals
 // set the first compare interrupt value
 //SOFTPWM_L_TOP_ISR() {
-void softpwm_l_top_isr(interrupt_t interrupt) {
+INTERRUPT(__vector_softpwm_l_top_isr) {
     // min value greater than current count
     int8_t i;
     uint8_t min_value = UINT8_MAX;
@@ -153,7 +153,7 @@ void softpwm_l_top_isr(interrupt_t interrupt) {
 // each timer_prescaler cycles, an interrupt can potencially be triggered, so this function
 // have to be checked for time constraints
 //SOFTPWM_L_DUTY_ISR() {
-void softpwm_l_duty_isr(interrupt_t interrupt) {
+INTERRUPT(__vector_softpwm_l_duty_isr) {
     int8_t i;
     uint8_t min_value = UINT8_MAX;
 
@@ -182,8 +182,8 @@ void softPWM_l_init() {
        signal_enabled[i] = 0;
     }
     
-    interrupt_attach(SOFTPWM_L_TOP_int, softpwm_l_top_isr);
-    interrupt_attach(SOFTPWM_L_DUTY_int, softpwm_l_duty_isr);
+    interrupt_attach(SOFTPWM_L_TOP_int, __vector_softpwm_l_top_isr);
+    interrupt_attach(SOFTPWM_L_DUTY_int, __vector_softpwm_l_duty_isr);
     
     SOFTPWM_TIMER_START();
     SOFTPWM_TIMER_ENABLE_DUTY();

@@ -41,7 +41,7 @@
  */
 
 
-void twi_slave_handler(interrupt_t interrupt) {
+INTERRUPT(__vector_twi_slave_handler) {
   sei();
   // reject all transmissions
   if (TW_STATUS == TW_SR_SLA_ACK) {
@@ -71,7 +71,7 @@ void TWI_master_init() {
 void TWI_slave_init(uint8_t addr) {
 
   // configure the handlers
-  interrupt_attach(TWI_int, twi_slave_handler);
+  interrupt_attach(TWI_int, __vector_twi_slave_handler);
 
   // set device address
   TWAR = (addr << 1) | 0x1;

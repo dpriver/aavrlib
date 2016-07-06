@@ -1,5 +1,5 @@
 /*******************************************************************************
- *	interrupt.h
+ *	interrupt.S
  *
  *  interrupt management
  *
@@ -23,52 +23,39 @@
  *
  ******************************************************************************/
 
+#include <avr/io.h>
 
-#ifndef __INTERRUPT
-#define __INTERRUPT
+.section .section, "ax", @progbits
 
+.global __vector_default
+.global interrupt_vector_start
 
-#define N_INTERRUPTS 25
+.org 0x0
 
-typedef enum {
-    INT0_int,
-    INT1_int,
-    PCINT0_int,
-    PCINT1_int,
-    PCINT2_int,
-    WDT_int,
-    TIMER2_COMPA_int,
-    TIMER2_COMPB_int,
-    TIMER2_OVF_int,
-    TIMER1_CAPT_int,
-    TIMER1_COMPA_int,
-    TIMER1_COMPB_int,
-    TIMER1_OVF_int,
-    TIMER0_COMPA_int,
-    TIMER0_COMPB_int,
-    TIMER0_OVF_int,
-    SPI_STC_int,
-    USART_RX_int,
-    USART_UDRE_int,
-    USART_TX_int,
-    ADC_int,
-    EE_READY_int,
-    ANALOG_COMP_int,
-    TWI_int,
-    SPM_READY_int
-} interrupt_t;
+interrupt_vector_start:
+    jmp interrupt_vector_start
+    jmp _interrupt_0
+    jmp _interrupt_1
 
+__vector_default:
+    jmp __init
 
-#define INTERRUPT(function) \
-    void function (void) __attribute__((signal, __INTR_ATTRS)); \
-    void function (void)
+_interrupt_0:
+    in  r0,  0x3f
+    lds r30, 0x0130
+    lds r31, 0x0131
+    ldi r24, 0x18
+    ldi r25, 0x00
+    icall
+    out 0x3f, r0
+    reti
 
-
-typedef void (*isr_function)( void );
-
-
-void interrupt_attach(interrupt_t interrupt, isr_function isr);
-void interrupt_detach(interrupt_t interrupt);
-
-
-#endif /* __INTERRUPT */
+_interrupt_1:
+    in  r0,  0x3f
+    lds r30, 0x0130
+    lds r31, 0x0131
+    ldi r24, 0x18
+    ldi r25, 0x00
+    icall
+    out 0x3f, r0
+    reti

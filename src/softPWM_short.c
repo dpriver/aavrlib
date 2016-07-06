@@ -111,7 +111,7 @@ uint8_t curr_signal;
 
 // ctc top
 //SOFTPWM_S_TOP_ISR() {
-void softpwm_s_top_isr(interrupt_t interrupt) {
+INTERRUPT(__vector_softpwm_s_top_isr) {
     // change to next pwm signal
 
     if(duty_count[curr_signal] > 0) {
@@ -126,7 +126,7 @@ void softpwm_s_top_isr(interrupt_t interrupt) {
 
 // duty interrupt
 //SOFTPWM_S_DUTY_ISR() {
-void softpwm_s_duty_isr(interrupt_t interrupt) {
+INTERRUPT(__vector_softpwm_s_duty_isr) {
     // set signal pin as 0
     //IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
     *(signal_port[curr_signal]) &= ~signal_pin[curr_signal];
@@ -150,8 +150,8 @@ void softPWM_s_init() {
        duty_count[i] = 0;
     }
     
-    interrupt_attach(SOFTPWM_S_TOP_int, softpwm_s_top_isr);
-    interrupt_attach(SOFTPWM_S_DUTY_int, softpwm_s_duty_isr);
+    interrupt_attach(SOFTPWM_S_TOP_int, __vector_softpwm_s_top_isr);
+    interrupt_attach(SOFTPWM_S_DUTY_int, __vector_softpwm_s_duty_isr);
     
     SOFTPWM_TIMER_START();
     SOFTPWM_TIMER_ENABLE_DUTY();

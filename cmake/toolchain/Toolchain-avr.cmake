@@ -14,16 +14,21 @@ SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 find_program(AVRCPP avr-g++)
 find_program(AVRC avr-gcc)
 find_program(AVRAR avr-ar)
+find_program(AVRLD avr-ld)
 find_program(AVRSTRIP avr-strip)
 find_program(OBJCOPY avr-objcopy)
 find_program(OBJDUMP avr-objdump)
 find_program(AVRSIZE avr-size)
 find_program(AVRDUDE avrdude)
 find_program(SCREEN screen)
+#find_program(AVRASM avr-as)
 
-# Tools
-SET(CMAKE_C_COMPILER ${AVRC})
-SET(CMAKE_AR ${AVRAR})
+# Tools. Without the FORCE, the fucking CMAKE overwrites them somehow...
+SET(CMAKE_C_COMPILER ${AVRC} CACHE STRING "" FORCE)
+SET(CMAKE_ASM_COMPILER ${AVRC} CACHE STRING "" FORCE)
+SET(CMAKE_AR ${AVRAR} CACHE STRING "" FORCE)
+SET(CMAKE_LINKER ${AVRLD} CACHE STRING "" FORCE)
+
 
 SET(CMAKE_BUILD_TYPE debug)
 
@@ -35,9 +40,13 @@ SET(CDEBUG "")
 SET(COPT "-Os")
 SET(CMCU "-mmcu=atmega328p")
 SET(CDEFS "-DF_CPU=16000000UL")
-SET(CFLAGS "${CMCU} ${CDEBUG} ${CWARN} ${CTUNING} ${COPT} ${CSTANDARD} ${CDEFS}")
+SET(LINK "-T ${LINKER_SCRIPT}")
+SET(CFLAGS "-nostartfiles ${CMCU} ${CDEBUG} ${CWARN} ${CTUNING} ${COPT} ${CSTANDARD} ${CDEFS} ${LINK}")
+#SET(CFLAGS "${CMCU} ${CDEBUG} ${CWARN} ${CTUNING} ${COPT} ${CSTANDARD} ${CDEFS}")
+SET(ASMFLAGS "${CMCU}")
+SET(ASM_OPTIONS "-x assembler-with-cpp")
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CFLAGS}" CACHE STRING "" FORCE)
+SET(CMAKE_C_FLAGS "${CFLAGS}" CACHE STRING "" FORCE)
+SET(CMAKE_ASM_FLAGS "${ASM_OPTIONS} ${CFLAGS}" CACHE STRING "" FORCE)
 
 SET(CMAKE_AR_FLAGS "${CMAKE_AR_FLAGS} csrv" CACHE STRING "" FORCE)
-
