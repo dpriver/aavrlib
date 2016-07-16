@@ -24,8 +24,12 @@
  ********************************************************************************/
 
 // avr defines
+#include <avr/io.h>
 #include <avr/power.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
+
+#include <uc/interrupt.h>
 
 /* Clock registers
  * 
@@ -71,14 +75,58 @@
  * 
  * 1. Configure the system initial status
  * 2. Allow changes in power configuration (Clock and Power)
- * 3. Configure watchdog (reset when detecting faillures...)
- * 4. Configure initial interrupt vector and interrupt global masks
+ * 3. Configure initial interrupt vector and interrupt global masks
  */
  
  
  void system_init() {
 	 
-	 cli();
-	 power_all_disable();
-	 
+    /* Global interrupts disable */
+	SREG = 0;
+    
+    /* External interrupts disabled */
+    EIMSK = 0;
+    
+    /* Pin change interrupts disabled */
+    PCMSK2 = 0;
+    PCMSK1 = 0;
+    PCMSK0 = 0;
+    
+    /* Watchdog disabled */
+    wdt_disable();
+    
+    /* Disable power to all the mcu peripherals */
+	power_all_disable();
+    
+    /* IO as input with pull-ups enabled */
+    DDRB = 0x0;
+    PORTB = 0xFF;
+    DDRC = 0x0;
+    PORTC = 0xFF;
+    DDRD = 0x0;
+    PORTD = 0xFF;
+    
+    /* Sleep mode set to IDLE */
+    SMCR = 0;
+    
+    /* Clock preescale set to 1 */
+    CLKPR = 0;
+    
+    /* BODS on, IO pull-ups on,  interrupt at the start of flash memory*/
+    MCUCR = 0;
+    
+    /* Watchdog, Brown-out, external interrupt and power-on flags clear */
+    MCUSR = 0;
+     
+    /* EEPROM control disabled */
+    EECR = 0;
+     
+    /* ADC comparator off, ADC interrupt disabled, input capture disabled */
+    ACSR = _BV(ACD);
+     
+    /* Self programming the flash disabled */
+    SPMCSR = 0;
+    
+    /* Global interrupts enabled */
+    sei();
  }
