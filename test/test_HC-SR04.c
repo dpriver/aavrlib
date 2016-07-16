@@ -26,7 +26,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include <uc/timers.h>
+#include <uc/system.h>
 #include <uc/usart.h>
 #include <boards/arduinoUNO.h>
 #include <peripherals/HC-SR04.h>
@@ -42,12 +42,11 @@ int main( void ) {
 
     int16_t distance;
 
-    timers_init();
+    system_init();
     systick_init();
     usart_init();
     ultrasonic_init();
 
-    sei();
 
     IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
     IOPORT_CONFIG(OUTPUT, PORT_B, ULTRASONIC_TRIGGER_PIN);

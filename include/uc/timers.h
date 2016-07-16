@@ -191,10 +191,6 @@ typedef enum {
  *   TIMERS FUNCTIONALITY
  ******************************************************************************/
 
-void timers_init();
-
-
-
 void timer0_ctc(prescale0_t prescale, uint8_t top_cnt);
 
 void timer0_ctc_extra_interrupt(uint8_t interrupt_cnt);

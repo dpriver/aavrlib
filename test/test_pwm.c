@@ -27,6 +27,7 @@
 #include <avr/power.h>
 #include <stdint.h>
 
+#include <uc/system.h>
 #include <uc/timers.h>
 #include <boards/arduinoUNO.h>
 
@@ -39,7 +40,7 @@
 
 int main( void ) {
 
-	timers_init();
+	system_init();
 	
 	IOPORT_CONFIG(OUTPUT, PORT_B, PIN_5 | PIN_3);
 	IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);

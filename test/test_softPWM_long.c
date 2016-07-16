@@ -2,7 +2,9 @@
  *  test_softPWMlong.h
  *
  *  long pulse software generated PWM test
- *
+ *  Send a software based PWN signal to the pin 4 of the arduinoUNO board. The 
+ *  pulse width comes determined for the analog value readed from the board's 
+ *  a0 pin. The readed and the assigned values are showed via USART
  *
  *  This file is part of aavrlib
  *
@@ -27,7 +29,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include <uc/timers.h>
+#include <uc/system.h>
 #include <uc/analog.h>
 #include <uc/usart.h>
 #include <boards/arduinoUNO.h>
@@ -55,7 +57,7 @@ int main( void ) {
     
     uint8_t analog_read, pulse_width;
     
-    timers_init();
+    system_init(),
     usart_init();
     softPWM_l_init();
     adc_init(adc_presc_128, adc_ref_vcc ,adc_channel_a0, 0);
@@ -99,7 +101,7 @@ int main( void ) {
        
 
         if (softPWM_l_set_pulse_width(0, pulse_width) == -1) {
-            usart_print("\n\nError, could not add PWM signal\n");
+            usart_print("\n\nError, could not set the signal's pulse\n");
             return 0;
         }
     }

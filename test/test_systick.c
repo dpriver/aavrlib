@@ -1,7 +1,9 @@
 /*******************************************************************************
  *	test_systick.c
  *
- *  system tick test
+ *  System tick test
+ *  Print via USART the system uptime each second while switching the led 4 of
+ *  the arduinoUNO board.
  *
  *
  *  This file is part of aavrlib
@@ -23,7 +25,9 @@
  *
  ******************************************************************************/
 
+#include <util/delay.h>
 
+#include <uc/system.h>
 #include <uc/usart.h>
 #include <boards/arduinoUNO.h>
 #include <systick.h>
@@ -35,7 +39,7 @@ int main( void ) {
     
     uint8_t led_state;
     
-    
+    system_init();
     systick_init();
     usart_init();
     
@@ -62,7 +66,7 @@ int main( void ) {
         usart_print("  us: ");
         usart_printnumber32((uint32_t)time.us);
         
-        delay_ms(1000);
+        delay_ms(100);
         
     }
     

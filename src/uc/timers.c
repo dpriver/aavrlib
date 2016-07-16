@@ -71,22 +71,6 @@
 
 
 
-void timers_init() {
-	
-	TIMSK0 = 0;
-	TIFR0 = 0;
-	TIMSK1 = 0;
-	TIFR1 = 0;
-	TIMSK2 = 0;
-	TIFR2 = 0;	
-	
-	power_timer0_disable();
-	power_timer1_disable();
-	power_timer2_disable();
-}
-
-
-
 void timer0_ctc(prescale0_t prescale, uint8_t top_cnt) {
 	power_timer0_enable();
 	TCNT0 	= 0;

@@ -1,8 +1,10 @@
 /*******************************************************************************
  *  test_softPWM_short.c
  *
- *  short pulse software generated PWM test
- *
+ *  Short pulse software generated PWM test
+ *  Send a software based PWN signal to the pin 4 of the arduinoUNO board. The 
+ *  pulse width comes determined for the analog value readed from the board's 
+ *  a0 pin. Each 300ms, the readed and the assigned values are showed via USART.
  *
  *  This file is part of aavrlib
  *
@@ -29,7 +31,7 @@
 #include <util/delay.h>
 #include <stdint.h>
 
-#include <uc/timers.h>
+#include <uc/system.h>
 #include <uc/usart.h>
 #include <uc/analog.h>
 #include <boards/arduinoUNO.h>
@@ -48,14 +50,11 @@ int main( void ) {
     uint8_t analog_read = 0;
     uint8_t duty_count = 0;
 
-    cli();
-	timers_init();
+	system_init();
     usart_init();
     softPWM_s_init();
     adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
     
-    sei();
-    usart_print("system init.");
     IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
     IOPORT_VALUE(LOW, PORT_C_V, PIN_13);
     

@@ -116,6 +116,8 @@ void get_uptime(time_t *time) {
 
     oldSREG = SREG;
 
+    cli();
+
     aux_ms = curr_ms;
     aux_us = SYSTICK_CURR_CNT();
     aux_extra = SYSTICK_PEND();
@@ -202,6 +204,7 @@ uint8_t timeout_expired(time_t *timeout) {
 }
 
 
+/* DEPRECATED */
 void delay_ms(uint16_t ms) {
     uint32_t _ms = curr_ms + ms;
 

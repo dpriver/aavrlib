@@ -28,6 +28,7 @@
 #define _USART
 
 #include <avr/io.h>
+#include <avr/power.h>
 #include <stdint.h>
 
 // BAUD = Fose/16/(UBBR0+1)
@@ -37,6 +38,7 @@
 // enable transmitter or receiver
 
 #define usart_init() \
+    power_usart0_enable(); \
 	UBRR0H = 0x00; \
 	UBRR0L = 0x01; \
 	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01); \
