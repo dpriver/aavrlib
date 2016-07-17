@@ -17,7 +17,7 @@ By now, the objective is to create a general AVR library, with functionality to 
 
 ### Characteristics
  * Macros for "easy" pin usage
- * Run-time configurable
+ * Run-time configurable ISRs
 
 ### Functionality
 * Digital and analog I/O
