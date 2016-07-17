@@ -32,6 +32,7 @@ By now, the objective is to create a general AVR library, with functionality to 
 ### Peripherals
 * HC-SR04 ultrasonic sensor
 * Infrared receive (NEC protocol)
+* 1602a LCD display
 
 
 ## Dependencies
