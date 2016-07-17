@@ -76,6 +76,12 @@ void TWI_slave_init(uint8_t addr) {
   // set device address
   TWAR = (addr << 1) | 0x1;
 
+  // SCL_freq = (CPU_FREQ)/(16 + 2*TWBR*preesc)
+  TWBR = 1;
+
+  // 0x0 -> 1, 0x1 -> 4, 0<2 -> 16, 0x3 -> 64
+  TWSR = 0x2;
+
   // set TWI hardware to listen state
   TWCR = _BV(TWEA) | _BV(TWEN) | _BV(TWIE);
 }

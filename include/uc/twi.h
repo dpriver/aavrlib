@@ -30,6 +30,8 @@
 #include <avr/io.h>
 #include <stdint.h>
 
+void TWI_master_init();
+
 void TWI_slave_init(uint8_t addr);
 
 // send data as master
