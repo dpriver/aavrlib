@@ -23,7 +23,7 @@ By now, the objective is to create a general AVR library, with functionality to 
 * Digital and analog I/O
 * Timers (ctc, pwm,...)
 * SPI
-* TWI/I2C
+* TWI/I2C (**Not tested**)
 * USART
 * System tick (uptime, delay, timeout,...)
 * Long pulse software PWM (~0-100% duty at 200Hz)
@@ -33,7 +33,7 @@ By now, the objective is to create a general AVR library, with functionality to 
 * HC-SR04 ultrasonic sensor
 * Infrared receive (NEC protocol)
 * 1602a LCD display
-
+* MPU-60X0 gyroscope, accelerometer and temperature-meter board (**Not tested**)
 
 ## Dependencies
 Note that this library is based on Atmel's avr library, and aimed to avr microcontrollers, so cross compile is needed.
