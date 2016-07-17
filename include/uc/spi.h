@@ -26,18 +26,19 @@
 #ifndef __SPI
 #define __SPI
 
-// Values to SPI_TEST:
-// SPI_STANDARD
-// SPI_74HC595N
-
-
-#if !defined(SPI_STANDARD) && !defined(SPI_74HC595N)
-	#define SPI_STANDARD
-#endif
-
 
 #include <avr/io.h>
 #include <stdint.h>
+
+#include "config.h"
+
+
+// Values to SPI_TEST:
+// SPI_STANDARD
+// SPI_74HC595N
+#if !defined(SPI_STANDARD) && !defined(SPI_74HC595N)
+	#define SPI_STANDARD
+#endif
 
 
 typedef void (*transsmision_end_handler)(void);

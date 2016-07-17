@@ -39,6 +39,9 @@
 #include <avr/power.h>
 #include <stdint.h>
 
+#include "config.h"
+
+
 /*******************************************************************************
  *   PRESCALERS
  ******************************************************************************/
@@ -146,23 +149,6 @@ typedef enum {
 /*******************************************************************************
  *   TIMER APPLICATIONS MACROS
  ******************************************************************************/
- 
-/* 
- * Timers configuration 
- * 
- * All the library implementations that depend on timers are listed here.
- * 
- * To configure the timer in wih a certain library should run, it has to be specified
- * below, so each library has a timer asigned.
- * 
- * Note that libraries with the same assigned timer should not be used in the same program.
- * Doing so may result in unpredictable results, such as compile or run time errors. Please, if you
- * try to do so, don't feel confident if the compiler ends succesfully, without checking the
- * correctness of the generated code or the program behaviour.
- **/
-#define _SOFTPWM_S_TIMER TIMER0
-#define _SOFTPWM_L_TIMER TIMER2
-#define _SYSTICK_TIMER   TIMER1
 
 
 /* short pulse softPWM macros*/
