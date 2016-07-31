@@ -43,7 +43,7 @@
 
 // It fucking complains because of integer overflow...
 //#define PWM_TOP_CNT (F_CPU/(256*SERVO_FREC*MAX_SIGNALS))
-#define PWM_TOP_CNT 125
+#define PWM_TOP_CNT SOFTPWM_S_MAX_WIDTH
 
 /*
  * The idea here is that softPWM.c does not need to worry about the assigned timer.
@@ -158,7 +158,7 @@ void softPWM_s_init() {
 }
 
 
-uint8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+int8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
     volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width) {
         
     if (slot >= SOFTPWM_S_MAX_SIGNALS)
@@ -178,7 +178,7 @@ uint8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port,
 }
 
 
-uint8_t softPWM_s_stop_signal(uint8_t slot) {
+int8_t softPWM_s_stop_signal(uint8_t slot) {
     
     if (slot >= SOFTPWM_S_MAX_SIGNALS)
         return -1;
@@ -192,7 +192,7 @@ uint8_t softPWM_s_stop_signal(uint8_t slot) {
 }
 
 
-uint8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
+int8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width) {
     if (slot >= SOFTPWM_S_MAX_SIGNALS)
         return -1;
     

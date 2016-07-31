@@ -32,19 +32,71 @@
 
 
 // max pwm signals
-#define SOFTPWM_S_MAX_SIGNALS 10
+#define SOFTPWM_S_MAX_SIGNALS (10)
 
+
+#define SOFTPWM_S_MAX_WIDTH (125)
+
+/**
+ * @brief Short pulse software PWM initialization
+ */
 void softPWM_s_init();
 
-uint8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
+
+/**
+ * @brief Add a new PWM signal
+ * 
+ * @param pin The pin to output the signal. Obtained from a board header.
+ * @param config_port The configuration port of the provided pin. Obtained from 
+ *        a board header.
+ * @param data_port The data port of the provided pin. Obtained from a board 
+ *        header.
+ * @param slot The internal slot in which the PWM should be stored
+ * @param pulse_width the signal's pulse width. Should be less than 
+ *        SOFTPWM_S_MAX_WIDTH.
+ * @return Returns -1 if the slot is not valid, already occupied or the pulse 
+ *         is greater than SOFTPWM_L_MAX_WIDTH. Otherwise, it returns the 
+ *         assigned slot.
+ */
+int8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
     volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width);
 
-uint8_t softPWM_s_stop_signal(uint8_t slot);
 
-uint8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width);
+/**
+ * @brief Remove a signal
+ * 
+ * @param slot The slot at which the signal is located
+ * @return -1 if the slot is invalid or 1 otherwise
+ */
+int8_t softPWM_s_stop_signal(uint8_t slot);
 
+
+/**
+ * @brief Modify a signal's pulse width
+ * 
+ * @param slot The slot at which the signal is located.
+ * @param pulse_width The new pulse width for the signal.
+ * @return -1 if the slot is invalid, not used or the pulse with is greater than 
+ *         SOFTPWM_S_MAX_WIDTH. 0 otherwise.
+ */
+int8_t softPWM_s_set_pulse_width(uint8_t slot, uint8_t pulse_width);
+
+
+/**
+ * @brief Starts the PWM generation after a explicit stop.
+ * 
+ * Since the PWM generation is started by softPWM_l_init, this function only 
+ * makes sense after a call to softPWM_stop.
+ */
 void softPWM_s_start();
 
+
+/**
+ * @brief Stops the PWM generation.
+ * 
+ * To start the PWM generation again, softPWM_l_start must be called.
+ */
 void softPWM_s_stop();
+
 
 #endif /* SOFTPWM */
