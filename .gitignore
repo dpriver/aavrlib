@@ -5,6 +5,10 @@ bin/
 build/
 doc/
 
+# ignore images and .dat
+*.dat
+*.png
+
 # Ignore temp directories
 temp/
 

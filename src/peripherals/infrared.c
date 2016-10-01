@@ -147,6 +147,9 @@ void ir_receiver_init(completion_handler completion, decode_protocol decode){
 	EICRA = (EICRA | _BV(ISC01)) & ~_BV(ISC00);
 	//EICRA = (EICRA | _BV(ISC00)) & ~_BV(ISC01);
     EIMSK |= _BV(INT0);
+    
+    // configure pin 2 as input
+    DDRD |= _BV(PORTD2);
 }
 
 
@@ -154,12 +157,12 @@ uint8_t nec_decode(uint32_t interval) {
     uint8_t data, addr;
     //uint8_t data_red, addr_red;
 
-    usart_print("\ninterval: ");
-    usart_printnumber32(interval);
+    //usart_print("\ninterval: ");
+    //usart_printnumber32(interval);
 
     switch(ir_data.decode_state) {
         case NEC_DATA_ST:
-            usart_print("\t[DATA]");
+            //usart_print("\t[DATA]");
             if (EQUALS(interval, NEC_DATA_0)) {                 // DATA 0 correct
                 ir_data.index++;
                 if (ir_data.index == 32) {
@@ -179,7 +182,7 @@ uint8_t nec_decode(uint32_t interval) {
             break;
 
         case IDLE_ST:
-            usart_print("\t[IDLE]");
+            //usart_print("\t[IDLE]");
             if (EQUALS(interval, NEC_HEAD)) {           // HEAD correct
                 ir_data.index = 0;
                 ir_data.data = 0;
@@ -189,7 +192,7 @@ uint8_t nec_decode(uint32_t interval) {
     }
     
     if (ir_data.decode_state == NEC_COMPLETED_ST) {
-        usart_print("\t[COMPLETED]");
+        //usart_print("\t[COMPLETED]");
         //if (EQUALS(interval, NEC_TAIL)) {
         #warning "[TODO] NEC ir protocol: Not checking TAIL"
             addr = (ir_data.data >> 24) & 0xFF;

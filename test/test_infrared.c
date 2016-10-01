@@ -25,6 +25,7 @@
 
 #include <avr/interrupt.h>
 #include <uc/usart.h>
+#include <uc/system.h>
 #include <boards/arduinoUNO.h>
 #include <systick.h>
 #include <peripherals/infrared.h>
@@ -38,6 +39,7 @@ void ir_callback(uint8_t address, uint8_t command);
 
 int main( void ) {
     
+    system_init();
     systick_init();
     usart_init();
     ir_receiver_init(ir_callback, nec_decode);
@@ -46,6 +48,8 @@ int main( void ) {
     
     IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
     IOPORT_VALUE(LOW, PORT_C_V, PIN_13);
+
+    IOPORT_CONFIG(INPUT, PORT_B, PIN_2);
     
     while(1);
     

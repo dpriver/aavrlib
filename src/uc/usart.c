@@ -49,6 +49,23 @@ void usart_printnumber32(uint32_t number){
 		usart_send(digits[index]);
 }
 
+void usart_printsignumber32(int32_t number){
+	uint8_t digits[11] = {' ','0','0','0','0','0','0','0','0','0','0'};
+	uint8_t index = 10;
+
+    if (number & 0x80000000) {
+        number++;
+        number = ~number;
+        digits[0] = '-';
+    }
+
+	for(; number > 0 ; index--, number/=10)
+		digits[index] = (number % 10) + '0';
+
+	for(index = 0 ; index < 11 ; index++)
+		usart_send(digits[index]);
+}
+
 void usart_printnumber8(uint8_t number){
 	uint8_t digits[3] = {'0','0','0'};
 	uint8_t index = 2;

@@ -42,11 +42,11 @@ int main( void ) {
 
     int16_t distance;
 
-    system_init();
+    //system_init();
     systick_init();
     usart_init();
     ultrasonic_init();
-
+    sei();
 
     IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
     IOPORT_CONFIG(OUTPUT, PORT_B, ULTRASONIC_TRIGGER_PIN);

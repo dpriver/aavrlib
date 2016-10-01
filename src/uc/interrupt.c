@@ -81,7 +81,7 @@ __attribute__((naked, section(".init9"))) void main_jump (void) {
 // Declare manually (in assembly) the interrupt vector and the calling routine
 // ISR vectors
 
-__attribute__((naked)) void default_ISR( void ) {
+__attribute__((section(".def_isr"))) void default_ISR( void ) {
     asm volatile("rjmp interrupt_vector");
 }
 

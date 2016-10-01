@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include <avr/power.h>
 #include <util/twi.h>
 #include <avr/interrupt.h>
 #include "uc/interrupt.h"
@@ -42,140 +43,192 @@
 
 
 INTERRUPT(__vector_twi_slave_handler) {
-  sei();
-  // reject all transmissions
-  if (TW_STATUS == TW_SR_SLA_ACK) {
-    // receive request
-    TWCR = _BV(TWINT) | _BV(TWIE);
-  }
-  else if (TW_STATUS == TW_ST_SLA_ACK) {
-    // send request
-    TWDR = 0;
-    TWCR = _BV(TWINT) | _BV(TWIE);
-  }
+    sei();
+    // reject all transmissions
+    if (TW_STATUS == TW_SR_SLA_ACK) {
+        // receive request
+        TWCR = _BV(TWINT) | _BV(TWIE);
+    }
+    else if (TW_STATUS == TW_ST_SLA_ACK) {
+        // send request
+        TWDR = 0;
+        TWCR = _BV(TWINT) | _BV(TWIE);
+    }
 
-  TWCR = _BV(TWEA) | _BV(TWEN) | _BV(TWIE);
+    TWCR = _BV(TWEA) | _BV(TWEN) | _BV(TWIE);
 }
 
 void TWI_master_init() {
-  TWAR = 0;
+    power_twi_enable();
+    
+    TWAR = 0;
 
-  // SCL_freq = (CPU_FREQ)/(16 + 2*TWBR*preesc)
-  TWBR = 1;
+    // SCL_freq = (CPU_FREQ)/(16 + 2*TWBR*preesc)
+    //  Configure TWI to work at maximun speed (400KHz)
+    TWBR = 12;
 
-  // 0x0 -> 1, 0x1 -> 4, 0<2 -> 16, 0x3 -> 64
-  TWSR = 0x2;
+    // 0x0 -> 1, 0x1 -> 4, 0<2 -> 16, 0x3 -> 64
+    TWSR = 0;
 }
 
 
 void TWI_slave_init(uint8_t addr) {
+    power_twi_enable();
+    
+    // configure the handlers
+    interrupt_attach(TWI_int, __vector_twi_slave_handler);
 
-  // configure the handlers
-  interrupt_attach(TWI_int, __vector_twi_slave_handler);
+    // set device address
+    TWAR = (addr << 1) | 0x1;
 
-  // set device address
-  TWAR = (addr << 1) | 0x1;
+    // SCL_freq = (CPU_FREQ)/(16 + 2*TWBR*preesc)
+    TWBR = 1;
 
-  // SCL_freq = (CPU_FREQ)/(16 + 2*TWBR*preesc)
-  TWBR = 1;
+    // 0x0 -> 1, 0x1 -> 4, 0<2 -> 16, 0x3 -> 64
+    TWSR = 0x2;
 
-  // 0x0 -> 1, 0x1 -> 4, 0<2 -> 16, 0x3 -> 64
-  TWSR = 0x2;
-
-  // set TWI hardware to listen state
-  TWCR = _BV(TWEA) | _BV(TWEN) | _BV(TWIE);
+    // set TWI hardware to listen state
+    TWCR = _BV(TWEA) | _BV(TWEN) | _BV(TWIE);
 }
 
-// send data as master
-int8_t TWI_send(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
-  uint8_t i = 0;
 
-  // send START
-  TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-  while( !(TWCR & _BV(TWINT)) );
+int8_t TWI_do_start() {
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
+    
+    while( !(TWCR & _BV(TWINT)) );
 
-  if ((TW_STATUS != TW_START) || (TW_STATUS != TW_REP_START)) {
-    return TW_STATUS;
-  }
+    if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
+        return TW_STATUS;
+    }
+    return 0;
+}
 
-  // send slave address
-  TWDR = (slave_addr << 1) | TW_WRITE;
-  TWCR = _BV(TWINT) | _BV(TWEN);
-  while( !(TWCR & _BV(TWINT)) );
+int8_t TWI_do_send_addr(uint8_t slave_addr, uint8_t twi_operation) {
+    TWDR = (slave_addr << 1) | twi_operation;
+    TWCR = _BV(TWINT) | _BV(TWEN);
+    while( !(TWCR & _BV(TWINT)) );
 
-  if (TW_STATUS != TW_MT_SLA_ACK) {
-    return TW_STATUS;
-  }
+    if (TW_STATUS != TW_MT_SLA_ACK) {
+        return TW_STATUS;
+    }
+    return 0;
+}
 
-  // while there is data to transmit
-  // transmit data
-  while(i < data_lenght) {
-    TWDR = data[i];
+int8_t TWI_do_write(uint8_t byte) {
+    TWDR = byte;
     TWCR = _BV(TWINT) | _BV(TWEN);
 
     while( !(TWCR & _BV(TWINT)) );
 
     if (TW_STATUS != TW_MT_DATA_ACK) {
-      return TW_STATUS;
-    }
-    i++;
-  }
+        return TW_STATUS;
+    }  
+    return 0;
+}
 
-  return 0;
+int8_t TWI_do_read(uint8_t *byte) {
+    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
+
+    while( !(TWCR & _BV(TWINT)) );
+        if (TW_STATUS != TW_MR_DATA_ACK) {
+            return TW_STATUS;
+    }
+
+    *byte = TWDR;
+    return 0;
+}
+
+// send data as master
+int8_t TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght) {
+    uint8_t i = 0;
+
+    // send START
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
+    
+    while( !(TWCR & _BV(TWINT)) );
+
+    if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
+        return TW_STATUS;
+    }
+
+    // send slave address
+    TWDR = (slave_addr << 1) | TW_WRITE;
+    TWCR = _BV(TWINT) | _BV(TWEN);
+    while( !(TWCR & _BV(TWINT)) );
+
+    if (TW_STATUS != TW_MT_SLA_ACK) {
+        return TW_STATUS;
+    }
+
+    // while there is data to transmit
+    // transmit data
+    while(i < data_lenght) {
+        TWDR = data[i];
+        TWCR = _BV(TWINT) | _BV(TWEN);
+
+        while( !(TWCR & _BV(TWINT)) );
+
+        if (TW_STATUS != TW_MT_DATA_ACK) {
+            return TW_STATUS;
+        }
+        i++;
+    }
+
+    return 0;
 }
 
 // Receive data as master
 int8_t TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
-  uint8_t i = 0;
+    uint8_t i = 0;
 
-  // send START
-  TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-  while( !(TWCR & _BV(TWINT)) );
-
-  if ( (TW_STATUS != TW_START) || (TW_STATUS != TW_REP_START)) {
-    return TW_STATUS;
-  }
-
-  // send slave address
-  TWDR = (slave_addr << 1) | TW_READ;
-  TWCR = _BV(TWINT) | _BV(TWEN);
-
-  while( !(TWCR & _BV(TWINT)) );
-  if (TW_STATUS != TW_MR_SLA_ACK) {
-    return TW_STATUS;
-  }
-
-  // while there is data to receive
-  // receive data data
-  while(i < (data_lenght-1)) {
-    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
-
+    // send START
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
     while( !(TWCR & _BV(TWINT)) );
-    if (TW_STATUS != TW_MR_DATA_ACK) {
-      return TW_STATUS;
+
+    if ( (TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
+        return TW_STATUS;
     }
 
-    TWDR = data[i];
-    i++;
-  }
+    // send slave address
+    TWDR = (slave_addr << 1) | TW_READ;
+    TWCR = _BV(TWINT) | _BV(TWEN);
 
-  // The last byte must be discriminated because a NACK have to be sended
-  // That is acomplished by not sending an ACK
-  TWCR = _BV(TWINT) | _BV(TWEN);
+    while( !(TWCR & _BV(TWINT)) );
+        if (TW_STATUS != TW_MR_SLA_ACK) {
+            return TW_STATUS;
+    }
 
-  while( !(TWCR & _BV(TWINT)) );
-  if (TW_STATUS != TW_MT_DATA_NACK) {
-    return TW_STATUS;
-  }
-  TWDR = data[i];
+    // while there is data to receive
+    // receive data
+    while(i < (data_lenght-1)) {
+        TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
 
-  return 0;
+        while( !(TWCR & _BV(TWINT)) );
+            if (TW_STATUS != TW_MR_DATA_ACK) {
+                return TW_STATUS;
+        }
+
+        data[i] = TWDR;
+        i++;
+    }
+
+    // The last byte must be discriminated because a NACK have to be sended
+    // That is acomplished by not sending an ACK
+    TWCR = _BV(TWINT) | _BV(TWEN);
+
+    while( !(TWCR & _BV(TWINT)) );
+        if (TW_STATUS != TW_MR_DATA_NACK) {
+            return TW_STATUS;
+    }
+    data[i] = TWDR;
+
+    return 0;
 }
 
 
 int8_t TWI_release() {
-  // send stop condition
-  TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
+    // send stop condition
+    TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
 
-  return 0;
+    return 0;
 }

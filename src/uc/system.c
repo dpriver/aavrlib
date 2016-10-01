@@ -98,13 +98,13 @@
     /* Disable power to all the mcu peripherals */
 	power_all_disable();
     
-    /* IO as input with pull-ups enabled */
-    DDRB = 0x0;
-    PORTB = 0xFF;
-    DDRC = 0x0;
-    PORTC = 0xFF;
-    DDRD = 0x0;
-    PORTD = 0xFF;
+    /* IO as output carried low */
+    DDRB = 0xFF;
+    PORTB = 0x0;
+    DDRC = 0xFF;
+    PORTC = 0x0;
+    DDRD = 0xFF;
+    PORTD = 0x0;
     
     /* Sleep mode set to IDLE */
     SMCR = 0;

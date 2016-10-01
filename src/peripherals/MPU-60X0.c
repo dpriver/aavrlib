@@ -24,46 +24,279 @@
  ******************************************************************************/
 
 #include <util/twi.h>
+#include <util/delay.h>
 #include "uc/twi.h"
 #include "peripherals/MPU-60X0.h"
 
+
+int8_t mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length) {
+    int8_t twi_res;
+    
+    if (length == 0) {
+        return 0;
+    }
+    
+    twi_res = TWI_send(MPU60X0_I2C_ADDR, &reg, 1);
+    if (twi_res != 0)
+        return twi_res;
+
+    twi_res = TWI_receive(MPU60X0_I2C_ADDR, data, length);
+    TWI_release();
+    
+    return twi_res;
+}
+
+int8_t mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length) {
+    uint8_t i = 0;
+    
+    if (TWI_do_start() != 0)
+        return -1;
+    
+    if (TWI_do_send_addr(MPU60X0_I2C_ADDR, TWI_WRITE) != 0)
+        return -1;
+        
+    if (TWI_do_write(reg) != 0)
+        return -1;
+        
+    while( i < length) {
+        if (TWI_do_write(data[i]) != 0)
+            return -1;
+        i++;
+    }
+    TWI_release();
+    
+    return 0;
+}
 
 /*
  * Configure to use FIFO and maybe some interrupts
  * 
  */
-void mpu_60x0_init(void) {
+int8_t mpu60x0_init(void) {
+    uint8_t aux;
     
     TWI_master_init();
+    
+    /* Check the chip's identity */
+    mpu60x0_read_reg(MPU60X0_REG_WHO_AM_I, &aux, 1);
+    if (aux != MPU60X0_I2C_ADDR) {
+        return -1;  /* Failed to verify the chip's identity */
+    }
+    
+    
+    /* MPU6050 configuration
+     *
+     * The default value for all the registers is 0x00 except for:
+     * Register 117 (WHO_AM_I) = 0x68
+     * Register 107 (POWER1) = 0x40 
+     */
+
+    uint8_t data;
+
+    // reset registers to defaults
+    data = 0x80;
+    mpu60x0_write_reg(MPU60X0_REG_POWER1, &data, 1);
+
+    _delay_ms(100);
+
+
+    data = 0x01;
+    if (mpu60x0_write_reg(MPU60X0_REG_POWER1, &data, 1) != 0)
+        return -1;
+    if (mpu60x0_read_reg(MPU60X0_REG_POWER1, &data, 1) != 0)
+        return -1;
+    if (data != 0x01)
+        return 1;
+
+    // disable Digital Low Pass Filter (DLPF)
+    data = MPU60X0_DLPF & 0x7;
+    if (mpu60x0_write_reg(MPU60X0_REG_CONFIG, &data, 1) != 0)
+        return -1;
+    if (mpu60x0_read_reg(MPU60X0_REG_CONFIG, &data, 1) != 0)
+        return -1;
+    if (data != (MPU60X0_DLPF & 0x7))
+        return 3;
+
+    // sample rate to 1KHz (when DLPF is enabled, gyros output is 1KHz by default)
+    data = MPU60X0_SMP_DIV;
+    //data = 0;
+    if (mpu60x0_write_reg(MPU60X0_REG_SAMPLE_RATE, &data, 1) != 0) 
+        return -1;
+    if (mpu60x0_read_reg(MPU60X0_REG_SAMPLE_RATE, &data, 1) != 0)
+        return -1;
+    if (data != MPU60X0_SMP_DIV)
+        return 2;
+
+    // gyroscope scale range to +-2000º/s
+    data = (MPU60X0_SENS_RANGE & 0x3) << 3;
+    if (mpu60x0_write_reg(MPU60X0_REG_GYRO_CONF, &data, 1) != 0) 
+        return -1;
+    if (mpu60x0_read_reg(MPU60X0_REG_GYRO_CONF, &data, 1) != 0)
+        return -1;
+    if (data != ((MPU60X0_SENS_RANGE & 0x3) << 3))
+        return 4;
+        
+    // accelerometer scale range to +-16g
+    if (mpu60x0_write_reg(MPU60X0_REG_ACCEL_CONF, &data, 1) != 0)
+        return -1;
+    if (mpu60x0_read_reg(MPU60X0_REG_ACCEL_CONF, &data, 1) != 0)
+        return -1;
+    if (data != ((MPU60X0_SENS_RANGE & 0x3) << 3))
+        return 5;
+    
+    // fifo enabled for gyro and accel
+    data = 0x78;
+    if (mpu60x0_write_reg(MPU60X0_REG_FIFO_EN, &data, 1) != 0)
+        return -1;
+    if (mpu60x0_read_reg(MPU60X0_REG_FIFO_EN, &data, 1) != 0)
+        return -1;
+    if (data != 0x78)
+        return 6;
+
+    //// fifo and sensor path reset
+    //data = 0x05;
+    //if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
+        //return -1;
+
+    //// fifo enable
+    //data = 0x40;
+    //if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
+        //return -1;
+    //if (mpu60x0_read_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
+        //return -1;
+    //if (data != 0x40)
+        //return 8;
+    
+    return 0;
+}
+
+
+
+/* Read the fifo */
+int16_t mpu60x0_read_fifo(mpu_60x0_data *data, uint16_t length) {
+    uint16_t fifo_count = 0;
+    uint8_t i = 0;
+
+    // get the number of data values in fifo
+
+    if (mpu60x0_read_reg(MPU60X0_REG_FIFO_COUNT, (uint8_t *)&fifo_count, 2) != 0) {
+        return -1;
+    }
+    
+    fifo_count = (fifo_count << 8) | (fifo_count >> 8);
+    fifo_count /= 12;
+    
+    // adjust the length of the data to read
+    length = (length < fifo_count)? length : fifo_count;
+
+    if (mpu60x0_read_reg(MPU60X0_REG_FIFO_DATA, (uint8_t *)data, 12*length) != 0) {
+        return -2;
+    }
+
+    while (i < length) {
+     
+        data[i].gyro.x = (data[i].gyro.x << 8) | (data[i].gyro.x >> 8);
+        data[i].gyro.y = (data[i].gyro.y << 8) | (data[i].gyro.y >> 8);
+        data[i].gyro.z = (data[i].gyro.z << 8) | (data[i].gyro.z >> 8);
+
+        data[i].accel.x = (data[i].accel.x << 8) | (data[i].accel.x >> 8);
+        data[i].accel.y = (data[i].accel.y << 8) | (data[i].accel.y >> 8);
+        data[i].accel.z = (data[i].accel.z << 8) | (data[i].accel.z >> 8);
+        
+        i++;
+    }
+    
+    return length;
 }
 
 /* Read the gyro registers */
-uint8_t mpu_60x0_read_gyro(mpu_60x0_gyro_data* data) {
+uint8_t mpu60x0_read_gyro(mpu_60x0_gyro_data* data) {
     uint8_t twi_res;
+
+    twi_res = mpu60x0_read_reg(MPU60X0_REG_GYRO_DATA, (uint8_t *)data, 6);
     
-    // start a transmission to
-    twi_res = TWI_receive(MPU_60X0_I2C_ADDRESS, (uint8_t *)data, 6);
-    TWI_release();
+    data->x = (data->x << 8) | (data->x >> 8);
+    data->y = (data->y << 8) | (data->y >> 8);
+    data->z = (data->z << 8) | (data->z >> 8);
     
     return twi_res;
 }
 
 /* Read the accel registers */
-uint8_t mpu_60x0_read_accel(mpu_60x0_accel_data* data) {
+uint8_t mpu60x0_read_accel(mpu_60x0_accel_data* data) {
     uint8_t twi_res;
 
-    twi_res = TWI_receive(MPU_60X0_I2C_ADDRESS, (uint8_t *)data, 6);
-    TWI_release();
+    twi_res = mpu60x0_read_reg(MPU60X0_REG_ACCEL_DATA, (uint8_t *)data, 6);
+    
+    data->x = (data->x << 8) | (data->x >> 8);
+    data->y = (data->y << 8) | (data->y >> 8);
+    data->z = (data->z << 8) | (data->z >> 8);
     
     return twi_res;
 }
 
 /* Read the temp registers */
-uint8_t mpu_60x0_read_temp(mpu_60x0_temp_data* data) {
+uint8_t mpu60x0_read_temp(mpu_60x0_temp_data* data) {
     uint8_t twi_res;
 
-    twi_res = TWI_receive(MPU_60X0_I2C_ADDRESS, (uint8_t *)data, 2);
-    TWI_release(); 
+    twi_res = mpu60x0_read_reg(MPU60X0_REG_TEMP_DATA, (uint8_t *)data, 2);
+    
+    data->temp = (data->temp << 8) | (data->temp >> 8);
+    data->temp = data->temp/340 + 36;
     
     return twi_res;
 }
+
+uint8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
+    uint16_t curr_bias[3];
+    uint8_t data[6];
+    uint8_t i2c_status;
+    
+    mpu60x0_read_reg(MPU60X0_REG_ACCEL_BIASX, (uint8_t*)curr_bias, 6);
+    
+
+    /* TODO Study and correct this 
+     * 
+     * From: 
+     * [FILE]: motion_driver-5.1.2/core/driver/eMPL/inv_mpu.c 
+     * [FUNCTION]: mpu_set_accel_bias_6050_reg
+     * [LINE]: 1036
+     * 
+     * bit 0 of the 2 byte bias is for temp comp
+     * calculations need to compensate for this and not change itc
+     */
+     
+    curr_bias[0] -= x_bias;
+    curr_bias[1] -= y_bias;
+    curr_bias[2] -= z_bias;
+    
+    // high byte is first in mpu60x0
+    data[0] = curr_bias[0] >> 8;
+    data[1] = curr_bias[0] & 0xff;
+    data[2] = curr_bias[1] >> 8;
+    data[3] = curr_bias[1] & 0xff;
+    data[4] = curr_bias[2] >> 8;
+    data[5] = curr_bias[2] & 0xff;
+
+    i2c_status = mpu60x0_write_reg(MPU60X0_REG_ACCEL_BIASX, data, 6);
+    
+    return i2c_status;
+}
+
+uint8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
+    uint8_t data[6];
+    uint8_t i2c_status;
+    
+    // high byte is first in mpu60x0
+    data[0] = x_bias >> 8;
+    data[1] = x_bias & 0xff;
+    data[2] = y_bias >> 8;
+    data[3] = y_bias & 0xff;
+    data[4] = z_bias >> 8;
+    data[5] = z_bias & 0xff;
+
+    i2c_status = mpu60x0_write_reg(MPU60X0_REG_GYRO_BIASX, data, 6);
+    
+    return i2c_status;
+}
+

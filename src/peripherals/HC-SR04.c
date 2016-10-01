@@ -45,14 +45,14 @@ int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
     //IOPORT_VALUE(HIGH, *trig_port, trig_pin);
     *trig_port |= trig_pin;
     // wait 10us
-    _delay_us(15);
+    _delay_us(10);
     //IOPORT_VALUE(LOW, *trig_port, trig_pin);
     *trig_port &= ~trig_pin;
     // wait for echo to be set (timeout is needed)
 
     start_timeout(1, &timeout);
     //while ( !IOPORT_READ(*echo_port, echo_pin) ) {
-    while(*echo_port & echo_pin) {
+    while(!(*echo_port & echo_pin)) {
         if (timeout_expired(&timeout)) {
             return -1;
         }
@@ -72,6 +72,7 @@ int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
     get_uptime(&time2);
     
     time_sub(&time2, &time1, &time_interval);
+    
     
     return ((time_interval.ms << 10) + time_interval.us) >> 6;
     
