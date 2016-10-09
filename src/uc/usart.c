@@ -54,8 +54,8 @@ void usart_printsignumber32(int32_t number){
 	uint8_t index = 10;
 
     if (number & 0x80000000) {
-        number++;
         number = ~number;
+        number++;
         digits[0] = '-';
     }
 
