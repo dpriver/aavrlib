@@ -21,7 +21,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *******************************************************************************/
+ ******************************************************************************/
 
 #include <util/delay.h>
 #include <util/twi.h>
@@ -32,81 +32,62 @@
 #include <systick.h>
 #include <time.h>
 
-
+/*
+    mpu60x0_set_accel_bias(-2870, -230, 1388);
+    mpu60x0_set_gyro_bias(13, -21, 35);
+ */
+ 
 #define ABS(a) ( ((a) < 0) ? -(a) : (a))
 
-int main( void ) {
-    //mpu_60x0_gyro_data gyro_data;
-    //mpu_60x0_accel_data accel_data;
-    //mpu_60x0_temp_data temp_data;
+
+void print_bias(mpu_60x0_bias *accel_bias, mpu_60x0_bias *gyro_bias) {
+                    
+    usart_print("\n [BIAS]\n ----------------------------");
+    usart_print("\n GYROx       GYROy       GYROx       ACCELx");
+    usart_print("      ACCELy      ACCELz\n");
+
+    usart_print(" ");
+    usart_printsignumber32(gyro_bias->x);
+    usart_print(" ");
+    usart_printsignumber32(gyro_bias->y);
+    usart_print(" ");
+    usart_printsignumber32(gyro_bias->z);
+    usart_print(" ");
+    usart_printsignumber32(accel_bias->x);
+    usart_print(" ");
+    usart_printsignumber32(accel_bias->y);
+    usart_print(" ");
+    usart_printsignumber32(accel_bias->z);
+
+    usart_print("\n");          
+}
+
+void gather_data(int32_t *gyroX_mean, int32_t *gyroY_mean, int32_t *gyroZ_mean, 
+                int32_t *accelX_mean, int32_t *accelY_mean, int32_t *accelZ_mean) {
+    
     mpu_60x0_data mpu_data[100];
-    uint8_t twi_error;
-    int16_t read_values = 0;
-    
-    system_init();
-    systick_init();
-    usart_init();
-    
-    delay_ms(3000);
-    if ((twi_error = mpu60x0_init()) != 0) {
-        usart_print("#MPU6050 is not working... CODE: ");
-        usart_printnumber8(twi_error);
-        return 0;
-    }
-    else {
-        usart_print("# MPU6050 TEST\n#\n");
-        usart_print("# Initialized mpu6050\n");
-        usart_print("# Gyro and Accel Sensibility: ");
-        usart_printnumber8(MPU60X0_SENS_RANGE);
-        usart_print("\n# DLPF: ");
-        usart_printnumber8(MPU60X0_DLPF);
-        usart_print("\n# Sample Rate Divider: ");
-        usart_printnumber8(MPU60X0_SMP_DIV);
-    }
-
-    
-    
-    //usart_print("System initialized\n======================\n");
-    //usart_print("    MPU6050 test\n=======================\n");
-
-    
-    // wait 30 seconds to stabilice the sensors
-    delay_ms(30000);
-
-    uint8_t data;
-    // fifo and sensor path reset
-    data = 0x05;
-    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-
-    // fifo enable
-    data = 0x40;
-    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-    if (data != 0x40)
-        return 8;
-
-    
     time_t time;
-    
-    
-    // gather data for 10 seconds
     uint32_t end_time;
     int32_t readings = 0;
-    int32_t gyroX_mean = 0;
-    int32_t gyroY_mean = 0;
-    int32_t gyroZ_mean = 0;
-    int32_t accelX_mean = 0;
-    int32_t accelY_mean = 0;
-    int32_t accelZ_mean = 0;
+    int16_t read_values = 0;
+    
+    
+    // gather data for 30 seconds
+    *gyroX_mean = 0;
+    *gyroY_mean = 0;
+    *gyroZ_mean = 0;
+    *accelX_mean = 0;
+    *accelY_mean = 0;
+    *accelZ_mean = 0;
     
     get_uptime(&time);
     end_time = time.ms + 30000;
 
-    usart_print("\n# Start time: ");
-    usart_printnumber32(time.ms);    
+    //usart_print("\n Start time: ");
+    //usart_printnumber32(time.ms);
+    //usart_print("\n [READINGS]\n ----------------------------\n");
+    //usart_print("\n GYROx       GYROy       GYROx       ACCELx");
+    //usart_print("      ACCELy      ACCELz\n");  
     while(time.ms < end_time) {
         uint16_t i = 0;
         
@@ -120,52 +101,152 @@ int main( void ) {
         }
         
         readings += read_values;
-        if (readings < 100)
-            continue;
         
         for (i = 0; i < read_values ; i++) {
-            gyroX_mean += mpu_data[i].gyro.x;
-            gyroY_mean += mpu_data[i].gyro.y;
-            gyroZ_mean += mpu_data[i].gyro.z;
-            accelX_mean += mpu_data[i].accel.x;
-            accelY_mean += mpu_data[i].accel.y;
-            accelZ_mean += mpu_data[i].accel.z;
+            
+            *gyroX_mean += mpu_data[i].gyro.x;
+            *gyroY_mean += mpu_data[i].gyro.y;
+            *gyroZ_mean += mpu_data[i].gyro.z;
+            *accelX_mean += mpu_data[i].accel.x;
+            *accelY_mean += mpu_data[i].accel.y;
+            *accelZ_mean += mpu_data[i].accel.z;
+
+            //usart_print(" ");
+            //usart_printsignumber32(mpu_data[i].gyro.x);
+            //usart_print(" ");
+            //usart_printsignumber32(mpu_data[i].gyro.y);
+            //usart_print(" ");
+            //usart_printsignumber32(mpu_data[i].gyro.z);
+            
+            //usart_print(" ");
+            //usart_printsignumber32(mpu_data[i].accel.x);
+            //usart_print(" ");
+            //usart_printsignumber32(mpu_data[i].accel.y);
+            //usart_print(" ");
+            //usart_printsignumber32(mpu_data[i].accel.z);
+            //usart_print("\n");
         }
         
         get_uptime(&time);
     }
-    usart_print("\n# End time: ");
-    usart_printnumber32(time.ms);    
+    //usart_print("\n End time: ");
+    //usart_printnumber32(time.ms);    
 
-    readings -= 100;
 
-    gyroX_mean /= readings;
-    gyroY_mean /= readings;
-    gyroZ_mean /= readings;
-    accelX_mean /= readings;
-    accelY_mean /= readings;
-    accelZ_mean /= readings;
+    *gyroX_mean /= readings;
+    *gyroY_mean /= readings;
+    *gyroZ_mean /= readings;
+    *accelX_mean /= readings;
+    *accelY_mean /= readings;
+    *accelZ_mean /= readings;
 
-    usart_print("\n# Num readings: ");
-    usart_printnumber32(readings);
-    usart_print("\n# Mean readings");
-    usart_print("\n# GYROx       GYROy       GYROx       ACCELx");
+    //usart_print("\n Num readings: ");
+    //usart_printnumber32(readings);
+    usart_print("\n [MEAN READINGS]\n ----------------------------");
+    usart_print("\n GYROx       GYROy       GYROx       ACCELx ");
     usart_print("      ACCELy      ACCELz\n");
 
-    usart_print("\n");
-
-    usart_printsignumber32(gyroX_mean);
     usart_print(" ");
-    usart_printsignumber32(gyroY_mean);
+    usart_printsignumber32(*gyroX_mean);
     usart_print(" ");
-    usart_printsignumber32(gyroZ_mean);
+    usart_printsignumber32(*gyroY_mean);
+    usart_print(" ");
+    usart_printsignumber32(*gyroZ_mean);
     
     usart_print(" ");
-    usart_printsignumber32(accelX_mean);
+    usart_printsignumber32(*accelX_mean);
     usart_print(" ");
-    usart_printsignumber32(accelY_mean);
+    usart_printsignumber32(*accelY_mean);
     usart_print(" ");
-    usart_printsignumber32(accelZ_mean);
+    usart_printsignumber32(*accelZ_mean);
+}
+
+
+int8_t update_bias(int32_t gyroX_mean, int32_t gyroY_mean, int32_t gyroZ_mean, 
+                int32_t accelX_mean, int32_t accelY_mean, int32_t accelZ_mean) {
+ 
+    mpu_60x0_bias gyro_bias;
+    mpu_60x0_bias accel_bias;
+    
+    // print bias
+    if (mpu60x0_get_accel_bias(&accel_bias) != 0)
+        return -1;
+    if (mpu60x0_get_gyro_bias(&gyro_bias) != 0)
+        return -1;
+    
+    gyroX_mean = gyro_bias.x - (gyroX_mean/4);
+    gyroY_mean = gyro_bias.y - (gyroY_mean/4);
+    gyroZ_mean = gyro_bias.z - (gyroZ_mean/4);
+
+    // remove gravity from bias calculation
+    accelX_mean = accel_bias.x - (accelX_mean/8);
+    accelY_mean = accel_bias.y - (accelY_mean/8);
+    accelZ_mean = accel_bias.z - (accelZ_mean/8);
+
+
+    // set new calib values
+    mpu60x0_set_accel_bias(accelX_mean, accelY_mean, accelZ_mean);
+    mpu60x0_set_gyro_bias(gyroX_mean, gyroY_mean, gyroZ_mean);
+
+    // print bias
+    if (mpu60x0_get_accel_bias(&accel_bias) != 0)
+        return -1;
+    if (mpu60x0_get_gyro_bias(&gyro_bias) != 0)
+        return -1;
+    print_bias(&accel_bias, &gyro_bias);
+
+    return 0;
+}
+
+
+int main( void ) {
+        
+    uint8_t twi_error;
+    int32_t gyroX_mean = 0;
+    int32_t gyroY_mean = 0;
+    int32_t gyroZ_mean = 0;
+    int32_t accelX_mean = 0;
+    int32_t accelY_mean = 0;
+    int32_t accelZ_mean = 0;
+    
+    system_init();
+    systick_init();
+    usart_init();
+
+    delay_ms(30000);
+    usart_print("############################################################\n");
+    usart_print("# MPU6050 CALIBRATION TEST\n#\n");
+    usart_print("# Gyro and Accel Sensibility: 2G and 250dps");
+    usart_print("\n# DLPF:");
+    usart_printnumber8(MPU60X0_DLPF);
+    usart_print("\n# Sample Rate Divider:");
+    usart_printnumber8(7);
+    usart_print("\n############################################################\n");
+    
+    delay_ms(3000);
+    if ((twi_error = mpu60x0_init(MPU60X0_ACCEL_SCALE_2G, MPU60X0_GYRO_SCALE_250dps, 7)) != 0) {
+        usart_print("\n MPU6050 is not working... CODE: ");
+        usart_printnumber8(twi_error);
+        return 0;
+    }
+    else {
+        usart_print("\n Initialized mpu6050\n");
+    }
+
+    mpu60x0_reset();
+    gather_data(&gyroX_mean, &gyroY_mean, &gyroZ_mean, &accelX_mean, &accelY_mean, &accelZ_mean);
+    
+    while((ABS(accelX_mean) > 10) || (ABS(accelY_mean) > 10) || (ABS(accelZ_mean) > 10) ||
+          (ABS(gyroX_mean) > 10) || (ABS(gyroY_mean) > 10) || (ABS(gyroZ_mean) > 10)) {
+    
+        usart_print("\n ==========================================================================");
+        update_bias(gyroX_mean, gyroY_mean, gyroZ_mean, accelX_mean, accelY_mean, accelZ_mean);
+        mpu60x0_reset();
+        gather_data(&gyroX_mean, &gyroY_mean, &gyroZ_mean, &accelX_mean, &accelY_mean, &accelZ_mean);
+    }
+
+    usart_print("\n ==========================================================================");
+    usart_print("\n\n Calibration finished ");
 
     while(1);
     

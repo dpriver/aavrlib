@@ -27,9 +27,17 @@
 #define __MPU_60X0
 
 
-#define MPU60X0_SENS_RANGE  (3)
-#define MPU60X0_DLPF        (5)
-#define MPU60X0_SMP_DIV     (2)
+#define MPU60X0_ACCEL_SCALE_2G  (0)
+#define MPU60X0_ACCEL_SCALE_4G  (0x1 << 3)
+#define MPU60X0_ACCEL_SCALE_8G  (0x2 << 3)
+#define MPU60X0_ACCEL_SCALE_16G (0x3 << 3)
+
+#define MPU60X0_GYRO_SCALE_250dps  (0)
+#define MPU60X0_GYRO_SCALE_500dps  (0x1 << 3)
+#define MPU60X0_GYRO_SCALE_1000dps (0x2 << 3)
+#define MPU60X0_GYRO_SCALE_2000dps (0x3 << 3)
+
+#define MPU60X0_DLPF        (6)
 
 #define MPU60X0_I2C_ADDR    (0x68)
 
@@ -99,14 +107,22 @@ typedef struct {
     int16_t temp;
 } mpu_60x0_temp_data;
 
+typedef struct {
+    int16_t x;
+    int16_t y;
+    int16_t z;   
+} mpu_60x0_bias;
 
 
 /* Configure all the chip registers to use the on-chip FIFO so this driver can 
  * burst read the FIFO register instead of reading all the registers 
  * secuentially */
-int8_t mpu60x0_init(void);
+int8_t mpu60x0_init(uint8_t gyro_scale_range, uint8_t accel_scale_range, 
+                    uint8_t smp_div);
 
 int8_t mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length);
+
+int8_t mpu60x0_reset();
 
 int8_t mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length);
 
@@ -120,5 +136,12 @@ uint8_t mpu60x0_read_accel(mpu_60x0_accel_data* data);
 /* Read the temp registers */
 uint8_t mpu60x0_read_temp(mpu_60x0_temp_data* data);
 
+uint8_t mpu60x0_get_gyro_bias(mpu_60x0_bias *data);
+
+uint8_t mpu60x0_get_accel_bias(mpu_60x0_bias *data);
+
+uint8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
+
+uint8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
 
 #endif /* __MPU_60X0 */

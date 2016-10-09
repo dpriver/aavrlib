@@ -23,11 +23,21 @@
  *
  ******************************************************************************/
 
+#include "uc/usart.h"
 #include <util/twi.h>
 #include <util/delay.h>
 #include "uc/twi.h"
 #include "peripherals/MPU-60X0.h"
+#include "uc/usart.h"
 
+
+#define BIAS_ACCELX -304
+#define BIAS_ACCELY -20
+#define BIAS_ACCELZ -90
+
+#define BIAS_GYROX 13
+#define BIAS_GYROY -85
+#define BIAS_GYROZ -112
 
 int8_t mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length) {
     int8_t twi_res;
@@ -68,11 +78,32 @@ int8_t mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length) {
     return 0;
 }
 
+int8_t mpu60x0_reset() {
+    uint8_t data;
+    
+    // fifo and sensor path reset
+    data = 0x05;
+    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
+        return -1;
+
+    // fifo enable
+    data = 0x40;
+    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
+        return -1;
+    if (mpu60x0_read_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
+        return -1;
+    if (data != 0x40)
+        return 8;
+        
+    return 0;
+}
+
 /*
  * Configure to use FIFO and maybe some interrupts
  * 
  */
-int8_t mpu60x0_init(void) {
+int8_t mpu60x0_init(uint8_t gyro_scale_range, uint8_t accel_scale_range, 
+                    uint8_t smp_div) {
     uint8_t aux;
     
     TWI_master_init();
@@ -108,7 +139,7 @@ int8_t mpu60x0_init(void) {
     if (data != 0x01)
         return 1;
 
-    // disable Digital Low Pass Filter (DLPF)
+    // Digital Low Pass Filter (DLPF)
     data = MPU60X0_DLPF & 0x7;
     if (mpu60x0_write_reg(MPU60X0_REG_CONFIG, &data, 1) != 0)
         return -1;
@@ -117,31 +148,28 @@ int8_t mpu60x0_init(void) {
     if (data != (MPU60X0_DLPF & 0x7))
         return 3;
 
-    // sample rate to 1KHz (when DLPF is enabled, gyros output is 1KHz by default)
-    data = MPU60X0_SMP_DIV;
-    //data = 0;
-    if (mpu60x0_write_reg(MPU60X0_REG_SAMPLE_RATE, &data, 1) != 0) 
+    // sample rate
+    if (mpu60x0_write_reg(MPU60X0_REG_SAMPLE_RATE, &smp_div, 1) != 0) 
         return -1;
     if (mpu60x0_read_reg(MPU60X0_REG_SAMPLE_RATE, &data, 1) != 0)
         return -1;
-    if (data != MPU60X0_SMP_DIV)
+    if (data != smp_div)
         return 2;
 
-    // gyroscope scale range to +-2000º/s
-    data = (MPU60X0_SENS_RANGE & 0x3) << 3;
-    if (mpu60x0_write_reg(MPU60X0_REG_GYRO_CONF, &data, 1) != 0) 
+    // gyroscope scale range
+    if (mpu60x0_write_reg(MPU60X0_REG_GYRO_CONF, &gyro_scale_range, 1) != 0) 
         return -1;
     if (mpu60x0_read_reg(MPU60X0_REG_GYRO_CONF, &data, 1) != 0)
         return -1;
-    if (data != ((MPU60X0_SENS_RANGE & 0x3) << 3))
+    if (data != gyro_scale_range)
         return 4;
         
-    // accelerometer scale range to +-16g
-    if (mpu60x0_write_reg(MPU60X0_REG_ACCEL_CONF, &data, 1) != 0)
+    // accelerometer scale range
+    if (mpu60x0_write_reg(MPU60X0_REG_ACCEL_CONF, &accel_scale_range, 1) != 0)
         return -1;
     if (mpu60x0_read_reg(MPU60X0_REG_ACCEL_CONF, &data, 1) != 0)
         return -1;
-    if (data != ((MPU60X0_SENS_RANGE & 0x3) << 3))
+    if (data != accel_scale_range)
         return 5;
     
     // fifo enabled for gyro and accel
@@ -195,13 +223,13 @@ int16_t mpu60x0_read_fifo(mpu_60x0_data *data, uint16_t length) {
 
     while (i < length) {
      
-        data[i].gyro.x = (data[i].gyro.x << 8) | (data[i].gyro.x >> 8);
-        data[i].gyro.y = (data[i].gyro.y << 8) | (data[i].gyro.y >> 8);
-        data[i].gyro.z = (data[i].gyro.z << 8) | (data[i].gyro.z >> 8);
+        data[i].gyro.x = (data[i].gyro.x << 8) | ((uint16_t)data[i].gyro.x >> 8);
+        data[i].gyro.y = (data[i].gyro.y << 8) | ((uint16_t)data[i].gyro.y >> 8);
+        data[i].gyro.z = (data[i].gyro.z << 8) | ((uint16_t)data[i].gyro.z >> 8);
 
-        data[i].accel.x = (data[i].accel.x << 8) | (data[i].accel.x >> 8);
-        data[i].accel.y = (data[i].accel.y << 8) | (data[i].accel.y >> 8);
-        data[i].accel.z = (data[i].accel.z << 8) | (data[i].accel.z >> 8);
+        data[i].accel.x = (data[i].accel.x << 8) | ((uint16_t)data[i].accel.x >> 8);
+        data[i].accel.y = (data[i].accel.y << 8) | ((uint16_t)data[i].accel.y >> 8);
+        data[i].accel.z = (data[i].accel.z << 8) | ((uint16_t)data[i].accel.z >> 8);
         
         i++;
     }
@@ -215,9 +243,9 @@ uint8_t mpu60x0_read_gyro(mpu_60x0_gyro_data* data) {
 
     twi_res = mpu60x0_read_reg(MPU60X0_REG_GYRO_DATA, (uint8_t *)data, 6);
     
-    data->x = (data->x << 8) | (data->x >> 8);
-    data->y = (data->y << 8) | (data->y >> 8);
-    data->z = (data->z << 8) | (data->z >> 8);
+    data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
+    data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
+    data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
     
     return twi_res;
 }
@@ -228,9 +256,9 @@ uint8_t mpu60x0_read_accel(mpu_60x0_accel_data* data) {
 
     twi_res = mpu60x0_read_reg(MPU60X0_REG_ACCEL_DATA, (uint8_t *)data, 6);
     
-    data->x = (data->x << 8) | (data->x >> 8);
-    data->y = (data->y << 8) | (data->y >> 8);
-    data->z = (data->z << 8) | (data->z >> 8);
+    data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
+    data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
+    data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
     
     return twi_res;
 }
@@ -241,58 +269,83 @@ uint8_t mpu60x0_read_temp(mpu_60x0_temp_data* data) {
 
     twi_res = mpu60x0_read_reg(MPU60X0_REG_TEMP_DATA, (uint8_t *)data, 2);
     
-    data->temp = (data->temp << 8) | (data->temp >> 8);
+    data->temp = (data->temp << 8) | ((data->temp >> 8) & 0xFF);
     data->temp = data->temp/340 + 36;
     
     return twi_res;
 }
 
+uint8_t mpu60x0_get_gyro_bias(mpu_60x0_bias *data) {
+    uint8_t twi_res;
+    
+    twi_res = mpu60x0_read_reg(MPU60X0_REG_GYRO_BIASX, (uint8_t *)data, 6);
+
+ 
+    data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
+    data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
+    data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
+    
+    return twi_res;
+}
+
+uint8_t mpu60x0_get_accel_bias(mpu_60x0_bias *data) {
+    uint8_t twi_res;
+    
+    twi_res = mpu60x0_read_reg(MPU60X0_REG_ACCEL_BIASX, (uint8_t *)data, 6);
+    
+    data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
+    data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
+    data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
+    
+    return twi_res;   
+    
+}
+
+/*
+ * Accel bias is specified in +-8G format, and gyro bias in +-1000dps format.
+ * because of that, It is convenient to read the data for calibration in 
+ * AFS_SEL = 2.
+ */
+
+
+/*
+ * Input is LSB in +-8G format
+ */
 uint8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
-    uint16_t curr_bias[3];
+    uint8_t curr_bias[6];
     uint8_t data[6];
     uint8_t i2c_status;
     
     mpu60x0_read_reg(MPU60X0_REG_ACCEL_BIASX, (uint8_t*)curr_bias, 6);
     
-
-    /* TODO Study and correct this 
-     * 
-     * From: 
-     * [FILE]: motion_driver-5.1.2/core/driver/eMPL/inv_mpu.c 
-     * [FUNCTION]: mpu_set_accel_bias_6050_reg
-     * [LINE]: 1036
-     * 
-     * bit 0 of the 2 byte bias is for temp comp
-     * calculations need to compensate for this and not change itc
-     */
-     
-    curr_bias[0] -= x_bias;
-    curr_bias[1] -= y_bias;
-    curr_bias[2] -= z_bias;
     
     // high byte is first in mpu60x0
-    data[0] = curr_bias[0] >> 8;
-    data[1] = curr_bias[0] & 0xff;
-    data[2] = curr_bias[1] >> 8;
-    data[3] = curr_bias[1] & 0xff;
-    data[4] = curr_bias[2] >> 8;
-    data[5] = curr_bias[2] & 0xff;
+    // preserve first bit of the 3 low bytes
+    data[0] = (uint16_t)x_bias >> 8;
+    data[1] = (x_bias & 0xFE) | (curr_bias[1] & 0x1);
+    data[2] = (uint16_t)y_bias >> 8;
+    data[3] = (y_bias & 0xFE) | (curr_bias[3] & 0x1);
+    data[4] = (uint16_t)z_bias >> 8;
+    data[5] = (z_bias & 0xFE) | (curr_bias[5] & 0x1);
 
     i2c_status = mpu60x0_write_reg(MPU60X0_REG_ACCEL_BIASX, data, 6);
     
     return i2c_status;
 }
 
+/*
+ * Input is LSB in +-1000dps format
+ */
 uint8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
     uint8_t data[6];
     uint8_t i2c_status;
     
     // high byte is first in mpu60x0
-    data[0] = x_bias >> 8;
+    data[0] = (uint16_t)x_bias >> 8;
     data[1] = x_bias & 0xff;
-    data[2] = y_bias >> 8;
+    data[2] = (uint16_t)y_bias >> 8;
     data[3] = y_bias & 0xff;
-    data[4] = z_bias >> 8;
+    data[4] = (uint16_t)z_bias >> 8;
     data[5] = z_bias & 0xff;
 
     i2c_status = mpu60x0_write_reg(MPU60X0_REG_GYRO_BIASX, data, 6);
