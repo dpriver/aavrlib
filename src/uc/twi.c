@@ -132,7 +132,7 @@ uint8_t TWI_has_error(uint8_t *error_code) {
 twi_state TWI_do_start() {
     
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-    while( !(TWCR & _BV(TWINT)) );
+    while ( !(TWCR & _BV(TWINT)) );
 
     if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
         twi.error_code = TW_STATUS;
@@ -148,7 +148,7 @@ twi_state TWI_do_send_addr(uint8_t slave_addr, uint8_t twi_operation) {
     
     TWDR = (slave_addr << 1) | twi_operation;
     TWCR = _BV(TWINT) | _BV(TWEN);
-    while( !(TWCR & _BV(TWINT)) );
+    while ( !(TWCR & _BV(TWINT)) );
 
     if (TW_STATUS != TW_MT_SLA_ACK) {
         twi.error_code = TW_STATUS;
@@ -164,7 +164,7 @@ twi_state TWI_do_write(uint8_t byte) {
     
     TWDR = byte;
     TWCR = _BV(TWINT) | _BV(TWEN);
-    while( !(TWCR & _BV(TWINT)) );
+    while ( !(TWCR & _BV(TWINT)) );
 
     if (TW_STATUS != TW_MT_DATA_ACK) {
         twi.error_code = TW_STATUS;
@@ -179,7 +179,7 @@ twi_state TWI_do_write(uint8_t byte) {
 twi_state TWI_do_read(uint8_t *byte) {
     
     TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
-    while( !(TWCR & _BV(TWINT)) );
+    while ( !(TWCR & _BV(TWINT)) );
     
     if (TW_STATUS != TW_MR_DATA_ACK) {
         twi.error_code = TW_STATUS;
@@ -198,7 +198,7 @@ twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght)
 
     // send START
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-    while( !(TWCR & _BV(TWINT)) );
+    while ( !(TWCR & _BV(TWINT)) );
 
     if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
         twi.error_code = TW_STATUS;
@@ -209,7 +209,7 @@ twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght)
     // send slave address
     TWDR = (slave_addr << 1) | TW_WRITE;
     TWCR = _BV(TWINT) | _BV(TWEN);
-    while( !(TWCR & _BV(TWINT)) );
+    while ( !(TWCR & _BV(TWINT)) );
 
     if (TW_STATUS != TW_MT_SLA_ACK) {
         twi.error_code = TW_STATUS;
