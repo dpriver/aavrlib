@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include <stdbool.h>
 #include <avr/power.h>
 #include <util/twi.h>
 #include <avr/interrupt.h>
@@ -41,6 +42,14 @@
  * ends, the function returns.
  */
 
+struct {
+    twi_operation_mode mode;
+    uint8_t slave_addr;
+    bool error_code_valid;
+    uint8_t error_code;
+} twi;
+
+
 
 INTERRUPT(__vector_twi_slave_handler) {
     sei();
@@ -58,7 +67,16 @@ INTERRUPT(__vector_twi_slave_handler) {
     TWCR = _BV(TWEA) | _BV(TWEN) | _BV(TWIE);
 }
 
+
+/*
+ * Initialize core TWI to function as master
+ */
 void TWI_master_init() {
+    
+    twi.mode = TWI_MASTER;
+    twi.slave_addr = 0;
+    twi.error_code_valid = false;
+    
     power_twi_enable();
     
     TWAR = 0;
@@ -72,7 +90,15 @@ void TWI_master_init() {
 }
 
 
+/*
+ * Initialize core TWI to function as slave
+ */
 void TWI_slave_init(uint8_t addr) {
+    
+    twi.mode = TWI_SLAVE;
+    twi.slave_addr = addr;
+    twi.error_code_valid = false;
+    
     power_twi_enable();
     
     // configure the handlers
@@ -92,63 +118,92 @@ void TWI_slave_init(uint8_t addr) {
 }
 
 
-int8_t TWI_do_start() {
-    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
+/*
+ * Get the current TWI error if any;
+ */
+uint8_t TWI_has_error(uint8_t *error_code) {
+
+    *error_code = twi.error_code_valid;
     
+    return twi.error_code_valid;
+}
+
+
+twi_state TWI_do_start() {
+    
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
     while( !(TWCR & _BV(TWINT)) );
 
     if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
-        return TW_STATUS;
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
-    return 0;
+    
+    return TWI_SUCCESS;
 }
 
-int8_t TWI_do_send_addr(uint8_t slave_addr, uint8_t twi_operation) {
+
+twi_state TWI_do_send_addr(uint8_t slave_addr, uint8_t twi_operation) {
+    
     TWDR = (slave_addr << 1) | twi_operation;
     TWCR = _BV(TWINT) | _BV(TWEN);
     while( !(TWCR & _BV(TWINT)) );
 
     if (TW_STATUS != TW_MT_SLA_ACK) {
-        return TW_STATUS;
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
-    return 0;
+    
+    return TWI_SUCCESS;
 }
 
-int8_t TWI_do_write(uint8_t byte) {
+
+twi_state TWI_do_write(uint8_t byte) {
+    
     TWDR = byte;
     TWCR = _BV(TWINT) | _BV(TWEN);
-
     while( !(TWCR & _BV(TWINT)) );
 
     if (TW_STATUS != TW_MT_DATA_ACK) {
-        return TW_STATUS;
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }  
-    return 0;
+
+    return TWI_SUCCESS;
 }
 
-int8_t TWI_do_read(uint8_t *byte) {
-    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
 
+twi_state TWI_do_read(uint8_t *byte) {
+    
+    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
     while( !(TWCR & _BV(TWINT)) );
-        if (TW_STATUS != TW_MR_DATA_ACK) {
-            return TW_STATUS;
+    
+    if (TW_STATUS != TW_MR_DATA_ACK) {
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
 
     *byte = TWDR;
-    return 0;
+    return TWI_SUCCESS;
 }
 
+
 // send data as master
-int8_t TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght) {
+twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght) {
     uint8_t i = 0;
 
     // send START
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
-    
     while( !(TWCR & _BV(TWINT)) );
 
     if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
-        return TW_STATUS;
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
 
     // send slave address
@@ -157,28 +212,34 @@ int8_t TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght) {
     while( !(TWCR & _BV(TWINT)) );
 
     if (TW_STATUS != TW_MT_SLA_ACK) {
-        return TW_STATUS;
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
 
     // while there is data to transmit
     // transmit data
     while(i < data_lenght) {
+        
         TWDR = data[i];
         TWCR = _BV(TWINT) | _BV(TWEN);
-
         while( !(TWCR & _BV(TWINT)) );
 
         if (TW_STATUS != TW_MT_DATA_ACK) {
-            return TW_STATUS;
+            twi.error_code = TW_STATUS;
+            twi.error_code_valid = true;
+            return TWI_ERROR;
         }
+        
         i++;
     }
 
-    return 0;
+    return TWI_SUCCESS;
 }
 
+
 // Receive data as master
-int8_t TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
+twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
     uint8_t i = 0;
 
     // send START
@@ -186,28 +247,35 @@ int8_t TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
     while( !(TWCR & _BV(TWINT)) );
 
     if ( (TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
-        return TW_STATUS;
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
 
     // send slave address
     TWDR = (slave_addr << 1) | TW_READ;
     TWCR = _BV(TWINT) | _BV(TWEN);
-
     while( !(TWCR & _BV(TWINT)) );
-        if (TW_STATUS != TW_MR_SLA_ACK) {
-            return TW_STATUS;
+    
+    if (TW_STATUS != TW_MR_SLA_ACK) {
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
 
     // while there is data to receive
     // receive data
     while(i < (data_lenght-1)) {
+        
         TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
-
         while( !(TWCR & _BV(TWINT)) );
-            if (TW_STATUS != TW_MR_DATA_ACK) {
-                return TW_STATUS;
+        
+        if (TW_STATUS != TW_MR_DATA_ACK) {
+            twi.error_code = TW_STATUS;
+            twi.error_code_valid = true;
+            return TWI_ERROR;
         }
-
+        
         data[i] = TWDR;
         i++;
     }
@@ -215,20 +283,22 @@ int8_t TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
     // The last byte must be discriminated because a NACK have to be sended
     // That is acomplished by not sending an ACK
     TWCR = _BV(TWINT) | _BV(TWEN);
-
     while( !(TWCR & _BV(TWINT)) );
-        if (TW_STATUS != TW_MR_DATA_NACK) {
-            return TW_STATUS;
+    
+    if (TW_STATUS != TW_MR_DATA_NACK) {
+        twi.error_code = TW_STATUS;
+        twi.error_code_valid = true;
+        return TWI_ERROR;
     }
+    
     data[i] = TWDR;
 
-    return 0;
+    return TWI_SUCCESS;
 }
 
 
-int8_t TWI_release() {
+void TWI_release() {
+    
     // send stop condition
     TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
-
-    return 0;
 }

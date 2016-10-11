@@ -32,30 +32,45 @@
 #include <util/twi.h>
 
 
+typedef enum {
+    TWI_DISABLED = 0,
+    TWI_MASTER,
+    TWI_SLAVE
+} twi_operation_mode;
+
+
+typedef enum {
+    TWI_SUCCESS = 0,
+    TWI_ERROR = -1
+} twi_state;
+
 
 #define TWI_WRITE TW_WRITE
 #define TWI_READ  TW_READ
+
 
 void TWI_master_init();
 
 void TWI_slave_init(uint8_t addr);
 
-int8_t TWI_do_start();
+uint8_t TWI_has_error(uint8_t *error_code);
 
-int8_t TWI_do_send_addr(uint8_t slave_addr, uint8_t twi_operation);
+twi_state TWI_do_start();
 
-int8_t TWI_do_write(uint8_t byte);
+twi_state TWI_do_send_addr(uint8_t slave_addr, uint8_t twi_operation);
 
-int8_t TWI_do_read(uint8_t *byte);
+twi_state TWI_do_write(uint8_t byte);
+
+twi_state TWI_do_read(uint8_t *byte);
 
 // send data as master
-int8_t TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght);
+twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght);
 
 // Receive data as master
-int8_t TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght);
+twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght);
 
 
-int8_t TWI_release();
+void TWI_release();
 
 
 
