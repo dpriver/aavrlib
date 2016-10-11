@@ -40,7 +40,7 @@
 #define ABS(a) ( ((a) < 0) ? -(a) : (a))
 
 
-void print_bias(mpu60x0_bias *accel_bias, mpu60x0_bias *gyro_bias) {
+void print_bias(mpu60x0_data_t *accel_bias, mpu60x0_data_t *gyro_bias) {
                     
     usart_print("\n [BIAS]\n ----------------------------");
     usart_print("\n GYROx       GYROy       GYROx       ACCELx");
@@ -65,7 +65,7 @@ void print_bias(mpu60x0_bias *accel_bias, mpu60x0_bias *gyro_bias) {
 void gather_data(int32_t *gyroX_mean, int32_t *gyroY_mean, int32_t *gyroZ_mean, 
                 int32_t *accelX_mean, int32_t *accelY_mean, int32_t *accelZ_mean) {
     
-    mpu60x0_data mpu_data[100];
+    mpu60x0_sens_t mpu_data[100];
     time_t time;
     uint32_t end_time;
     int32_t readings = 0;
@@ -165,13 +165,13 @@ void gather_data(int32_t *gyroX_mean, int32_t *gyroY_mean, int32_t *gyroZ_mean,
 int8_t update_bias(int32_t gyroX_mean, int32_t gyroY_mean, int32_t gyroZ_mean, 
                 int32_t accelX_mean, int32_t accelY_mean, int32_t accelZ_mean) {
  
-    mpu60x0_bias gyro_bias;
-    mpu60x0_bias accel_bias;
+    mpu60x0_data_t gyro_bias;
+    mpu60x0_data_t accel_bias;
     
     // print bias
-    if (mpu60x0_get_accel_bias(&accel_bias) != 0)
+    if (mpu60x0_read_data(MPU60X0_REG_ACCEL_BIAS, &accel_bias) != 0)
         return -1;
-    if (mpu60x0_get_gyro_bias(&gyro_bias) != 0)
+    if (mpu60x0_read_data(MPU60X0_REG_GYRO_BIAS, &gyro_bias) != 0)
         return -1;
     
     gyroX_mean = gyro_bias.x - (gyroX_mean/4);
@@ -189,9 +189,9 @@ int8_t update_bias(int32_t gyroX_mean, int32_t gyroY_mean, int32_t gyroZ_mean,
     mpu60x0_set_gyro_bias(gyroX_mean, gyroY_mean, gyroZ_mean);
 
     // print bias
-    if (mpu60x0_get_accel_bias(&accel_bias) != 0)
+    if (mpu60x0_read_data(MPU60X0_REG_ACCEL_BIAS, &accel_bias) != 0)
         return -1;
-    if (mpu60x0_get_gyro_bias(&gyro_bias) != 0)
+    if (mpu60x0_read_data(MPU60X0_REG_GYRO_BIAS, &gyro_bias) != 0)
         return -1;
     print_bias(&accel_bias, &gyro_bias);
 

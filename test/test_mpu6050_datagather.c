@@ -60,8 +60,8 @@
 
 int main( void ) {
 
-    mpu60x0_data mpu_data[100];
-    uint8_t twi_error;
+    mpu60x0_sens_t mpu_data[100];
+    mpu60x0_state mpu60x0_error;
     int16_t read_values = 0;
     time_t time;
     uint16_t end_time;
@@ -80,9 +80,11 @@ int main( void ) {
     usart_printnumber8(DLPF_MODE);
     usart_print("\n# Sample Rate Divider: ");
     usart_printnumber8(SMP_DIV);
-    if ((twi_error = mpu60x0_init(GYRO_SENS_SCALE, ACCEL_SENS_SCALE, DLPF_MODE, SMP_DIV)) != 0) {
+    
+    mpu60x0_error = mpu60x0_init(GYRO_SENS_SCALE, ACCEL_SENS_SCALE, DLPF_MODE, SMP_DIV);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
         usart_print("#MPU6050 is not working... CODE: ");
-        usart_printnumber8(twi_error);
+        usart_printnumber8(mpu60x0_error);
         return 0;
     }
     else {

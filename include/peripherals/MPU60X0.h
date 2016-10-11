@@ -42,7 +42,7 @@ typedef enum {
 } mpu60x0_gyro_scale_t;
 
 typedef enum {
-    MPU60X0_DLPF_OFF = 0,
+    MPU60X0_DLPF_OFF   = 0,
     MPU60X0_DLPF_184Hz = 0x1,
     MPU60X0_DLPF_94Hz  = 0x2,
     MPU60X0_DLPF_44Hz  = 0x3,
@@ -50,6 +50,21 @@ typedef enum {
     MPU60X0_DLPF_10Hz  = 0x5,
     MPU60X0_DLPF_5Hz   = 0x6
 } mpu60x0_dlpf_mode_t;
+
+typedef enum {
+    MPU60X0_REG_ACCEL_BIAS = 0x06,
+    MPU60X0_REG_GYRO_BIAS = 0x13,
+    MPU60X0_REG_ACCEL_DATA = 59,
+    MPU60X0_REG_GYRO_DATA = 67
+} mpu60x0_data_reg;
+
+
+typedef enum {
+    MPU60X0_SUCCESS      =  0,
+    MPU60X0_I2C_ERR      = -1,     // generic TWI/I2C error
+    MPU60X0_WRITE_ERR    = -2,      // error at write checking
+    MPU60X0_IDENTITY_ERR = -3
+} mpu60x0_state;
 
 
 #define MPU60X0_I2C_ADDR    (0x68)
@@ -97,40 +112,32 @@ typedef enum {
 #define MPU60X0_REG_EXTERN_DATA     (73)
 
 
+/* Driver errors */
+#define MPU60X0_SUCCESS (0)
+#define MPU60X0_I2C_ERR (1)
+
+
 
 typedef struct {
     int16_t x;
     int16_t y;
     int16_t z;
-} mpu60x0_gyro_data;
-
-typedef struct {
-    int16_t x;
-    int16_t y;
-    int16_t z;  
-} mpu60x0_accel_data;
-
-
-typedef struct {
-    mpu60x0_accel_data accel;
-    mpu60x0_gyro_data gyro;
-} mpu60x0_data;
+} mpu60x0_data_t;
 
 typedef struct {
     int16_t temp;
-} mpu60x0_temp_data;
+} mpu60x0_temp_data_t;
 
 typedef struct {
-    int16_t x;
-    int16_t y;
-    int16_t z;   
-} mpu60x0_bias;
+    mpu60x0_data_t accel;
+    mpu60x0_data_t gyro;
+} mpu60x0_sens_t;
 
 
 /* Configure all the chip registers to use the on-chip FIFO so this driver can 
  * burst read the FIFO register instead of reading all the registers 
  * secuentially */
-int8_t mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_t accel_scale, 
+mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_t accel_scale, 
                     mpu60x0_dlpf_mode_t dlpf_mode, uint8_t smp_div);
 
 /*
@@ -138,58 +145,38 @@ int8_t mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_t accel
  * More than one register can be read in one call, as long as they are consecutive,
  * indicating a length of more than 1.
  */
-int8_t mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length);
+mpu60x0_state mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length);
 
 /*
  * Write to MPU registers
  * More than one register can be written in one call, as long as they are consecutive,
  * indicating a length of more than 1.
  */
-int8_t mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length);
+mpu60x0_state mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length);
 
 /*
  * Read the sensors' data from the internal FIFO
  */
-int16_t mpu60x0_read_fifo(mpu60x0_data *data, uint16_t length);
+int16_t mpu60x0_read_fifo(mpu60x0_sens_t *data, uint16_t length);
 
 /*
  * Clear the fifo and restart the sensors readings
  */
-int8_t mpu60x0_flush();
+mpu60x0_state mpu60x0_flush();
 
 /*
- * Read the gyro registers
+ * Read some data registers
  */
-int8_t mpu60x0_read_gyro(mpu60x0_gyro_data* data);
-
-/* 
- * Read the accel registers 
- */
-int8_t mpu60x0_read_accel(mpu60x0_accel_data* data);
+mpu60x0_state mpu60x0_read_data(mpu60x0_data_reg data_reg, mpu60x0_data_t* data);
 
 /*
- * Read the temp registers 
+ * Set the current gyroscope calibration bias 
  */
-int8_t mpu60x0_read_temp(mpu60x0_temp_data* data);
-
-/*
- * Get the current gyroscope calibration bias 
- */
-int8_t mpu60x0_get_gyro_bias(mpu60x0_bias *data);
-
-/*
- * Get the current accelerometer calibration bias 
- */
-int8_t mpu60x0_get_accel_bias(mpu60x0_bias *data);
-
-/*
- * Get the current gyroscope calibration bias 
- */
-int8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
+mpu60x0_state mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
 
 /*
  * Set the current accelerometer calibration bias 
  */
-int8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
+mpu60x0_state mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
 
 #endif /* __MPU_60X0 */

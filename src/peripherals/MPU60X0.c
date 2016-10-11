@@ -37,16 +37,17 @@
  * Configure to use FIFO and maybe some interrupts
  * 
  */
-int8_t mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_t accel_scale, 
+mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_t accel_scale, 
                     mpu60x0_dlpf_mode_t dlpf_mode, uint8_t smp_div) {
-    uint8_t aux;
+    uint8_t data;
+    mpu60x0_state mpu60x0_error;
     
     TWI_master_init();
     
     /* Check the chip's identity */
-    mpu60x0_read_reg(MPU60X0_REG_WHO_AM_I, &aux, 1);
-    if (aux != MPU60X0_I2C_ADDR) {
-        return -1;  /* Failed to verify the chip's identity */
+    mpu60x0_read_reg(MPU60X0_REG_WHO_AM_I, &data, 1);
+    if (data != MPU60X0_I2C_ADDR) {
+        return MPU60X0_IDENTITY_ERR;  /* Failed to verify the chip's identity */
     }
     
     /* MPU6050 configuration
@@ -55,132 +56,160 @@ int8_t mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_t accel
      * Register 117 (WHO_AM_I) = 0x68
      * Register 107 (POWER1) = 0x40 
      */
-    uint8_t data;
 
     // reset registers to defaults
     data = 0x80;
-    mpu60x0_write_reg(MPU60X0_REG_POWER1, &data, 1);
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_POWER1, &data, 1);
+    if ( mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
+    }
 
     _delay_ms(100);
 
 
     data = 0x01;
-    if (mpu60x0_write_reg(MPU60X0_REG_POWER1, &data, 1) != 0)
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_POWER1, &data, 1) != 0)
-        return -1;
-    if (data != 0x01)
-        return 1;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_POWER1, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS) 
+        return mpu60x0_error;
+    
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_POWER1, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS) 
+        return mpu60x0_error;
+    if (data != 0x01) 
+        return MPU60X0_WRITE_ERR;
 
     // sample rate
-    if (mpu60x0_write_reg(MPU60X0_REG_SAMPLE_RATE, &smp_div, 1) != 0) 
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_SAMPLE_RATE, &data, 1) != 0)
-        return -1;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_SAMPLE_RATE, &smp_div, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS) 
+        return mpu60x0_error;
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_SAMPLE_RATE, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
     if (data != smp_div)
-        return 2;
+        return MPU60X0_WRITE_ERR;
 
     // Digital Low Pass Filter (DLPF)
-    if (mpu60x0_write_reg(MPU60X0_REG_CONFIG, (uint8_t*)&dlpf_mode, 1) != 0)
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_CONFIG, &data, 1) != 0)
-        return -1;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_CONFIG, (uint8_t*)&dlpf_mode, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_CONFIG, &data, 1);
+    if ( mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
     if (data != dlpf_mode)
-        return 3;
+        return MPU60X0_WRITE_ERR;
 
     // gyroscope scale range
-    if (mpu60x0_write_reg(MPU60X0_REG_GYRO_CONF, (uint8_t*)&gyro_scale, 1) != 0) 
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_GYRO_CONF, &data, 1) != 0)
-        return -1;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_GYRO_CONF, (uint8_t*)&gyro_scale, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_GYRO_CONF, &data, 1);
+    if ( mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
     if (data != gyro_scale)
-        return 4;
+        return MPU60X0_WRITE_ERR;
         
     // accelerometer scale range
-    if (mpu60x0_write_reg(MPU60X0_REG_ACCEL_CONF, (uint8_t*)&accel_scale, 1) != 0)
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_ACCEL_CONF, &data, 1) != 0)
-        return -1;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_ACCEL_CONF, (uint8_t*)&accel_scale, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_ACCEL_CONF, &data, 1);
+    if ( mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
     if (data != accel_scale)
-        return 5;
+        return MPU60X0_WRITE_ERR;
     
     // fifo enabled for gyro and accel
     data = 0x78;
-    if (mpu60x0_write_reg(MPU60X0_REG_FIFO_EN, &data, 1) != 0)
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_FIFO_EN, &data, 1) != 0)
-        return -1;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_FIFO_EN, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_FIFO_EN, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS)
+        return mpu60x0_error;
     if (data != 0x78)
-        return 6;
+        return MPU60X0_WRITE_ERR;
 
-    // fifo and sensor path reset
-    data = 0x05;
-    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-
-    // fifo enable
-    data = 0x40;
-    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-    if (data != 0x40)
-        return 8;
+    // fifo clean and reset
+    mpu60x0_error = mpu60x0_flush();
     
-    return 0;
+    return mpu60x0_error;
 }
 
 
-int8_t mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length) {
-    int8_t twi_res;
+mpu60x0_state mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length) {
+    twi_state twi_error;
     
     if (length == 0) {
-        return 0;
+        return MPU60X0_SUCCESS;
     }
     
-    twi_res = TWI_send(MPU60X0_I2C_ADDR, &reg, 1);
-    if (twi_res != 0)
-        return twi_res;
+    twi_error = TWI_send(MPU60X0_I2C_ADDR, &reg, 1);
+    if (twi_error != TWI_SUCCESS) {
+        TWI_release();
+        return MPU60X0_I2C_ERR;
+    }
 
-    twi_res = TWI_receive(MPU60X0_I2C_ADDR, data, length);
+    twi_error = TWI_receive(MPU60X0_I2C_ADDR, data, length);
+    if (twi_error != TWI_SUCCESS) {
+        TWI_release();
+        return MPU60X0_I2C_ERR;
+    }
+    
     TWI_release();
     
-    return twi_res;
+    return MPU60X0_SUCCESS;
 }
 
 
-int8_t mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length) {
+mpu60x0_state mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length) {
     uint8_t i = 0;
     
-    if (TWI_do_start() != 0)
-        return -1;
+    if (TWI_do_start() != TWI_SUCCESS) {
+        TWI_release();
+        return MPU60X0_I2C_ERR;
+    }
     
-    if (TWI_do_send_addr(MPU60X0_I2C_ADDR, TWI_WRITE) != 0)
-        return -1;
+    // TWI_send() cannot be used here because the first sent byte is not part
+    // of the data, but the MPU register address, which makes more sense to
+    // have as a separated parameter instead of asking the programmer to 
+    // include it at the beggining of the "data" array.
+    if (TWI_do_send_addr(MPU60X0_I2C_ADDR, TWI_WRITE) != TWI_SUCCESS) {
+        TWI_release();
+        return MPU60X0_I2C_ERR;
+    }
+    
+    if (TWI_do_write(reg) != TWI_SUCCESS) {
+        TWI_release();
+        return MPU60X0_I2C_ERR;
+    }
         
-    if (TWI_do_write(reg) != 0)
-        return -1;
-        
-    while( i < length) {
-        if (TWI_do_write(data[i]) != 0)
-            return -1;
+    while (i < length) {
+        if (TWI_do_write(data[i]) != TWI_SUCCESS) {
+            TWI_release();
+            return MPU60X0_I2C_ERR;
+        }
         i++;
     }
+    
     TWI_release();
     
-    return 0;
+    return MPU60X0_SUCCESS;
 }
 
 
-/* Read the fifo */
-int16_t mpu60x0_read_fifo(mpu60x0_data *data, uint16_t length) {
+/* Read the fifo
+ * Returns the number of data packets read or a mpu60x0_state error
+ */
+int16_t mpu60x0_read_fifo(mpu60x0_sens_t *data, uint16_t length) {
     uint16_t fifo_count = 0;
     uint8_t i = 0;
+    mpu60x0_state mpu60x0_error;
 
     // get the number of data values in fifo
 
-    if (mpu60x0_read_reg(MPU60X0_REG_FIFO_COUNT, (uint8_t *)&fifo_count, 2) != 0) {
-        return -1;
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_FIFO_COUNT, (uint8_t *)&fifo_count, 2);
+    if ( mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
     }
     
     fifo_count = (fifo_count << 8) | (fifo_count >> 8);
@@ -189,8 +218,9 @@ int16_t mpu60x0_read_fifo(mpu60x0_data *data, uint16_t length) {
     // adjust the length of the data to read
     length = (length < fifo_count)? length : fifo_count;
 
-    if (mpu60x0_read_reg(MPU60X0_REG_FIFO_DATA, (uint8_t *)data, 12*length) != 0) {
-        return -2;
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_FIFO_DATA, (uint8_t *)data, 12*length);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
     }
 
     while (i < length) {
@@ -210,94 +240,53 @@ int16_t mpu60x0_read_fifo(mpu60x0_data *data, uint16_t length) {
 }
 
 
-int8_t mpu60x0_flush() {
+mpu60x0_state mpu60x0_flush() {
     uint8_t data;
+    mpu60x0_state mpu60x0_error;
     
     // fifo and sensor path reset
     data = 0x05;
-    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
+    }
 
     // fifo enable
     data = 0x40;
-    if (mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-    if (mpu60x0_read_reg(MPU60X0_REG_USER_CTL, &data, 1) != 0)
-        return -1;
-    if (data != 0x40)
-        return 8;
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_USER_CTL, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
+    }
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_USER_CTL, &data, 1);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
+    }
+    if (data != 0x40) {
+        return MPU60X0_WRITE_ERR;
+    }
         
-    return 0;
+    return MPU60X0_SUCCESS;
 }
 
 
-/* Read the gyro registers */
-int8_t mpu60x0_read_gyro(mpu60x0_gyro_data* data) {
-    uint8_t twi_res;
+/* 
+ * Read some data registers 
+ */
+mpu60x0_state mpu60x0_read_data(mpu60x0_data_reg data_reg, mpu60x0_data_t* data) {
+    mpu60x0_state mpu60x0_error;
 
-    twi_res = mpu60x0_read_reg(MPU60X0_REG_GYRO_DATA, (uint8_t *)data, 6);
-    
+    mpu60x0_error = mpu60x0_read_reg(data_reg, (uint8_t *)data, 6);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
+    }
+
     data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
     data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
     data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
     
-    return twi_res;
+    return MPU60X0_SUCCESS;
 }
 
-
-/* Read the accel registers */
-int8_t mpu60x0_read_accel(mpu60x0_accel_data* data) {
-    uint8_t twi_res;
-
-    twi_res = mpu60x0_read_reg(MPU60X0_REG_ACCEL_DATA, (uint8_t *)data, 6);
-    
-    data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
-    data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
-    data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
-    
-    return twi_res;
-}
-
-
-/* Read the temp registers */
-int8_t mpu60x0_read_temp(mpu60x0_temp_data* data) {
-    uint8_t twi_res;
-
-    twi_res = mpu60x0_read_reg(MPU60X0_REG_TEMP_DATA, (uint8_t *)data, 2);
-    
-    data->temp = (data->temp << 8) | ((data->temp >> 8) & 0xFF);
-    data->temp = data->temp/340 + 36;
-    
-    return twi_res;
-}
-
-
-int8_t mpu60x0_get_gyro_bias(mpu60x0_bias *data) {
-    uint8_t twi_res;
-    
-    twi_res = mpu60x0_read_reg(MPU60X0_REG_GYRO_BIASX, (uint8_t *)data, 6);
-
- 
-    data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
-    data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
-    data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
-    
-    return twi_res;
-}
-
-
-int8_t mpu60x0_get_accel_bias(mpu60x0_bias *data) {
-    uint8_t twi_res;
-    
-    twi_res = mpu60x0_read_reg(MPU60X0_REG_ACCEL_BIASX, (uint8_t *)data, 6);
-    
-    data->x = (data->x << 8) | ((uint16_t)data->x >> 8);
-    data->y = (data->y << 8) | ((uint16_t)data->y >> 8);
-    data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
-    
-    return twi_res;   
-    
-}
 
 /*
  * Accel bias is specified in +-8G format, and gyro bias in +-1000dps format.
@@ -308,10 +297,10 @@ int8_t mpu60x0_get_accel_bias(mpu60x0_bias *data) {
 /*
  * Input is LSB in +-1000dps format
  */
-int8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
+mpu60x0_state mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
     uint8_t data[6];
-    uint8_t i2c_status;
-    
+    mpu60x0_state mpu60x0_error;
+
     // high byte is first in mpu60x0
     data[0] = (uint16_t)x_bias >> 8;
     data[1] = x_bias & 0xff;
@@ -320,23 +309,24 @@ int8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
     data[4] = (uint16_t)z_bias >> 8;
     data[5] = z_bias & 0xff;
 
-    i2c_status = mpu60x0_write_reg(MPU60X0_REG_GYRO_BIASX, data, 6);
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_GYRO_BIASX, data, 6);
     
-    return i2c_status;
+    return mpu60x0_error;
 }
-
 
 
 /*
  * Input is LSB in +-8G format
  */
-int8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
+mpu60x0_state mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
     uint8_t curr_bias[6];
     uint8_t data[6];
-    uint8_t i2c_status;
-    
-    mpu60x0_read_reg(MPU60X0_REG_ACCEL_BIASX, (uint8_t*)curr_bias, 6);
-    
+    mpu60x0_state mpu60x0_error;
+
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_ACCEL_BIASX, (uint8_t*)curr_bias, 6);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
+    }    
     
     // high byte is first in mpu60x0
     // preserve first bit of the 3 low bytes
@@ -347,8 +337,8 @@ int8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias) {
     data[4] = (uint16_t)z_bias >> 8;
     data[5] = (z_bias & 0xFE) | (curr_bias[5] & 0x1);
 
-    i2c_status = mpu60x0_write_reg(MPU60X0_REG_ACCEL_BIASX, data, 6);
+    mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_ACCEL_BIASX, data, 6);
     
-    return i2c_status;
+    return mpu60x0_error;
 }
 
