@@ -28,7 +28,7 @@
 #include <boards/arduinoUNO.h>
 #include <uc/system.h>
 #include <uc/usart.h>
-#include <peripherals/MPU-60X0.h>
+#include <peripherals/MPU60X0.h>
 #include <systick.h>
 #include <time.h>
 
@@ -40,7 +40,7 @@
 #define ABS(a) ( ((a) < 0) ? -(a) : (a))
 
 
-void print_bias(mpu_60x0_bias *accel_bias, mpu_60x0_bias *gyro_bias) {
+void print_bias(mpu60x0_bias *accel_bias, mpu60x0_bias *gyro_bias) {
                     
     usart_print("\n [BIAS]\n ----------------------------");
     usart_print("\n GYROx       GYROy       GYROx       ACCELx");
@@ -65,7 +65,7 @@ void print_bias(mpu_60x0_bias *accel_bias, mpu_60x0_bias *gyro_bias) {
 void gather_data(int32_t *gyroX_mean, int32_t *gyroY_mean, int32_t *gyroZ_mean, 
                 int32_t *accelX_mean, int32_t *accelY_mean, int32_t *accelZ_mean) {
     
-    mpu_60x0_data mpu_data[100];
+    mpu60x0_data mpu_data[100];
     time_t time;
     uint32_t end_time;
     int32_t readings = 0;
@@ -143,7 +143,7 @@ void gather_data(int32_t *gyroX_mean, int32_t *gyroY_mean, int32_t *gyroZ_mean,
     //usart_print("\n Num readings: ");
     //usart_printnumber32(readings);
     usart_print("\n [MEAN READINGS]\n ----------------------------");
-    usart_print("\n GYROx       GYROy       GYROx       ACCELx ");
+    usart_print("\n GYROx       GYROy       GYROz       ACCELx ");
     usart_print("      ACCELy      ACCELz\n");
 
     usart_print(" ");
@@ -165,8 +165,8 @@ void gather_data(int32_t *gyroX_mean, int32_t *gyroY_mean, int32_t *gyroZ_mean,
 int8_t update_bias(int32_t gyroX_mean, int32_t gyroY_mean, int32_t gyroZ_mean, 
                 int32_t accelX_mean, int32_t accelY_mean, int32_t accelZ_mean) {
  
-    mpu_60x0_bias gyro_bias;
-    mpu_60x0_bias accel_bias;
+    mpu60x0_bias gyro_bias;
+    mpu60x0_bias accel_bias;
     
     // print bias
     if (mpu60x0_get_accel_bias(&accel_bias) != 0)
@@ -179,7 +179,7 @@ int8_t update_bias(int32_t gyroX_mean, int32_t gyroY_mean, int32_t gyroZ_mean,
     gyroZ_mean = gyro_bias.z - (gyroZ_mean/4);
 
     // remove gravity from bias calculation
-    accelX_mean = accel_bias.x - (accelX_mean/8);
+    accelX_mean = accel_bias.x - ((accelX_mean-16384)/8);
     accelY_mean = accel_bias.y - (accelY_mean/8);
     accelZ_mean = accel_bias.z - (accelZ_mean/8);
 
@@ -213,18 +213,17 @@ int main( void ) {
     systick_init();
     usart_init();
 
-    delay_ms(30000);
+    delay_ms(5000);
     usart_print("############################################################\n");
     usart_print("# MPU6050 CALIBRATION TEST\n#\n");
-    usart_print("# Gyro and Accel Sensibility: 2G and 250dps");
-    usart_print("\n# DLPF:");
-    usart_printnumber8(MPU60X0_DLPF);
+    usart_print("# Gyro and Accel Sensitivity: 2G and 250dps");
+    usart_print("\n# DLPF: 5Hz");
     usart_print("\n# Sample Rate Divider:");
     usart_printnumber8(7);
     usart_print("\n############################################################\n");
     
     delay_ms(3000);
-    if ((twi_error = mpu60x0_init(MPU60X0_ACCEL_SCALE_2G, MPU60X0_GYRO_SCALE_250dps, 7)) != 0) {
+    if ((twi_error = mpu60x0_init(MPU60X0_GYRO_SCALE_250dps, MPU60X0_ACCEL_SCALE_2G, MPU60X0_DLPF_5Hz, 7)) != 0) {
         usart_print("\n MPU6050 is not working... CODE: ");
         usart_printnumber8(twi_error);
         return 0;
@@ -233,15 +232,17 @@ int main( void ) {
         usart_print("\n Initialized mpu6050\n");
     }
 
-    mpu60x0_reset();
+    usart_print("\n Gathering data...\n");
+    mpu60x0_flush();
     gather_data(&gyroX_mean, &gyroY_mean, &gyroZ_mean, &accelX_mean, &accelY_mean, &accelZ_mean);
     
-    while((ABS(accelX_mean) > 10) || (ABS(accelY_mean) > 10) || (ABS(accelZ_mean) > 10) ||
+    while((ABS(accelX_mean) > (16384+10)) || (ABS(accelY_mean) > 10) || (ABS(accelZ_mean) > 10) ||
           (ABS(gyroX_mean) > 10) || (ABS(gyroY_mean) > 10) || (ABS(gyroZ_mean) > 10)) {
     
         usart_print("\n ==========================================================================");
         update_bias(gyroX_mean, gyroY_mean, gyroZ_mean, accelX_mean, accelY_mean, accelZ_mean);
-        mpu60x0_reset();
+        mpu60x0_flush();
+        usart_print("\n Gathering data...\n");
         gather_data(&gyroX_mean, &gyroY_mean, &gyroZ_mean, &accelX_mean, &accelY_mean, &accelZ_mean);
     }
 

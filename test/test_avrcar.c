@@ -28,7 +28,7 @@
 #include <uc/system.h>
 #include <uc/usart.h>
 #include <peripherals/infrared.h>
-#include <peripherals/HC-SR04.h>
+#include <peripherals/HCSR04.h>
 #include <boards/arduinoUNO.h>
 #include <systick.h>
 #include <softPWM_long.h>

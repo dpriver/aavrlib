@@ -28,7 +28,7 @@
 #include <uc/system.h>
 #include <uc/usart.h>
 #include <boards/arduinoUNO.h>
-#include <peripherals/lcd_1602a.h>
+#include <peripherals/1602A.h>
 #include <systick.h>
 
 

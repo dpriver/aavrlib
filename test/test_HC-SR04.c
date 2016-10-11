@@ -29,7 +29,7 @@
 #include <uc/system.h>
 #include <uc/usart.h>
 #include <boards/arduinoUNO.h>
-#include <peripherals/HC-SR04.h>
+#include <peripherals/HCSR04.h>
 #include <systick.h>
  
  

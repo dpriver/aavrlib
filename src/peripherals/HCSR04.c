@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  HC-SR04.c
+ *  HCSR04.c
  *
  *  HC-SR04 ultrasonic sensor
  *
@@ -26,7 +26,7 @@
 #include <stdint.h>
 #include <util/delay.h>
 
-#include "peripherals/HC-SR04.h"
+#include "peripherals/HCSR04.h"
 #include "systick.h"
 
 

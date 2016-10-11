@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	MPU-60x0.h
+ *	MPU60X0.h
  *
- *  MPU-60X0 gyroscope-accelerometer sensor
+ *  MPU60X0 gyroscope-accelerometer sensor
  *
  *
  *  This file is part of aavrlib
@@ -27,17 +27,30 @@
 #define __MPU_60X0
 
 
-#define MPU60X0_ACCEL_SCALE_2G  (0)
-#define MPU60X0_ACCEL_SCALE_4G  (0x1 << 3)
-#define MPU60X0_ACCEL_SCALE_8G  (0x2 << 3)
-#define MPU60X0_ACCEL_SCALE_16G (0x3 << 3)
+typedef enum {
+    MPU60X0_ACCEL_SCALE_2G  = 0,
+    MPU60X0_ACCEL_SCALE_4G  = (0x1 << 3),
+    MPU60X0_ACCEL_SCALE_8G  = (0x2 << 3),
+    MPU60X0_ACCEL_SCALE_16G = (0x3 << 3)
+} mpu60x0_accel_scale_t;
 
-#define MPU60X0_GYRO_SCALE_250dps  (0)
-#define MPU60X0_GYRO_SCALE_500dps  (0x1 << 3)
-#define MPU60X0_GYRO_SCALE_1000dps (0x2 << 3)
-#define MPU60X0_GYRO_SCALE_2000dps (0x3 << 3)
+typedef enum {
+    MPU60X0_GYRO_SCALE_250dps  = 0,
+    MPU60X0_GYRO_SCALE_500dps  = (0x1 << 3),
+    MPU60X0_GYRO_SCALE_1000dps = (0x2 << 3),
+    MPU60X0_GYRO_SCALE_2000dps = (0x3 << 3)
+} mpu60x0_gyro_scale_t;
 
-#define MPU60X0_DLPF        (6)
+typedef enum {
+    MPU60X0_DLPF_OFF = 0,
+    MPU60X0_DLPF_184Hz = 0x1,
+    MPU60X0_DLPF_94Hz  = 0x2,
+    MPU60X0_DLPF_44Hz  = 0x3,
+    MPU60X0_DLPF_21Hz  = 0x4,
+    MPU60X0_DLPF_10Hz  = 0x5,
+    MPU60X0_DLPF_5Hz   = 0x6
+} mpu60x0_dlpf_mode_t;
+
 
 #define MPU60X0_I2C_ADDR    (0x68)
 
@@ -89,59 +102,94 @@ typedef struct {
     int16_t x;
     int16_t y;
     int16_t z;
-} mpu_60x0_gyro_data;
+} mpu60x0_gyro_data;
 
 typedef struct {
     int16_t x;
     int16_t y;
     int16_t z;  
-} mpu_60x0_accel_data;
+} mpu60x0_accel_data;
 
 
 typedef struct {
-    mpu_60x0_accel_data accel;
-    mpu_60x0_gyro_data gyro;
-} mpu_60x0_data;
+    mpu60x0_accel_data accel;
+    mpu60x0_gyro_data gyro;
+} mpu60x0_data;
 
 typedef struct {
     int16_t temp;
-} mpu_60x0_temp_data;
+} mpu60x0_temp_data;
 
 typedef struct {
     int16_t x;
     int16_t y;
     int16_t z;   
-} mpu_60x0_bias;
+} mpu60x0_bias;
 
 
 /* Configure all the chip registers to use the on-chip FIFO so this driver can 
  * burst read the FIFO register instead of reading all the registers 
  * secuentially */
-int8_t mpu60x0_init(uint8_t gyro_scale_range, uint8_t accel_scale_range, 
-                    uint8_t smp_div);
+int8_t mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_t accel_scale, 
+                    mpu60x0_dlpf_mode_t dlpf_mode, uint8_t smp_div);
 
+/*
+ * Read from MPU registers
+ * More than one register can be read in one call, as long as they are consecutive,
+ * indicating a length of more than 1.
+ */
 int8_t mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length);
 
-int8_t mpu60x0_reset();
-
+/*
+ * Write to MPU registers
+ * More than one register can be written in one call, as long as they are consecutive,
+ * indicating a length of more than 1.
+ */
 int8_t mpu60x0_write_reg(uint8_t reg, uint8_t *data, uint8_t length);
 
-int16_t mpu60x0_read_fifo(mpu_60x0_data *data, uint16_t length);
+/*
+ * Read the sensors' data from the internal FIFO
+ */
+int16_t mpu60x0_read_fifo(mpu60x0_data *data, uint16_t length);
 
-uint8_t mpu60x0_read_gyro(mpu_60x0_gyro_data* data);
+/*
+ * Clear the fifo and restart the sensors readings
+ */
+int8_t mpu60x0_flush();
 
-/* Read the accel registers */
-uint8_t mpu60x0_read_accel(mpu_60x0_accel_data* data);
+/*
+ * Read the gyro registers
+ */
+int8_t mpu60x0_read_gyro(mpu60x0_gyro_data* data);
 
-/* Read the temp registers */
-uint8_t mpu60x0_read_temp(mpu_60x0_temp_data* data);
+/* 
+ * Read the accel registers 
+ */
+int8_t mpu60x0_read_accel(mpu60x0_accel_data* data);
 
-uint8_t mpu60x0_get_gyro_bias(mpu_60x0_bias *data);
+/*
+ * Read the temp registers 
+ */
+int8_t mpu60x0_read_temp(mpu60x0_temp_data* data);
 
-uint8_t mpu60x0_get_accel_bias(mpu_60x0_bias *data);
+/*
+ * Get the current gyroscope calibration bias 
+ */
+int8_t mpu60x0_get_gyro_bias(mpu60x0_bias *data);
 
-uint8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
+/*
+ * Get the current accelerometer calibration bias 
+ */
+int8_t mpu60x0_get_accel_bias(mpu60x0_bias *data);
 
-uint8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
+/*
+ * Get the current gyroscope calibration bias 
+ */
+int8_t mpu60x0_set_gyro_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
+
+/*
+ * Set the current accelerometer calibration bias 
+ */
+int8_t mpu60x0_set_accel_bias(int16_t x_bias, int16_t y_bias, int16_t z_bias);
 
 #endif /* __MPU_60X0 */

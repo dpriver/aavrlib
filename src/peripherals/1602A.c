@@ -1,5 +1,5 @@
 /*******************************************************************************
- *	lcd_1602a.c
+ *	1602A.c
  *
  *  LCD 1602a peripheral
  *
@@ -28,7 +28,7 @@
 #include <avr/io.h>
 
 
-#include "peripherals/lcd_1602a.h"
+#include "peripherals/1602A.h"
 #include "config.h"
 
 
