@@ -60,7 +60,10 @@ make
 ```
 
 ## Generate Documentation
-Documentation is made with doxygen, so it must be installed.
+To install the documentation dependencies the following command can be executed
+```bash
+sudo apt-get install doxyfile texlive texlive-latex-extra graphviz
+```
 
 In order to create the documentation, the following can be executed
 ```bash
