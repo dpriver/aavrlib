@@ -121,7 +121,7 @@ void TWI_slave_init(uint8_t addr) {
 /*
  * Get the current TWI error if any;
  */
-uint8_t TWI_has_error(uint8_t *error_code) {
+bool TWI_has_error(uint8_t *error_code) {
 
     *error_code = twi.error_code_valid;
     
@@ -144,7 +144,7 @@ twi_state TWI_do_start() {
 }
 
 
-twi_state TWI_do_send_addr(uint8_t slave_addr, uint8_t twi_operation) {
+twi_state TWI_do_send_addr(uint8_t slave_addr, twi_operation_t twi_operation) {
     
     TWDR = (slave_addr << 1) | twi_operation;
     TWCR = _BV(TWINT) | _BV(TWEN);
@@ -193,7 +193,7 @@ twi_state TWI_do_read(uint8_t *byte) {
 
 
 // send data as master
-twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght) {
+twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_length) {
     uint8_t i = 0;
 
     // send START
@@ -219,7 +219,7 @@ twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght)
 
     // while there is data to transmit
     // transmit data
-    while(i < data_lenght) {
+    while(i < data_length) {
         
         TWDR = data[i];
         TWCR = _BV(TWINT) | _BV(TWEN);
@@ -239,7 +239,7 @@ twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_lenght)
 
 
 // Receive data as master
-twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
+twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_length) {
     uint8_t i = 0;
 
     // send START
@@ -265,7 +265,7 @@ twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_lenght) {
 
     // while there is data to receive
     // receive data
-    while(i < (data_lenght-1)) {
+    while(i < (data_length-1)) {
         
         TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
         while( !(TWCR & _BV(TWINT)) );

@@ -27,46 +27,6 @@
 #define __MPU_60X0
 
 
-typedef enum {
-    MPU60X0_ACCEL_SCALE_2G  = 0,
-    MPU60X0_ACCEL_SCALE_4G  = (0x1 << 3),
-    MPU60X0_ACCEL_SCALE_8G  = (0x2 << 3),
-    MPU60X0_ACCEL_SCALE_16G = (0x3 << 3)
-} mpu60x0_accel_scale_t;
-
-typedef enum {
-    MPU60X0_GYRO_SCALE_250dps  = 0,
-    MPU60X0_GYRO_SCALE_500dps  = (0x1 << 3),
-    MPU60X0_GYRO_SCALE_1000dps = (0x2 << 3),
-    MPU60X0_GYRO_SCALE_2000dps = (0x3 << 3)
-} mpu60x0_gyro_scale_t;
-
-typedef enum {
-    MPU60X0_DLPF_OFF   = 0,
-    MPU60X0_DLPF_184Hz = 0x1,
-    MPU60X0_DLPF_94Hz  = 0x2,
-    MPU60X0_DLPF_44Hz  = 0x3,
-    MPU60X0_DLPF_21Hz  = 0x4,
-    MPU60X0_DLPF_10Hz  = 0x5,
-    MPU60X0_DLPF_5Hz   = 0x6
-} mpu60x0_dlpf_mode_t;
-
-typedef enum {
-    MPU60X0_REG_ACCEL_BIAS = 0x06,
-    MPU60X0_REG_GYRO_BIAS = 0x13,
-    MPU60X0_REG_ACCEL_DATA = 59,
-    MPU60X0_REG_GYRO_DATA = 67
-} mpu60x0_data_reg;
-
-
-typedef enum {
-    MPU60X0_SUCCESS      =  0,
-    MPU60X0_I2C_ERR      = -1,     // generic TWI/I2C error
-    MPU60X0_WRITE_ERR    = -2,      // error at write checking
-    MPU60X0_IDENTITY_ERR = -3
-} mpu60x0_state;
-
-
 #define MPU60X0_I2C_ADDR    (0x68)
 
 
@@ -106,16 +66,55 @@ typedef enum {
 #define MPU60X0_REG_FIFO_DATA       (116)
 #define MPU60X0_REG_WHO_AM_I        (117)
 
-#define MPU60X0_REG_ACCEL_DATA      (59)
-#define MPU60X0_REG_GYRO_DATA       (67)
+#define MPU60X0_REG_ACCEL_DATAX      (59)
+#define MPU60X0_REG_ACCEL_DATAY      (51)
+#define MPU60X0_REG_ACCEL_DATAZ      (63)
+#define MPU60X0_REG_GYRO_DATAX       (67)
+#define MPU60X0_REG_GYRO_DATAY       (69)
+#define MPU60X0_REG_GYRO_DATAZ       (71)
 #define MPU60X0_REG_TEMP_DATA       (65)
 #define MPU60X0_REG_EXTERN_DATA     (73)
 
 
-/* Driver errors */
-#define MPU60X0_SUCCESS (0)
-#define MPU60X0_I2C_ERR (1)
+typedef enum {
+    MPU60X0_ACCEL_SCALE_2G  = 0,
+    MPU60X0_ACCEL_SCALE_4G  = (0x1 << 3),
+    MPU60X0_ACCEL_SCALE_8G  = (0x2 << 3),
+    MPU60X0_ACCEL_SCALE_16G = (0x3 << 3)
+} mpu60x0_accel_scale_t;
 
+typedef enum {
+    MPU60X0_GYRO_SCALE_250dps  = 0,
+    MPU60X0_GYRO_SCALE_500dps  = (0x1 << 3),
+    MPU60X0_GYRO_SCALE_1000dps = (0x2 << 3),
+    MPU60X0_GYRO_SCALE_2000dps = (0x3 << 3)
+} mpu60x0_gyro_scale_t;
+
+typedef enum {
+    MPU60X0_DLPF_OFF   = 0,
+    MPU60X0_DLPF_184Hz = 0x1,
+    MPU60X0_DLPF_94Hz  = 0x2,
+    MPU60X0_DLPF_44Hz  = 0x3,
+    MPU60X0_DLPF_21Hz  = 0x4,
+    MPU60X0_DLPF_10Hz  = 0x5,
+    MPU60X0_DLPF_5Hz   = 0x6
+} mpu60x0_dlpf_mode_t;
+
+typedef enum {
+    MPU60X0_REG_ACCEL_BIAS = MPU60X0_REG_ACCEL_BIASX,
+    MPU60X0_REG_GYRO_BIAS  = MPU60X0_REG_GYRO_BIASX,
+    MPU60X0_REG_ACCEL_DATA = MPU60X0_REG_ACCEL_DATAX,
+    MPU60X0_REG_GYRO_DATA  = MPU60X0_REG_GYRO_DATAX
+} mpu60x0_data_reg;
+
+
+typedef enum {
+    MPU60X0_SUCCESS      =  0,
+    MPU60X0_I2C_ERR      = -1,     // generic TWI/I2C error
+    MPU60X0_WRITE_ERR    = -2,     // error at write checking
+    MPU60X0_READ_ERR     = -3,     // error at reading
+    MPU60X0_IDENTITY_ERR = -4      // error at identity checking
+} mpu60x0_state;
 
 
 typedef struct {
@@ -168,6 +167,11 @@ mpu60x0_state mpu60x0_flush();
  * Read some data registers
  */
 mpu60x0_state mpu60x0_read_data(mpu60x0_data_reg data_reg, mpu60x0_data_t* data);
+
+/*
+ * Read temperature data
+ */
+mpu60x0_state mpu60x0_read_temp(mpu60x0_temp_data_t* data);
 
 /*
  * Set the current gyroscope calibration bias 

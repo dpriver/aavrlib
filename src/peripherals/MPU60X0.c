@@ -140,7 +140,7 @@ mpu60x0_state mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length) {
     twi_state twi_error;
     
     if (length == 0) {
-        return MPU60X0_SUCCESS;
+        return MPU60X0_READ_ERR;
     }
     
     twi_error = TWI_send(MPU60X0_I2C_ADDR, &reg, 1);
@@ -285,6 +285,23 @@ mpu60x0_state mpu60x0_read_data(mpu60x0_data_reg data_reg, mpu60x0_data_t* data)
     data->z = (data->z << 8) | ((uint16_t)data->z >> 8);
     
     return MPU60X0_SUCCESS;
+}
+
+
+/*
+ * Read temperature data
+ */
+mpu60x0_state mpu60x0_read_temp(mpu60x0_temp_data_t* data) {
+    mpu60x0_state mpu60x0_error;
+
+    mpu60x0_error = mpu60x0_read_reg(MPU60X0_REG_TEMP_DATA, (uint8_t *)data, 2);
+    if (mpu60x0_error != MPU60X0_SUCCESS) {
+        return mpu60x0_error;
+    }
+
+    data->temp = (data->temp << 8) | ((uint16_t)data->temp >> 8);
+    
+    return MPU60X0_SUCCESS;    
 }
 
 

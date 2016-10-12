@@ -21,7 +21,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- ********************************************************************************/
+ ******************************************************************************/
 
 /**
  * @file softPWM_long.h
@@ -45,7 +45,7 @@
 /**
  * Maximum value for signal width
  */
- #define SOFTPWM_L_MAX_WIDTH (78) //#define PWM_TOP_CNT (F_CPU/(PRESC*PWM_FREC))
+#define SOFTPWM_L_MAX_WIDTH (78) //#define PWM_TOP_CNT (F_CPU/(PRESC*PWM_FREC))
 
 
 
