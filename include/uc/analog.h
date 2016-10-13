@@ -23,15 +23,42 @@
  *
  ********************************************************************************/
 
+/**
+ * @file analog.h
+ * @brief Analog I/O functionality
+ * 
+ * This file contains the functionality for analog I/O.
+ * Analog I/O is made thoughr Analog-to-Digital Conversors (ADC) connected
+ * directly to the I/O pins, which can be ualso used as digital pins if the ADC 
+ * is disabled.
+ * 
+ * The ADC starts with a specific digital value, and then iterates various 
+ * cycles, refining the digital value to get close to the corresponding 
+ * analog input.
+ * 
+ * The atmega328p microcontroller contains just one ADC. However, there are many 
+ * possible analog inputs, e.g. 6 external pins, internal temperature sensor,...
+ * Because of that, the ADC input can be changed between the said "channels".
+ * 
+ * @todo Implement burst mode
+ */
+
 #ifndef __ANALOG
 #define __ANALOG
 
 #include <stdint.h>
 #include <avr/io.h>
 
-// ADC prescaler values (determines the speed at which the conversion is made)
-// single conversion: 13 ADC cycles
-// burst conversions : first 25, nexts 13.5 ADC cycles
+
+/**
+ * @brief Prescaler values for the ADC
+ * 
+ * All the possible preescaler values for the ADC clock, as needed by the 
+ * adc_init() function.
+ * 
+ * A single conversion takes 21 ADC cycles, while in burst mode, the first 
+ * conversion takes 25 ADC cycles, and the following, 13.5 cycles.
+ */
 typedef enum {
 	adc_presc_2 = 1,
 	adc_presc_4 = 2,
@@ -42,20 +69,25 @@ typedef enum {
 	adc_presc_128 = 7
 } adc_prescaler_t;
 
-// ADC reference voltaje values (Vref)
-// - aref uses the Aref input
-// - vcc uses Vcc
-// - internal uses an internal ref of 1.1v
+
+/**
+ * @brief ADC reference voltage values
+ * 
+ * All the possible voltage values to use as reference by the ADC, as needed 
+ * by the adc_init() function.
+ */
 typedef enum {
-	adc_ref_aref = 0,
-	adc_ref_vcc = 1,
-	adc_ref_internal = 3
+	adc_ref_aref = 0,       //!< Aref input pin
+	adc_ref_vcc = 1,        //!< Vcc input pin
+	adc_ref_internal = 3    //!< Internal reference of 1.1v
 } adc_reference_t;
 
-// ADC usable channels
-// - a0-a6 external analog pins
-// - temperature internal temperature sensor
-// - internal internal 1.1v source Vbg
+
+/**
+ * @brief ADC channels
+ * 
+ * All the possible ADC input channels as needed by the adn_init() function.
+ */
 typedef enum {
 	adc_channel_a0 = 0,
 	adc_channel_a1 = 1,
@@ -63,9 +95,9 @@ typedef enum {
 	adc_channel_a3 = 3,
 	adc_channel_a4 = 4,
 	adc_channel_a5 = 5,
-	adc_channel_temperature = 8,
-	adc_channel_internal = 14,
-	adc_channel_gnd = 15
+	adc_channel_temperature = 8,    //!< Internal temperature sensor
+	adc_channel_internal = 14,      //!< internal 1.1v input (Vbg)
+	adc_channel_gnd = 15            //!< Ground
 } adc_channel_t;
 
 
@@ -77,19 +109,41 @@ typedef enum {
 #define MSK_CH5 _BV(ADC5D)
 
 
-/*
- * Initialize the analog-to-digital conversor
+/**
+ * @brief Initialize the analog-to-digital converter
+ * 
+ * This function must be called once before using any other ADC function.
+ * A pinmask of the pins connected to analog inputs should be indicated for 
+ * power eficiency.
+ * 
+ * @param prescaler Prescaler for the ADC clock
+ * @param adc_reference Reference voltage for the ADC
+ * @param channel Analog input channel
+ * @param pinmask Mask of the pins connected to analog inputs
+ * 
  */
 void adc_init(adc_prescaler_t prescaler, adc_reference_t ref,
 		adc_channel_t channel, uint8_t pinmask);
-
-/*
- * Change the input channel
+        
+ 
+/**
+ * @brief Change the adc channel
+ * 
+ * @param channel The new adc channel
  */
 void adc_change_channel(adc_channel_t channel);
 
-/*
- * Performs a single analog read
+
+/**
+ * @brief Performs a single analog read
+ * 
+ * The result voltage is calculated with the following formula
+ * \f{eqnarray*}{
+ *  V_{in} = \frac{ADC * V_{ref}}{1024}
+ * \f}
+ * Where \f$ ADC\f$ is the read value and \f$ V_{ref} \f$ is the reference voltage
+ * 
+ * @returns The digital representation of the analog input \f$ (0-1023) \f$
  */
 uint8_t adc_single_read();
 

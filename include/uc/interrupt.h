@@ -24,12 +24,20 @@
  ******************************************************************************/
 
 
+/**
+ * @file interrupt.h
+ * @brief Interrupt handling implementations
+ */
+
 #ifndef __INTERRUPT
 #define __INTERRUPT
 
 
 #define N_INTERRUPTS 25
 
+/**
+ * @brief All the interrupts of the atmega328p interrupt vector
+ */
 typedef enum {
     INT0_int,
     INT1_int,
@@ -59,15 +67,42 @@ typedef enum {
 } interrupt_t;
 
 
+/**
+ * @brief This macro is used to define an interrupt routine
+ * 
+ * @param function The name of the interrupt routine
+ */
 #define INTERRUPT(function) \
     void function (void) __attribute__((signal, __INTR_ATTRS)); \
     void function (void)
 
 
+/**
+ * @brief The definition of the interrupt routines
+ */
 typedef void (*isr_function)( void );
 
 
+/**
+ * @brief Attach a routine to an interrupt
+ * 
+ * The provided function is attached to the interrupt. Also, the interrupt is 
+ * enabled.
+ * 
+ * @param interrupt The interrupt to which the routine is going to be attached
+ * @param isr The function to attach
+ */
 void interrupt_attach(interrupt_t interrupt, isr_function isr);
+
+
+/**
+ * @brief Detach a routine from an interrupt
+ * 
+ * The routine attached to the indicated interrupt is detached and the interrupt 
+ * is disabled.
+ * 
+ * @param interrupt The interrupt whose routine is to be detached
+ */
 void interrupt_detach(interrupt_t interrupt);
 
 
