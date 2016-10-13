@@ -122,10 +122,14 @@ void TWI_slave_init(uint8_t addr) {
  * Get the current TWI error if any;
  */
 bool TWI_has_error(uint8_t *error_code) {
+    bool error_valid;
 
     *error_code = twi.error_code_valid;
     
-    return twi.error_code_valid;
+    error_valid = twi.error_code_valid;
+    twi.error_code_valid = false;
+    
+    return error_valid;
 }
 
 
