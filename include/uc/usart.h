@@ -24,12 +24,11 @@
  ********************************************************************************/
 
 
-#ifndef _USART
-#define _USART
-
-#include <avr/io.h>
-#include <avr/power.h>
-#include <stdint.h>
+/**
+ * @file usart.h
+ * 
+ * @brief USART functionality
+ */
 
 // BAUD = Fose/16/(UBBR0+1)
 // setting of baud rate UBRR0=103=0x67 9600 baud rate
@@ -37,17 +36,60 @@
 // setting the frame format 1bit-stop 8bit-data
 // enable transmitter or receiver
 
-#define usart_init() \
-    power_usart0_enable(); \
-	UBRR0H = 0x00; \
-	UBRR0L = 0x00; \
-	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01); \
-	UCSR0B = _BV(TXEN0);
 
+#ifndef _USART
+#define _USART
+
+#include <avr/io.h>
+#include <avr/power.h>
+#include <stdint.h>
+
+
+/**
+ * @brief Init usart functionality
+ * 
+ * This function must be called once before using any other usart functions
+ */
+void usart_init();
+
+
+/**
+ * @brief Send a byte of data via USART
+ * 
+ * @param data_byte The byte to send
+ */
 void usart_send(uint8_t data_byte);
+
+
+/**
+ * @brief Print an 8 bit unsigned number
+ * 
+ * @param number The number to print
+ */
 void usart_printnumber8(uint8_t number);
+
+
+/**
+ * @brief Print an 32 bit unsigned number
+ * 
+ * @param number The number to print
+ */
 void usart_printnumber32(uint32_t number);
+
+
+/**
+ * @brief Print an 32 bit signed number
+ * 
+ * @param number The number to print
+ */
 void usart_printsignumber32(int32_t number);
+
+
+/**
+ * @brief Print a string ended in '\0'
+ * 
+ * @param string The string to print
+ */
 void usart_print(const char* string);
 
 
