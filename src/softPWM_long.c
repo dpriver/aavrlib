@@ -202,7 +202,7 @@ int8_t softPWM_l_add_signal(uint8_t pin, volatile uint8_t *config_port,
     if (signal_enabled[slot])
         return -1;
 
-    signal_pin[slot] = pin;
+    signal_pin[slot] = _BV(pin);
     signal_port[slot] = data_port;
     signal_enabled[slot] = 1;
     updated_duty_count[slot] = pulse_width;

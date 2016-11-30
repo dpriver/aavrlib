@@ -43,7 +43,8 @@ uint32_t micros_prueba(){
 	//if( micro[indice] < 32 ){
 	if( (TIFR1 & _BV(OCF1A)) && (micro[indice] == 0) ){
 		mili[indice]++;
-		DIGITAL_PORT_B |= _BV(DIGITAL_8);
+        IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_8));
+		//DIGITAL_PORT_B |= _BV(DIGITAL_8);
 		//fails[indice] = TRUE;
 		//num_fails++;
 	}
@@ -55,7 +56,8 @@ uint32_t micros_prueba(){
 
 void initialize(){
 	cli();
-	DIGITAL_PORT_B |= _BV(DIGITAL_9);
+	//DIGITAL_PORT_B |= _BV(DIGITAL_9);
+    IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_9));
 	delay_us(200);
 	for(uint8_t i = 0; i < NUM_VALUES ; i++){
 		micro[i] = 0;
@@ -67,7 +69,8 @@ void initialize(){
 	num_fails = 0;
 	indice = 0;
 	last_time = 0;
-	DIGITAL_PORT_B &= ~_BV(DIGITAL_9);
+	//DIGITAL_PORT_B &= ~_BV(DIGITAL_9);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_9));
 	sei();
 }
 
@@ -104,16 +107,21 @@ int main(void){
 
 	sei();
 
-	DIGITAL_CONF_REG_B |= _BV(DIGITAL_8) | _BV(DIGITAL_9);
+	//DIGITAL_CONF_REG_B |= _BV(DIGITAL_8) | _BV(DIGITAL_9);
+    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_8) | _BV(PIN_9));
 
-	DIGITAL_PORT_B |= _BV(DIGITAL_8);
+	//DIGITAL_PORT_B |= _BV(DIGITAL_8);
+    IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_8));
 	delay_ms(500);
-	DIGITAL_PORT_B &= ~_BV(DIGITAL_8);
-	delay_ms(500);
+	//DIGITAL_PORT_B &= ~_BV(DIGITAL_8);
+	IOPORT_VALUE(LOW, PORT_B, _BV(PIN_8));
+    delay_ms(500);
 
-	DIGITAL_PORT_B |= _BV(DIGITAL_9);
+	//DIGITAL_PORT_B |= _BV(DIGITAL_9);
+    IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_9));
 	while(readAnalog() <= 10);
-	DIGITAL_PORT_B &= ~_BV(DIGITAL_9);
+	//DIGITAL_PORT_B &= ~_BV(DIGITAL_9);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_9));
 
 // llama a la funcion micros() cada INTERVALO segundo
 	while(TRUE){
@@ -127,7 +135,8 @@ int main(void){
 					fails_post[indice] = TRUE;
 					if(!fails[indice])
 						num_fails++;
-					DIGITAL_PORT_B |= _BV(DIGITAL_8);
+					//DIGITAL_PORT_B |= _BV(DIGITAL_8);
+                    IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_8));
 				}
 				last_time = micro_aux;
 				indice++;
@@ -136,7 +145,8 @@ int main(void){
 		dump();
 
 		while(readAnalog() > 10);
-		DIGITAL_PORT_B &= ~_BV(DIGITAL_8);
+		//DIGITAL_PORT_B &= ~_BV(DIGITAL_8);
+        IOPORT_VALUE(LOW, PORT_B, _BV(PIN_8));
 	}
 
 }

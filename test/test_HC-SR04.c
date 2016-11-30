@@ -48,16 +48,16 @@ int main( void ) {
     ultrasonic_init();
     sei();
 
-    IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
-    IOPORT_CONFIG(OUTPUT, PORT_B, ULTRASONIC_TRIGGER_PIN);
-    IOPORT_CONFIG(INPUT, PORT_B, ULTRASONIC_ECHO_PIN);
+    IOPORT_CONFIG(OUTPUT, PORT_C, _BV(PIN_13));
+    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(ULTRASONIC_TRIGGER_PIN));
+    IOPORT_CONFIG(INPUT, PORT_B, _BV(ULTRASONIC_ECHO_PIN));
 
 
     usart_print("\nStarted\n===============================\n");
 
 
     while(1) {
-        distance = ultrasonic_measure(&PORT_B_V, ULTRASONIC_TRIGGER_PIN, &PORT_B_R, ULTRASONIC_ECHO_PIN);
+        distance = ultrasonic_measure(&PORT_B_V, _BV(ULTRASONIC_TRIGGER_PIN), &PORT_B_R, _BV(ULTRASONIC_ECHO_PIN));
      
         if (distance >= 0) {
             usart_print("\nDistance: ");

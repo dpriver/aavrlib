@@ -46,10 +46,10 @@ int main( void ) {
     
     sei();
     
-    IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
-    IOPORT_VALUE(LOW, PORT_C_V, PIN_13);
+    IOPORT_CONFIG(OUTPUT, PORT_C, _BV(PIN_13));
+    IOPORT_VALUE(LOW, PORT_C, _BV(PIN_13));
 
-    IOPORT_CONFIG(INPUT, PORT_B, PIN_2);
+    IOPORT_CONFIG(INPUT, PORT_B, _BV(PIN_2));
     
     while(1);
     

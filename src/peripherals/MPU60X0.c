@@ -213,7 +213,11 @@ int16_t mpu60x0_read_fifo(mpu60x0_sens_t *data, uint16_t length) {
     }
     
     fifo_count = (fifo_count << 8) | (fifo_count >> 8);
+    
     fifo_count /= 12;
+    if (fifo_count == 0) {
+        return 0;
+    }
     
     // adjust the length of the data to read
     length = (length < fifo_count)? length : fifo_count;

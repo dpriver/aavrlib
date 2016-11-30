@@ -80,13 +80,13 @@ int main (void) {
     usart_print("Shuting off arduino's led\n");
 
     // Config pinA5 as output to signal when marching back
-    IOPORT_CONFIG(OUTPUT, PORT_A, PIN_A5);
-    IOPORT_VALUE(LOW, PORT_A_V, PIN_A5);
+    IOPORT_CONFIG(OUTPUT, PORT_A, _BV(PIN_A5));
+    IOPORT_VALUE(LOW, PORT_A, _BV(PIN_A5));
 
 
     usart_print("Configuring ultrasonic pins");
-    IOPORT_CONFIG(OUTPUT, PORT_CONF_TRIGGER, PIN_TRIGGER);
-    IOPORT_CONFIG(INPUT, PORT_CONF_ECHO, PIN_ECHO);
+    IOPORT_CONFIG(OUTPUT, PORT_CONF_TRIGGER, _BV(PIN_TRIGGER));
+    IOPORT_CONFIG(INPUT, PORT_CONF_ECHO, _BV(PIN_ECHO));
 
 
     usart_print("Configurating PWM signals\n");
@@ -120,7 +120,7 @@ void ir_handler(uint8_t address, uint8_t command) {
 
 
 void pivote_right() {
-    IOPORT_VALUE(LOW, PORT_B, PIN_2);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_2));
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_F, 0);
@@ -128,7 +128,7 @@ void pivote_right() {
 }
 
 void pivote_left() {
-    IOPORT_VALUE(LOW, PORT_B, PIN_2);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_2));
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_F, 0);
@@ -136,7 +136,7 @@ void pivote_left() {
 }
 
 void turn_right() {
-    IOPORT_VALUE(LOW, PORT_B, PIN_2);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_2));
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_F, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_B, SOFTPWM_L_MAX_WIDTH);
@@ -144,7 +144,7 @@ void turn_right() {
 }
 
 void turn_left() {
-    IOPORT_VALUE(LOW, PORT_B, PIN_2);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_2));
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_F, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_F, SOFTPWM_L_MAX_WIDTH);
@@ -152,7 +152,7 @@ void turn_left() {
 }
 
 void go_front() {
-    IOPORT_VALUE(LOW, PORT_B, PIN_2);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_2));
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_F, SOFTPWM_L_MAX_WIDTH);
@@ -160,7 +160,7 @@ void go_front() {
 }
 
 void go_back() {
-    IOPORT_VALUE(HIGH, PORT_B, PIN_2);
+    IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_2));
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_F, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_F, 0);
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_B, SOFTPWM_L_MAX_WIDTH);
@@ -168,7 +168,7 @@ void go_back() {
 }
 
 void stop() {
-    IOPORT_VALUE(LOW, PORT_B, PIN_2);
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_2));
     softPWM_l_set_pulse_width(SLOT_LEFT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_B, 0);
     softPWM_l_set_pulse_width(SLOT_RIGHT_WHEEL_F, 0);
@@ -180,8 +180,8 @@ void behaviour_stop_when_barrier() {
 
     uint16_t distance;
 
-    distance = ultrasonic_measure(&PORT_VAL_TRIGGER, PIN_TRIGGER, 
-                    &PORT_VAL_ECHO, PIN_ECHO);
+    distance = ultrasonic_measure(&PORT_VAL_TRIGGER, _BV(PIN_TRIGGER), 
+                    &PORT_VAL_ECHO, _BV(PIN_ECHO));
   
     if (distance < 0 ) {
         usart_print("Distance measure timeout\n");

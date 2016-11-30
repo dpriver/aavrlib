@@ -62,18 +62,14 @@ int main( void ) {
     softPWM_l_init();
     adc_init(adc_presc_128, adc_ref_vcc ,adc_channel_a0, 0);
     
-    sei();
-    
-    // set pin13 as output to low value so teh led "LED" is off
-    IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
-    IOPORT_VALUE(LOW, PORT_C_V, PIN_13);
+    sei();    
     
     // config digital outputs to set direction
-    IOPORT_CONFIG(OUTPUT, PORT_B, PIN_2);
-    IOPORT_CONFIG(OUTPUT, PORT_B, PIN_3);
+    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_2));
+    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_3));
     
-    IOPORT_VALUE(HIGH, PORT_B_V, PIN_2);
-    IOPORT_VALUE(LOW, PORT_B_V, PIN_3);
+    IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_2));
+    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_3));
     
     // start pwm generation
     softPWM_l_start();

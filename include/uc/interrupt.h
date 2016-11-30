@@ -84,6 +84,12 @@ typedef void (*isr_function)( void );
 
 
 /**
+ * @brief Initialize the interrupts 
+ */
+void interrupt_init();
+
+
+/**
  * @brief Attach a routine to an interrupt
  * 
  * The provided function is attached to the interrupt. Also, the interrupt is 

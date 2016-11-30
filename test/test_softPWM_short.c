@@ -55,10 +55,8 @@ int main( void ) {
     softPWM_s_init();
     adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
     
-    IOPORT_CONFIG(OUTPUT, PORT_C, PIN_13);
-    IOPORT_VALUE(LOW, PORT_C_V, PIN_13);
     
-    IOPORT_CONFIG(INPUT, PORT_A, PIN_A0);
+    IOPORT_CONFIG(INPUT, PORT_A, _BV(PIN_A0));
 
     softPWM_s_start();
 

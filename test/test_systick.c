@@ -25,7 +25,9 @@
  *
  ******************************************************************************/
 
+#include <avr/io.h>
 #include <util/delay.h>
+#include <stdint.h>
 
 #include <uc/system.h>
 #include <uc/usart.h>
@@ -35,39 +37,56 @@
 
 int main( void ) {
     
-    time_t time;
+    time_t time, time_2;
     
     uint8_t led_state;
     
     system_init();
-    systick_init();
     usart_init();
+    systick_init();
     
     
-    IOPORT_CONFIG(OUTPUT, PORT_B, PIN_4);
-    IOPORT_VALUE(LOW,  PORT_B_V, PIN_4);
+    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_4));
+    IOPORT_VALUE(LOW,  PORT_B, _BV(PIN_4));
     
     led_state = 0;
     
     while(1) {
         
         if (led_state) {
-            IOPORT_VALUE(LOW,  PORT_B_V, PIN_4);
+            IOPORT_VALUE(LOW, PORT_B, _BV(PIN_4));
             led_state = 0;
         }
         else {
-            IOPORT_VALUE(HIGH, PORT_B_V, PIN_4);
+            IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_4));
             led_state = 1;
         }
         
         get_uptime(&time);
-        usart_print("\nuptime => ms: ");
-        usart_printnumber32((uint32_t)time.ms);
-        usart_print("  us: ");
-        usart_printnumber32((uint32_t)time.us);
+        //usart_print("\nuptime => ms: ");
+        //usart_printnumber32((uint32_t)time.ms);
+        //usart_print("  us: ");
+        //usart_printnumber32((uint32_t)time.us);
         
-        delay_ms(100);
+        _delay_ms(1);
         
+        get_uptime(&time_2);
+        
+        if( (time_2.ms - time.ms == 1) || 
+            ((time_2.ms - time.ms == 2) && ((time_2.us < 100) && (time.us > 900)))) {
+            //usart_print("\ncorrect");
+        }
+        else {
+            usart_print("\nError in ms\n");
+            usart_print("\nuptime 1 => ms: ");
+            usart_printnumber32((uint32_t)time.ms);
+            usart_print("  us: ");
+            usart_printnumber32((uint32_t)time.us);
+            usart_print("\nuptime 2 => ms: ");
+            usart_printnumber32((uint32_t)time_2.ms);
+            usart_print("  us: ");
+            usart_printnumber32((uint32_t)time_2.us);
+        }
     }
     
     return 0;

@@ -92,6 +92,8 @@
     PCMSK1 = 0;
     PCMSK0 = 0;
     
+    interrupt_init();
+    
     /* Watchdog disabled */
     wdt_disable();
     

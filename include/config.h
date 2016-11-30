@@ -39,10 +39,9 @@
  * try to do so, don't feel confident if the compiler ends succesfully, without checking the
  * correctness of the generated code or the program behaviour.
  **/
-#define _SOFTPWM_S_TIMER TIMER0
+#define _SOFTPWM_S_TIMER TIMER1
 #define _SOFTPWM_L_TIMER TIMER2
-#define _SYSTICK_TIMER   TIMER1
-
+#define _SYSTICK_TIMER   TIMER0
 
 /*
  * SPI working mode
@@ -55,42 +54,21 @@
  * LCD_11602a pin configuration
  */
 
-#define RS_PIN PIN_2
-#define RW_PIN PIN_3
-#define E_PIN PIN_4
-//#define D0_PIN PIN_5
-//#define D1_PIN PIN_6
-//#define D2_PIN PIN_7
-//#define D3_PIN PIN_8
-#define D4_PIN PIN_9
-#define D5_PIN PIN_10
-#define D6_PIN PIN_11
-#define D7_PIN PIN_12
+#define RS_PORT_V PORT_B_V
+#define RW_PORT_V PORT_B_V
+#define E_PORT_V PORT_B_V
 
 #define RS_PORT PORT_B
 #define RW_PORT PORT_B
 #define E_PORT PORT_B
-//#define D0_PORT PORT_B
-//#define D1_PORT PORT_B
-//#define D2_PORT PORT_B
-//#define D3_PORT PORT_C
-#define D4_PORT PORT_C
-#define D5_PORT PORT_C
-#define D6_PORT PORT_C
-#define D7_PORT PORT_C
+ 
+#define RS_PIN PIN_2
+#define RW_PIN PIN_3
+#define E_PIN PIN_4
 
-#define RS_PORT_V PORT_B_V
-#define RW_PORT_V PORT_B_V
-#define E_PORT_V PORT_B_V
-//#define D0_PORT_V PORT_B_V
-//#define D1_PORT_V PORT_B_V
-//#define D2_PORT_V PORT_B_V
-//#define D3_PORT_V PORT_C_V
-#define D4_PORT_V PORT_C_V
-#define D5_PORT_V PORT_C_V
-#define D6_PORT_V PORT_C_V
-#define D7_PORT_V PORT_C_V
-
+#define DATA_PORT_V PORT_C_V
+#define DATA_PORT PORT_C
+#define DATA_PIN_LOW PIN_9
 
 
 

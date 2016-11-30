@@ -26,31 +26,31 @@
 #include <avr/io.h>
 
 
-// Digital IOport A
-#define PIN_0	(1 << PORTD0)
-#define PIN_1	(1 << PORTD1)
-#define PIN_2	(1 << PORTD2)
-#define PIN_3	(1 << PORTD3)
-#define PIN_4	(1 << PORTD4)
-#define PIN_5	(1 << PORTD5)
-#define PIN_6	(1 << PORTD6)
-#define PIN_7	(1 << PORTD7)
+// Digital IOport B
+#define PIN_0	(PORTD0)
+#define PIN_1	(PORTD1)
+#define PIN_2	(PORTD2)
+#define PIN_3	(PORTD3)
+#define PIN_4	(PORTD4)
+#define PIN_5	(PORTD5)
+#define PIN_6	(PORTD6)
+#define PIN_7	(PORTD7)
 
-// Digital IOPort B
-#define PIN_8	(1 << PORTB0)
-#define PIN_9	(1 << PORTB1)
-#define PIN_10	(1 << PORTB2)
-#define PIN_11	(1 << PORTB3)
-#define PIN_12	(1 << PORTB4)
-#define PIN_13	(1 << PORTB5)
+// Digital IOPort C
+#define PIN_8	(PORTB0)
+#define PIN_9	(PORTB1)
+#define PIN_10	(PORTB2)
+#define PIN_11	(PORTB3)
+#define PIN_12	(PORTB4)
+#define PIN_13	(PORTB5)
 
 // Analog IOPort
-#define PIN_A0	(1 << PORTC0)
-#define PIN_A1	(1 << PORTC1)
-#define PIN_A2	(1 << PORTC2)
-#define PIN_A3	(1 << PORTC3)
-#define PIN_A4	(1 << PORTC4)
-#define PIN_A5	(1 << PORTC5)
+#define PIN_A0	(PORTC0)
+#define PIN_A1	(PORTC1)
+#define PIN_A2	(PORTC2)
+#define PIN_A3	(PORTC3)
+#define PIN_A4	(PORTC4)
+#define PIN_A5	(PORTC5)
 
 
 // _MODE values
@@ -82,14 +82,14 @@
 // Configure and set values for digital I/O pins
 // for example:
 // 	pins 0, 3, 5 as output    
-//	DIGITAL_CONFIG(OUTPUT, PORT_B, PIN0 | PIN3 | PIN5);
+//	DIGITAL_CONFIG(OUTPUT, PORT_B, _BV(PIN0) | _BV(PIN3) | _BV(PIN5));
 
 // 	pins 8, 12, 13 as input    
-//	DIGITAL_CONFIG(OUTPUT, PORT_C, PIN8 | PIN12 | PIN13);
+//	DIGITAL_CONFIG(OUTPUT, PORT_C, _BV(PIN8) | _BV(PIN12) | _BV(PIN13));
 
 // 	pins 0, 3 as 1, and 11 as 0
-//	DIGITAL_VALUE(HIGH, PORT_B, PIN0 | PIN3);
-//	DIGITAL_VALUE(LOW, PORT_C, PIN11);
+//	DIGITAL_VALUE(HIGH, PORT_B, _BV(PIN0) | _BV(PIN3));
+//	DIGITAL_VALUE(LOW, PORT_C, _BV(PIN11));
 
 // Of course, unless included in the mask, or invoked in SET mode, the other
 // port pins keep their previous value and configuration.
@@ -99,7 +99,7 @@
 
 
 #define IOPORT_VALUE(_VALUE_MODE, _PORT, pinmask) \
-	_PORT _VALUE_MODE pinmask )
+	_PORT ## _V _VALUE_MODE pinmask )
     
 #define IOPORT_READ(_PORT, pinmask) \
-	(_PORT & pinmask)
+	(_PORT ## _R & pinmask)

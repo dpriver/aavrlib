@@ -24,38 +24,48 @@
  ******************************************************************************/
 
 
+/**
+ * @file 1602A.h
+ * @brief 1602A lcd display functionality
+ * 
+ * The 1602A lcd display includes an internal controller, whose registers can 
+ * be accessed thought the on-board pins in a parallel fashion.
+ * 
+ * This parallel port can be configured to work in full or half word, being 
+ * the last, the option used by this library. The used board pins can be found 
+ * in the config.h file.
+ */
 
 #ifndef __LCD_1602A
 #define __LCD_1602A
 
-#define LCD_POS_ROW1 (0x0)
-#define LCD_POS_ROW2 (0x40)
 
 
-/* LCD COMMANDS PARAMETERS */
-#define LCD_DIR_RIGHT (0x4)
-#define LCD_DIR_LEFT  (0x0)
-
-//#define LCD_CGRAM_CHAR_ADDR(c) (c - 'A' + (0x41))
 
 
-/* LCD COMMANDS */
-#define LCD_CLEAR               (0x1)
-#define LCD_HOME                (0x2)
+#define LCD_ROW1_POS(pos) (0x0 + (pos))
+#define LCD_ROW2_POS(pos) (0x40 + (pos))
 
-#define LCD_CURSOR_MOVE(dir)   (0x10 | (dir))
-#define LCD_DISPLAY_SHIFT(dir) (0x18 | (dir))
 
-#define LCD_CGRAM_ADDR(addr)    (0x40 | (addr))
-#define LCD_DDRAM_ADDR(addr)    (0x80 | (addr))
-#define LCD_READ_STATUS         (0x100)
-//#define LCD_WRITE_CHAR(c)       (0x200 | LCD_CGRAM_CHAR_ADDR(c))
-#define LCD_WRITE_CHAR(c)       (0x200 | (c))
-#define LCD_READ_RAM            (0x300)
+/* LCD 1602A COMMANDS */
+#define LCD_1602A_CLEAR() lcd_1602a_command(0x1)  //!< Clear LCD screen
+#define LCD_1602A_HOME()  lcd_1602a_command(0x2)  //!< Return cursor to home position
+#define LCD_1602A_MOVE_LEFT() lcd_1602a_command(0x10)  //!< Move cursor 1 position to the left
+#define LCD_1602A_MOVE_RIGHT() lcd_1602a_command(0x14) //!< Move cursor 1 position to the right
+#define LCD_1602A_SHIFT_LEFT() lcd_1602a_command(0x18)  //!< Shift all the display characters to the left
+#define LCD_1602A_SHIFT_RIGHT() lcd_1602a_command(0x1c) //!< Shift all the display characters to the right
+#define LCD_1602A_SET_TARGET_INT_MEM(addr) lcd_1602a_command(0x40 | (addr))  //!< Set the target to be the internal memory
+#define LCD_1602A_SET_TARGET_DISP_MEM(addr) lcd_1602a_command(0x80 | (addr)) //!< Set the target to be the display memory
+#define LCD_1602A_WRITE_CHAR(c) lcd_1602a_command(0x200 | (c)) //!< Write a char into the current target memory
+
+
+
+#define LCD_READ_STATUS()         //!< Read the lcd status 0x1100
+#define LCD_READ_RAM()            //!< Read a byte from the current target memory 0x300
 
 
 void lcd_1602a_init();
-void lcd_1602a_command(uint16_t command);
+uint8_t lcd_1602a_command(uint16_t command);
 void lcd_1602a_print(char *string, uint8_t position);
 
 #endif /* __LCD_1602A */

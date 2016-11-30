@@ -50,9 +50,9 @@ int main ( void ) {
     //     D3
  
  
-    lcd_1602a_print("  Hello World ", LCD_POS_ROW1);
+    lcd_1602a_print("  Hello World ", LCD_ROW1_POS(0));
     _delay_ms(3000);
-    lcd_1602a_print("    Works!!", LCD_POS_ROW2);
+    lcd_1602a_print("    Works!!", LCD_ROW2_POS(0));
 
  
     usart_print("Values printed\n");

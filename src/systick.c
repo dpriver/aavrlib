@@ -97,7 +97,7 @@ INTERRUPT(__vector_systick_isr) {
 
 // Init system tick feature
 void systick_init() {
-
+    
 	curr_ms = 0;
     interrupt_attach(SYSTICK_int, __vector_systick_isr);
 

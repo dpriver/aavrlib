@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdint.h>
@@ -31,7 +32,6 @@
 #include "uc/usart.h"
 #include "uc/analog.h"
 #include "boards/arduinoUNO.h"
-
 
 
 #define ADC_MASK (0x0)
@@ -43,22 +43,21 @@ int main( void ) {
 	system_init();
 	usart_init();
 	adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
-	
-	IOPORT_CONFIG(INPUT, PORT_A, PIN_A0);
-	IOPORT_CONFIG(OUTPUT, PORT_B, PIN_7);
-	
-    IOPORT_CONFIG(INPUT, PORT_B,  PIN_2);
+    
+	IOPORT_CONFIG(INPUT, PORT_A, _BV(PIN_A0));
+	IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_7));
+    
 
 	while(1) {
-		IOPORT_VALUE(HIGH, PORT_B_V, PIN_7);
+		IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_7));
 		analog_read = adc_single_read();
 		usart_print("Readed value: ");
 		usart_printnumber8(analog_read);
 		usart_print("\n");
 
-		//_delay_ms(300);
-		//IOPORT_VALUE(LOW, PORT_B_V, PIN_7);
-		//_delay_ms(300);
+		_delay_ms(300);
+		IOPORT_VALUE(LOW, PORT_B, _BV(PIN_7));
+		_delay_ms(300);
 	}
 	
 	return 0;

@@ -26,7 +26,7 @@
 #ifndef __SYSTEM
 #define __SYSTEM
 
- void system_init();
+void system_init();
 
 
 

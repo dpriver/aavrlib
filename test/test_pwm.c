@@ -42,8 +42,8 @@ int main( void ) {
 
 	system_init();
 	
-	IOPORT_CONFIG(OUTPUT, PORT_B, PIN_5 | PIN_3);
-	IOPORT_VALUE(HIGH, PORT_B_V, PIN_3);
+	IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_5) | _BV(PIN_3));
+	IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_3));
 
 	timer0_pcorrect_pwm(prescale0_1024, 255, 20);
 	

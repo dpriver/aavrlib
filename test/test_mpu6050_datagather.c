@@ -93,7 +93,7 @@ int main( void ) {
 
     
     // wait 30 seconds to stabilice the sensors
-    delay_ms(30000);
+    delay_ms(1000);
     
     // Set calibration offsets
     mpu60x0_set_gyro_bias(GYROX_OFFSET, GYROY_OFFSET, GYROZ_OFFSET);
