@@ -102,7 +102,7 @@ int main( void ) {
     // reset fifo
     mpu60x0_flush();
         
-    usart_print("\n# TIME      GYROx       GYROy       GYROx       ACCELx");
+    usart_print("\n# TIME      GYROx       GYROy       GYROz       ACCELx");
     usart_print("      ACCELy      ACCELz\n");
     
     
