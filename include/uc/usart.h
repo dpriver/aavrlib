@@ -7,6 +7,7 @@
  *  This file is part of aavrlib
  * 
  *  Copyright (C) 2015  Dennis Pinto Rivero
+ *  Copyright (C) 2016  Germán Castaño Roldán
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,12 +46,34 @@
 #include <stdint.h>
 
 
+typedef enum{
+  bitrate_300 = 3332,
+  bitrate_600 = 1665,
+  bitrate_1200 = 832,
+  bitrate_1800 = 554,
+  bitrate_2400 = 416,
+  bitrate_3600 = 276,
+  bitrate_4800 = 207,
+  bitrate_7200 = 137,
+  bitrate_9600 = 103,
+  bitrate_14400 = 68,
+  bitrate_19200 = 51,
+  bitrate_28800 = 34,
+  bitrate_38400 = 25,
+  bitrate_57600 = 16,
+  bitrate_115200 = 8,
+  bitrate_230400 = 3,//error 8.5%
+  bitrate_500K = 1,
+  bitrate_1M = 0
+}usart_bitrate_t;
+
+
 /**
  * @brief Init usart functionality
  * 
  * This function must be called once before using any other usart functions
  */
-void usart_init();
+void usart_init(usart_bitrate_t bitrate);
 
 
 /**

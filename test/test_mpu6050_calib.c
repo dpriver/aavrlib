@@ -7,6 +7,7 @@
  *  This file is part of aavrlib
  *
  *  Copyright (C) 2015  Dennis Pinto Rivero
+ *  Copyright (C) 2016  Germán Castaño Roldán
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -211,7 +212,7 @@ int main( void ) {
     
     system_init();
     systick_init();
-    usart_init();
+    usart_init(bitrate_9600);
 
     delay_ms(5000);
     usart_print("############################################################\n");

@@ -9,6 +9,7 @@
  *  This file is part of aavrlib
  * 
  *  Copyright (C) 2015  Dennis Pinto Rivero
+ *  Copyright (C) 2016  Germán Castaño Roldán
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,7 +43,7 @@ int main( void ) {
     uint8_t led_state;
     
     system_init();
-    usart_init();
+    usart_init(bitrate_115200);
     systick_init();
     
     
@@ -63,15 +64,16 @@ int main( void ) {
         }
         
         get_uptime(&time);
-        //usart_print("\nuptime => ms: ");
-        //usart_printnumber32((uint32_t)time.ms);
-        //usart_print("  us: ");
-        //usart_printnumber32((uint32_t)time.us);
+        usart_print("\nuptime => ms: ");
+        usart_printnumber32((uint32_t)time.ms);
+        usart_print("  us: ");
+        usart_printnumber32((uint32_t)time.us);
         
-        _delay_ms(1);
+	//delay_ms(50);
+        //_delay_ms(50);
         
         get_uptime(&time_2);
-        
+	/*        
         if( (time_2.ms - time.ms == 1) || 
             ((time_2.ms - time.ms == 2) && ((time_2.us < 100) && (time.us > 900)))) {
             //usart_print("\ncorrect");
@@ -87,6 +89,7 @@ int main( void ) {
             usart_print("  us: ");
             usart_printnumber32((uint32_t)time_2.us);
         }
+	*/
     }
     
     return 0;
