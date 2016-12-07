@@ -7,6 +7,7 @@
  *  This file is part of aavrlib
  * 
  *  Copyright (C) 2015  Dennis Pinto Rivero
+ *  Copyright (C) 2016  Germán Castaño Roldán 
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,10 +30,10 @@
 #include "uc/usart.h"
 
 
-void usart_init() {
+void usart_init(usart_bitrate_t bitrate) {
 	power_usart0_enable();
-	UBRR0H = 0x00;
-	UBRR0L = 0x00;
+	UBRR0H = bitrate >> 8;
+	UBRR0L = bitrate & 0x00ff;
 	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01);
 	UCSR0B = _BV(TXEN0);
 }

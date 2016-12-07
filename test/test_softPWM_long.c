@@ -9,6 +9,7 @@
  *  This file is part of aavrlib
  *
  *  Copyright (C) 2015  Dennis Pinto Rivero
+ *  Copyright (C) 2016  Germán Castaño Roldán
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,7 +59,7 @@ int main( void ) {
     uint8_t analog_read, pulse_width;
     
     system_init(),
-    usart_init();
+    usart_init(bitrate_9600);
     softPWM_l_init();
     adc_init(adc_presc_128, adc_ref_vcc ,adc_channel_a0, 0);
     
