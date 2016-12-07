@@ -22,7 +22,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/test")
 SET(AVRLIBC_FILES c m)
 
 foreach(FILE ${AVRLIBC_FILES})
-	find_library(LIBTEMP ${FILE} HINTS /usr/lib/avr/lib /usr/local/cellar/avr-libc/1.8.1/avr/lib REQUIRED)
+	find_library(LIBTEMP ${FILE} HINTS /usr/lib/avr/lib /usr/local/cellar/avr-libc/1.8.1/avr/lib /usr/local/Cellar/avr-libc/2.0.0/avr/lib REQUIRED)
 	if(NOT LIBTEMP)
 		message("-- ERROR: No se ha encontrado la librería avrlibc ${FILE}")
 		return()
