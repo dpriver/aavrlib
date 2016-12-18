@@ -45,7 +45,6 @@
 struct {
     twi_operation_mode mode;
     uint8_t slave_addr;
-    bool error_code_valid;
     uint8_t error_code;
 } twi;
 
@@ -75,7 +74,7 @@ void TWI_master_init() {
     
     twi.mode = TWI_MASTER;
     twi.slave_addr = 0;
-    twi.error_code_valid = false;
+    twi.error_code = TWI_NO_INFO;
     
     power_twi_enable();
     
@@ -97,7 +96,7 @@ void TWI_slave_init(uint8_t addr) {
     
     twi.mode = TWI_SLAVE;
     twi.slave_addr = addr;
-    twi.error_code_valid = false;
+    twi.error_code = TWI_NO_INFO;
     
     power_twi_enable();
     
@@ -118,18 +117,8 @@ void TWI_slave_init(uint8_t addr) {
 }
 
 
-/*
- * Get the current TWI error if any;
- */
-bool TWI_has_error(uint8_t *error_code) {
-    bool error_valid;
-
-    *error_code = twi.error_code_valid;
-    
-    error_valid = twi.error_code_valid;
-    twi.error_code_valid = false;
-    
-    return error_valid;
+uint8_t TWI_last_error() {
+	return twi.error_code;
 }
 
 
@@ -140,7 +129,6 @@ twi_state TWI_do_start() {
 
     if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
     
@@ -156,7 +144,6 @@ twi_state TWI_do_send_addr(uint8_t slave_addr, twi_operation_t twi_operation) {
 
     if (TW_STATUS != TW_MT_SLA_ACK) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
     
@@ -172,7 +159,6 @@ twi_state TWI_do_write(uint8_t byte) {
 
     if (TW_STATUS != TW_MT_DATA_ACK) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }  
 
@@ -187,7 +173,6 @@ twi_state TWI_do_read(uint8_t *byte) {
     
     if (TW_STATUS != TW_MR_DATA_ACK) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
 
@@ -206,7 +191,6 @@ twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_length)
 
     if ((TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
 
@@ -217,7 +201,6 @@ twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_length)
 
     if (TW_STATUS != TW_MT_SLA_ACK) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
 
@@ -231,7 +214,6 @@ twi_state TWI_send(uint8_t slave_addr, const uint8_t* data, uint8_t data_length)
 
         if (TW_STATUS != TW_MT_DATA_ACK) {
             twi.error_code = TW_STATUS;
-            twi.error_code_valid = true;
             return TWI_ERROR;
         }
         
@@ -252,7 +234,6 @@ twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_length) {
 
     if ( (TW_STATUS != TW_START) && (TW_STATUS != TW_REP_START)) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
 
@@ -263,7 +244,6 @@ twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_length) {
     
     if (TW_STATUS != TW_MR_SLA_ACK) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
 
@@ -276,7 +256,6 @@ twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_length) {
         
         if (TW_STATUS != TW_MR_DATA_ACK) {
             twi.error_code = TW_STATUS;
-            twi.error_code_valid = true;
             return TWI_ERROR;
         }
         
@@ -291,7 +270,6 @@ twi_state TWI_receive(uint8_t slave_addr, uint8_t* data, uint8_t data_length) {
     
     if (TW_STATUS != TW_MR_DATA_NACK) {
         twi.error_code = TW_STATUS;
-        twi.error_code_valid = true;
         return TWI_ERROR;
     }
     

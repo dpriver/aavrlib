@@ -104,6 +104,44 @@ typedef enum {
 } twi_operation_t;
 
 
+#define TWI_START 		(TW_START)
+#define TWI_REP_START 	(TW_REP_START)
+
+/* Master Transmitter */
+#define TWI_MT_SLA_ACK 		(TW_MT_SLA_ACK)
+#define TWI_MT_SLA_NACK 	(TW_MT_SLA_NACK)
+#define TWI_MT_DATA_ACK 	(TW_MT_DATA_ACK)
+#define TWI_MT_DATA_NACK 	(TW_MT_DATA_NACK)
+#define TWI_MT_ARB_LOST 	(TW_MT_ARB_LOST)
+
+/* Master Receiver */
+#define TWI_MR_ARB_LOST 	(TW_MR_ARB_LOST)
+#define TWI_MR_SLA_ACK 		(TW_MR_SLA_ACK)
+#define TWI_MR_SLA_NACK 	(TW_MR_SLA_NACK)
+#define TWI_MR_DATA_ACK 	(TW_MR_DATA_ACK)
+#define TWI_MR_DATA_NACK 	(TW_MR_DATA_NACK)
+
+/* Slave Transmitter */
+#define TWI_ST_SLA_ACK		(TW_ST_SLA_ACK)
+#define TWI_ST_ARB_LOST_SLA_ACK 	(TW_ST_ARB_LOST_SLA_ACK)
+#define TWI_ST_DATA_ACK		(TW_ST_DATA_ACK)
+#define TWI_ST_DATA_NACK 	(TW_ST_DATA_NACK)
+#define TWI_ST_LAST_DATA 	(TW_ST_LAST_DATA)
+
+/* Slave Receiver */
+#define TWI_SR_SLA_ACK 			(TW_SR_SLA_ACK)
+#define TWI_SR_ARB_LOST_SLA_ACK (TW_SR_ARB_LOST_SLA_ACK)
+#define TWI_SR_GCALL_ACK 		(TW_SR_GCALL_ACK)
+#define TWI_SR_ARB_LOST_GCALL_ACK 	(TW_SR_ARB_LOST_GCALL_ACK)
+#define TWI_SR_DATA_ACK 		(TW_SR_DATA_ACK)
+#define TWI_SR_DATA_NACK 		(TW_SR_DATA_NACK)
+#define TWI_SR_GCALL_DATA_ACK 	(TW_SR_GCALL_DATA_ACK)
+#define TWI_SR_GCALL_DATA_NACK 	(TW_SR_GCALL_DATA_NACK)
+#define TWI_SR_STOP 			(TW_SR_STOP)
+
+/* Misc */
+#define TWI_NO_INFO 	(TW_NO_INFO)
+#define TWI_BUS_ERROR	(TW_BUS_ERROR)	
 
 
 /*==============================================================================
@@ -134,15 +172,15 @@ void TWI_slave_init(uint8_t addr);
 
 
 /**
- * @brief Check if there was an error in the last TWI operation
+ * @brief Get the TWI last error
  * 
- * In addition to return the last error (if any), resets the error state, so a 
- * consecutive call won't report any error.
+ * If an error ocurred during any TWI operation, the recorded TWI status can
+ * be accessed with this funcion. The value returned is one from the states 
+ * describen on util/twi.h from avr-libc
  * 
- * @param error_code The TWI error code
- * @return Returns a boolean value to indicate if there was an error
+ * @return The TWI status recorded after the last error.
  */
-bool TWI_has_error(uint8_t *error_code);
+uint8_t TWI_last_error();
 
 
 /**
