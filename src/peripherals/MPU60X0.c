@@ -76,7 +76,7 @@ mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_
     if (mpu60x0_error != MPU60X0_SUCCESS) 
         return mpu60x0_error;
     if (data != 0x01) 
-        return MPU60X0_WRITE_ERR;
+        return MPU60X0_WRITE_CHECK_ERR;
 
     // sample rate
     mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_SAMPLE_RATE, &smp_div, 1);
@@ -86,7 +86,7 @@ mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_
     if (mpu60x0_error != MPU60X0_SUCCESS)
         return mpu60x0_error;
     if (data != smp_div)
-        return MPU60X0_WRITE_ERR;
+        return MPU60X0_WRITE_CHECK_ERR;
 
     // Digital Low Pass Filter (DLPF)
     mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_CONFIG, (uint8_t*)&dlpf_mode, 1);
@@ -96,7 +96,7 @@ mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_
     if ( mpu60x0_error != MPU60X0_SUCCESS)
         return mpu60x0_error;
     if (data != dlpf_mode)
-        return MPU60X0_WRITE_ERR;
+        return MPU60X0_WRITE_CHECK_ERR;
 
     // gyroscope scale range
     mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_GYRO_CONF, (uint8_t*)&gyro_scale, 1);
@@ -106,7 +106,7 @@ mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_
     if ( mpu60x0_error != MPU60X0_SUCCESS)
         return mpu60x0_error;
     if (data != gyro_scale)
-        return MPU60X0_WRITE_ERR;
+        return MPU60X0_WRITE_CHECK_ERR;
         
     // accelerometer scale range
     mpu60x0_error = mpu60x0_write_reg(MPU60X0_REG_ACCEL_CONF, (uint8_t*)&accel_scale, 1);
@@ -116,7 +116,7 @@ mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_
     if ( mpu60x0_error != MPU60X0_SUCCESS)
         return mpu60x0_error;
     if (data != accel_scale)
-        return MPU60X0_WRITE_ERR;
+        return MPU60X0_WRITE_CHECK_ERR;
     
     // fifo enabled for gyro and accel
     data = 0x78;
@@ -127,7 +127,7 @@ mpu60x0_state mpu60x0_init(mpu60x0_gyro_scale_t gyro_scale, mpu60x0_accel_scale_
     if (mpu60x0_error != MPU60X0_SUCCESS)
         return mpu60x0_error;
     if (data != 0x78)
-        return MPU60X0_WRITE_ERR;
+        return MPU60X0_WRITE_CHECK_ERR;
 
     // fifo clean and reset
     mpu60x0_error = mpu60x0_flush();
@@ -140,7 +140,7 @@ mpu60x0_state mpu60x0_read_reg(uint8_t reg, uint8_t *data, uint8_t length) {
     twi_state twi_error;
     
     if (length == 0) {
-        return MPU60X0_READ_ERR;
+        return MPU60X0_SUCCESS;
     }
     
     twi_error = TWI_send(MPU60X0_I2C_ADDR, &reg, 1);
@@ -266,7 +266,7 @@ mpu60x0_state mpu60x0_flush() {
         return mpu60x0_error;
     }
     if (data != 0x40) {
-        return MPU60X0_WRITE_ERR;
+        return MPU60X0_WRITE_CHECK_ERR;
     }
         
     return MPU60X0_SUCCESS;

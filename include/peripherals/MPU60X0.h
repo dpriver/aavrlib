@@ -111,7 +111,7 @@ typedef enum {
 typedef enum {
     MPU60X0_SUCCESS      =  0,
     MPU60X0_I2C_ERR      = -1,     // generic TWI/I2C error
-    MPU60X0_WRITE_ERR    = -2,     // error at write checking
+    MPU60X0_WRITE_CHECK_ERR    = -2,     // error at write checking
     MPU60X0_READ_ERR     = -3,     // error at reading
     MPU60X0_IDENTITY_ERR = -4      // error at identity checking
 } mpu60x0_state;
