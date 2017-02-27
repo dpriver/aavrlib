@@ -34,8 +34,9 @@ void usart_init(usart_bitrate_t bitrate) {
 	power_usart0_enable();
 	UBRR0H = bitrate >> 8;
 	UBRR0L = bitrate & 0x00ff;
+    UCSR0A = 0;
+    UCSR0B = _BV(RXEN0) | _BV(TXEN0);
 	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01);
-	UCSR0B = _BV(TXEN0);
 }
 
 

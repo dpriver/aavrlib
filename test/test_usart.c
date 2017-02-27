@@ -40,7 +40,7 @@ int main( void ) {
     
     system_init();
     systick_init();
-    usart_init(bitrate_9600);
+    usart_init(bitrate_115200);
     
  
     IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_4));
