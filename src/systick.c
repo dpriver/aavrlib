@@ -190,7 +190,7 @@ uint32_t get_micros() {
 
     us = COUNT_TO_MICROS(us);
 
-    return (uint32_t)((ms << 10) + (uint32_t)us);
+    return (uint32_t)((ms * 1000) + (uint32_t)us);
 }
 
 void start_timeout(uint16_t ms, time_t *timeout) {
