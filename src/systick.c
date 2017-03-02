@@ -36,6 +36,15 @@
 #include "systick.h"
 
 
+
+#define SYSTICK_int              TIMER_COMPA_ISR(_SYSTICK_TIMER)
+#define SYSTICK_PEND()           TIMER_COMPA_PEND(_SYSTICK_TIMER)
+#define SYSTICK_TIMER            TIMER_TIMER(_SYSTICK_TIMER)
+#define SYSTICK_PRESC(presc)     TIMER_PRESC(_SYSTICK_TIMER, presc)
+#define SYSTICK_CURR_CNT()       TIMER_CURR_CNT(_SYSTICK_TIMER)
+#define SYSTICK_RESOLUTION       TIMER_RESOLUTION(_SYSTICK_TIMER)
+
+
 /*
  * timer1 is a 16bit timer, so a valid configuration can be ctc mode with
  * presc = 8
@@ -65,14 +74,6 @@
 #define MAX_US  999
 
 
-#define _TIMER_START_EXP2(TIMER)    TIMER ## _ctc(SYSTICK_PRESC(PRESC), SYSTICK_TOP_CNT)
-#define _TIMER_START_EXP1(TIMER)    _TIMER_START_EXP2(TIMER)
-
-
-// Start the timer configured to use by system tick
-#define SYSTICK_TIMER_START()       _TIMER_START_EXP1(SYSTICK_TIMER)
-
-
 #if SYSTICK_RESOLUTION == 16
     #define GET_RAW_MICROS()        (SYSTICK_CURR_CNT() >> 1)
 #elif SYSTICK_RESOLUTION == 8
@@ -85,6 +86,13 @@
     #define COUNT_TO_MICROS(count)        (count << 2)
 #endif
 
+
+
+#define _TIMER_START_EXP2(TIMER)    TIMER ## _ctc(SYSTICK_PRESC(PRESC), SYSTICK_TOP_CNT)
+#define _TIMER_START_EXP1(TIMER)    _TIMER_START_EXP2(TIMER)
+
+// Start the timer configured to use by system tick
+#define SYSTICK_TIMER_START()       _TIMER_START_EXP1(SYSTICK_TIMER)
 
 // variables to count the system uptime
 //static volatile uint32_t curr_ms;

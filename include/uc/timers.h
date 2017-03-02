@@ -116,62 +116,36 @@ typedef enum {
 // GENERIC TIMER MACROS (internal use)
 // Needed in order to expand correctly the timer macros
 #define _COMPB_ISR_EXP(TIM)     TIM ## _COMPB_ISR
-#define _COMPB_ISR(TIM)         _COMPB_ISR_EXP(TIM)
+#define TIMER_COMPB_ISR(TIM)    _COMPB_ISR_EXP(TIM)
 
 #define _COMPA_ISR_EXP(TIM)     TIM ## _COMPA_ISR
-#define _COMPA_ISR(TIM)         _COMPA_ISR_EXP(TIM)
+#define TIMER_COMPA_ISR(TIM)    _COMPA_ISR_EXP(TIM)
 
 #define _TOV_ISR_EXP(TIM)       TIM ## _TOV_ISR
-#define _TOV_ISR(TIM)           _TOV_ISR_EXP(TIM)
+#define TIMER_TOV_ISR(TIM)      _TOV_ISR_EXP(TIM)
 
-#define _COMPB_PEND_EXP(TIM)     TIM ## _COMPB_PEND
-#define _COMPB_PEND(TIM)         _COMPB_PEND_EXP(TIM)
+#define _COMPB_PEND_EXP(TIM)    TIM ## _COMPB_PEND
+#define TIMER_COMPB_PEND(TIM)   _COMPB_PEND_EXP(TIM)
 
-#define _COMPA_PEND_EXP(TIM)     TIM ## _COMPA_PEND
-#define _COMPA_PEND(TIM)         _COMPA_PEND_EXP(TIM)
+#define _COMPA_PEND_EXP(TIM)    TIM ## _COMPA_PEND
+#define TIMER_COMPA_PEND(TIM)   _COMPA_PEND_EXP(TIM)
 
-#define _TOV_PEND_EXP(TIM)       TIM ## _TOV_PEND
-#define _TOV_PEND(TIM)           _TOV_PEND_EXP(TIM)
+#define _TOV_PEND_EXP(TIM)      TIM ## _TOV_PEND
+#define TIMER_TOV_PEND(TIM)     _TOV_PEND_EXP(TIM)
 
 #define _TIMER_EXP(TIM)         TIM ## _TIMER
-#define _TIMER(TIM)             _TIMER_EXP(TIM)
+#define TIMER_TIMER(TIM)        _TIMER_EXP(TIM)
 
 #define _PRESC_EXP(TIM,presc)   TIM ## _PRESCALER(presc)
-#define _PRESC(TIM,presc)       _PRESC_EXP(TIM, presc)
+#define TIMER_PRESC(TIM,presc)  _PRESC_EXP(TIM, presc)
 
 #define _CURR_CNT_EXP(TIM)      TIM ## _CURR_CNT
-#define _CURR_CNT(TIM)          _CURR_CNT_EXP(TIM)
+#define TIMER_CURR_CNT(TIM)     _CURR_CNT_EXP(TIM)
 
 #define _RESOLUTION_EXP(TIM)    TIM ## _RESOLUTION
-#define _RESOLUTION(TIM)        _RESOLUTION_EXP(TIM)
+#define TIMER_RESOLUTION(TIM)   _RESOLUTION_EXP(TIM)
 
 
-/*******************************************************************************
- *   TIMER APPLICATIONS MACROS
- ******************************************************************************/
-
-
-/* short pulse softPWM macros*/
-#define SOFTPWM_S_DUTY_int       _COMPB_ISR(_SOFTPWM_S_TIMER)
-#define SOFTPWM_S_TOP_int        _COMPA_ISR(_SOFTPWM_S_TIMER)
-#define SOFTPWM_S_TIMER          _TIMER(_SOFTPWM_S_TIMER)
-#define SOFTPWM_S_PRESC(presc)   _PRESC(_SOFTPWM_S_TIMER, presc)
-#define SOFTPWM_S_CURR_CNT()     _CURR_CNT(_SOFTPWM_S_TIMER)
-
-/* long pulse softPWM macros*/
-#define SOFTPWM_L_DUTY_int       _COMPB_ISR(_SOFTPWM_L_TIMER)  
-#define SOFTPWM_L_TOP_int        _COMPA_ISR(_SOFTPWM_L_TIMER)
-#define SOFTPWM_L_TIMER          _TIMER(_SOFTPWM_L_TIMER)
-#define SOFTPWM_L_PRESC(presc)   _PRESC(_SOFTPWM_L_TIMER, presc)
-#define SOFTPWM_L_CURR_CNT()     _CURR_CNT(_SOFTPWM_L_TIMER)
-
-/* system tick */
-#define SYSTICK_int              _COMPA_ISR(_SYSTICK_TIMER)
-#define SYSTICK_PEND()           _COMPA_PEND(_SYSTICK_TIMER)
-#define SYSTICK_TIMER            _TIMER(_SYSTICK_TIMER)
-#define SYSTICK_PRESC(presc)     _PRESC(_SYSTICK_TIMER, presc)
-#define SYSTICK_CURR_CNT()       _CURR_CNT(_SYSTICK_TIMER)
-#define SYSTICK_RESOLUTION       _RESOLUTION(_SYSTICK_TIMER)
 
 /*******************************************************************************
  *   TIMERS FUNCTIONALITY

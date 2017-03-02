@@ -33,6 +33,12 @@
 #include "softPWM_short.h"
 
 
+#define SOFTPWM_S_DUTY_int       TIMER_COMPB_ISR(_SOFTPWM_S_TIMER)
+#define SOFTPWM_S_TOP_int        TIMER_COMPA_ISR(_SOFTPWM_S_TIMER)
+#define SOFTPWM_S_TIMER          TIMER_TIMER(_SOFTPWM_S_TIMER)
+#define SOFTPWM_S_PRESC(presc)   TIMER_PRESC(_SOFTPWM_S_TIMER, presc)
+#define SOFTPWM_S_CURR_CNT()     TIMER_CURR_CNT(_SOFTPWM_S_TIMER)
+
 // servo frecuency must be set to ~(40, 200)
 #define SERVO_FREC 50
 
