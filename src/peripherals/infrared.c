@@ -194,14 +194,14 @@ uint8_t nec_decode(uint32_t interval) {
     if (ir_data.decode_state == NEC_COMPLETED_ST) {
         //usart_print("\t[COMPLETED]");
         //if (EQUALS(interval, NEC_TAIL)) {
-        #warning "[TODO] NEC ir protocol: Not checking TAIL"
+#warning "[TODO] NEC ir protocol: Not checking TAIL"
             addr = (ir_data.data >> 24) & 0xFF;
             //addr_red = ~(ir_data.data >> 16) & 0xFF;
             data = (ir_data.data >> 8) & 0xFF;
             //data_red = ~(ir_data.data) & 0xFF;                
             
            //if ((addr == addr_red) && (data == data_red)) {
-           #warning "[TODO] NEC ir protocol: Not checking redundancy"
+#warning "[TODO] NEC ir protocol: Not checking redundancy"
                ir_data.addr_buffer[ir_data.data_end] = addr;
                ir_data.data_buffer[ir_data.data_end] = data;
                if (ir_data.completion != 0) {

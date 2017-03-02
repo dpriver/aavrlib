@@ -233,7 +233,7 @@ uint8_t lcd_1602a_command(uint16_t command) {
     }
     else {
         
-        #warning "[TODO] 1602a lcd command: read operation not implemented"
+#warning "[TODO] 1602a lcd command: read operation not implemented"
         E_PORT_V |= E_PIN;
         _delay_us(250);
         // read value
