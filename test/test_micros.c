@@ -37,7 +37,7 @@
 int main(void){
 
     int32_t micros_ini, micros_end, micros_diff = 0;
-    int32_t micros_diff_prev = 0;
+    //int32_t micros_diff_prev = 0;
 
     system_init();
     usart_init(bitrate_115200);
@@ -59,7 +59,7 @@ int main(void){
         //usart_printsignumber32(micros_diff);
         
         micros_ini = get_micros();
-        micros_diff_prev = 0;
+        //micros_diff_prev = 0;
         do {
             micros_end = get_micros();
             micros_diff = micros_end - micros_ini;
