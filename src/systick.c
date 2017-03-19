@@ -50,12 +50,12 @@
  * presc = 8
  * top = 2000,
  * so frequency results in 16000000/(8*2000) = 1000Hz, with a resolution of
- * 1/2 ms.
+ * 0.5 us.
  *
  * If systick is configured to work in a 8bit timer, it can be ctc mode with
  * presc = 64
  * top = 250
- * so frequency is 1000Hz again, with a resolution of 4ms.
+ * so frequency is 1000Hz again, with a resolution of 4us.
  */
 
 #if SYSTICK_RESOLUTION == 16
