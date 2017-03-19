@@ -5,7 +5,7 @@ set(tests
     test_pwm test_analog test_systick test_softPWM_long test_softPWM_short 
     test_HC-SR04 test_spi_block test_spi_burst test_infrared test_lcd_1602a
     test_voltage_ctrl test_mpu6050_datagather test_mpu6050_calib test_avrcar
-    test_usart test_dht11 test_micros)
+    test_usart test_micros)
 
 
 SET(CMAKE_C_FLAGS ${CFLAGS} CACHE STRING "" FORCE)
