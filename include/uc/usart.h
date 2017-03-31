@@ -44,6 +44,7 @@
 #include <avr/io.h>
 #include <avr/power.h>
 #include <stdint.h>
+#include "uc/interrupt.h"
 
 
 typedef enum{
@@ -68,12 +69,34 @@ typedef enum{
 }usart_bitrate_t;
 
 
+#define USART_PENDING_BYTE() (UDR0)
+
+#define IS_BYTE_PENDING() (UCSR0A &  (1 <<RXC0))
+
 /**
  * @brief Init usart functionality
  * 
  * This function must be called once before using any other usart functions
  */
 void usart_init(usart_bitrate_t bitrate);
+
+
+/**
+ * @brief Enable USART receive interrupt trigger
+ * 
+ * @param recv_handler The ISR function to be invoqued for USART_RX 
+ * interrupt. recv_handler must read the pending value 
+ * (i.e. Using UART_PENDING_BYTE()) in order to clean the receive flag.
+ * If not, the interrupt would be triggered again just after finishing.
+ */
+void usart_set_recv_handler(isr_function recv_handler);
+
+
+/**
+ * @brief Disable UART receive interrupt trigger
+ * 
+ */
+void usart_rem_recv_handler();
 
 
 /**

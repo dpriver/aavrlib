@@ -25,7 +25,6 @@
 
 #include <avr/interrupt.h>
 #include "uc/interrupt.h"
-#include "uc/usart.h"
 
 //#define __STARTFILES
 
@@ -216,7 +215,7 @@ __attribute__((section(".def_isr"))) void __isr(void) {
         "rjmp __isr_call    \n\t"
         "\n\t"
         "__USART_RX_isr:        \n\t"
-        "sei                \n\t"
+//        "sei                \n\t"
         "push r30           \n\t"
         "push r31           \n\t"
         "lds r30, %17        \n\t"

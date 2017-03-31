@@ -32,26 +32,29 @@
 
 #include <uc/system.h>
 #include <uc/usart.h>
+#include <uc/interrupt.h>
 #include <boards/arduinoUNO.h>
 #include <systick.h>
 
 
+INTERRUPT(__vector_usart_recv_isr) {
+    usart_send(USART_PENDING_BYTE());
+}
+
 int main( void ) {
+    uint8_t byte;
     
     system_init();
     systick_init();
-    usart_init(bitrate_115200);
+    // For some reason it does not work at high baud rate...
+    usart_init(bitrate_9600); 
     
- 
-    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_4));
-    IOPORT_VALUE(LOW,  PORT_B, _BV(PIN_4));
-    
-    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_0) | _BV(PIN_1));
-    
+    usart_set_recv_handler(__vector_usart_recv_isr);
     
     while(1) {
-		usart_print("caracter\n");
-		delay_ms(100);
+        //if (IS_BYTE_PENDING()) {
+            //usart_send(USART_PENDING_BYTE());
+        //}
     }
     
     return 0;

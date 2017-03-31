@@ -26,8 +26,9 @@
 
 // avr defines
 #include <avr/power.h>
-
 #include "uc/usart.h"
+#include "uc/interrupt.h"
+
 
 
 void usart_init(usart_bitrate_t bitrate) {
@@ -35,8 +36,20 @@ void usart_init(usart_bitrate_t bitrate) {
 	UBRR0H = bitrate >> 8;
 	UBRR0L = bitrate & 0x00ff;
     UCSR0A = 0;
-    UCSR0B = _BV(RXEN0) | _BV(TXEN0);
+    UCSR0B = _BV(TXEN0) | _BV(RXEN0);
 	UCSR0C = _BV(UCSZ00) | _BV(UCSZ01);
+}
+
+
+void usart_set_recv_handler(isr_function recv_handler) {
+    interrupt_attach(USART_RX_int, recv_handler);
+    UCSR0B |= _BV(RXCIE0);
+}
+
+
+void usart_rem_recv_handler() {
+    UCSR0B &= ~_BV(RXCIE0);
+    interrupt_detach(USART_RX_int);
 }
 
 
