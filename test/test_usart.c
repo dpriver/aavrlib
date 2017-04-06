@@ -27,6 +27,7 @@
  ******************************************************************************/
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdint.h>
 
@@ -38,16 +39,29 @@
 
 
 INTERRUPT(__vector_usart_recv_isr) {
-    usart_send(USART_PENDING_BYTE());
+    uint8_t byte;
+    
+    byte = USART_PENDING_BYTE();
+    sei();
+    
+    usart_send(byte);
 }
 
 int main( void ) {
-    uint8_t byte;
-    
     system_init();
     systick_init();
     // For some reason it does not work at high baud rate...
     usart_init(bitrate_9600); 
+    
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib USART test                              =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Sends back every byte received via USART, using\n" \
+                " the USART receive interrupt\n" \
+                " - If it is sending the bytes unordered, the receive\n" \
+                " and send operations may be overlaping each other.\n\n");
+    
     
     usart_set_recv_handler(__vector_usart_recv_isr);
     
