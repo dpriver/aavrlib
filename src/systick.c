@@ -212,7 +212,6 @@ uint8_t timeout_expired(time_t *timeout) {
 }
 
 
-/* DEPRECATED */
 void delay_ms(uint16_t ms) {
     uint32_t _ms;
     uint32_t _curr_ms;
