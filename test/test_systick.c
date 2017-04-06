@@ -2,8 +2,8 @@
  *	test_systick.c
  *
  *  System tick test
- *  Print via USART the system uptime each second while switching the led 4 of
- *  the arduinoUNO board.
+ *  Print via USART the system uptime each half second while switching 
+ *  the led 4 of the arduinoUNO board.
  *
  *
  *  This file is part of aavrlib
@@ -26,6 +26,14 @@
  *
  ******************************************************************************/
 
+/*
+ * Physical configuration:
+ * BOARD: Arduino UNO (atmega328p)
+ * 
+ * PIN4 -> LED -> OHM -> GND
+ */
+
+
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdint.h>
@@ -38,58 +46,43 @@
 
 int main( void ) {
     
-    time_t time, time_2;
-    
-    uint8_t led_state;
+    time_t time, time_prev;
     
     system_init();
     usart_init(bitrate_115200);
     systick_init();
     
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib systick test                            =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Prints the system uptime each half second and the\n" \
+                " difference in ms with respect to the last reading,\n" \
+                " which should be a bit more than 500ms\n" \
+                " - Switches the pin 4 of the arduino UNO board\n\n");
+    
+    delay_ms(2000);
     
     IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_4));
     IOPORT_VALUE(LOW,  PORT_B, _BV(PIN_4));
-    
-    led_state = 0;
+    time.ms = 0;
+    time.us = 0;
+    time_prev.ms = 0;
+    time_prev.us = 0;
     
     while(1) {
         
-        if (led_state) {
-            IOPORT_VALUE(LOW, PORT_B, _BV(PIN_4));
-            led_state = 0;
-        }
-        else {
-            IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_4));
-            led_state = 1;
-        }
+        delay_ms(500);
+        IOPORT_SWITCH(PORT_B, _BV(PIN_4));
         
+        time_copy(&time, &time_prev);
         get_uptime(&time);
         usart_print("\nuptime => ms: ");
         usart_printnumber32((uint32_t)time.ms);
         usart_print("  us: ");
         usart_printnumber32((uint32_t)time.us);
-        
-	//delay_ms(50);
-        //_delay_ms(50);
-        
-        get_uptime(&time_2);
-	/*        
-        if( (time_2.ms - time.ms == 1) || 
-            ((time_2.ms - time.ms == 2) && ((time_2.us < 100) && (time.us > 900)))) {
-            //usart_print("\ncorrect");
-        }
-        else {
-            usart_print("\nError in ms\n");
-            usart_print("\nuptime 1 => ms: ");
-            usart_printnumber32((uint32_t)time.ms);
-            usart_print("  us: ");
-            usart_printnumber32((uint32_t)time.us);
-            usart_print("\nuptime 2 => ms: ");
-            usart_printnumber32((uint32_t)time_2.ms);
-            usart_print("  us: ");
-            usart_printnumber32((uint32_t)time_2.us);
-        }
-	*/
+        usart_print("  diff: ");
+        usart_printsignumber32((uint32_t)(time.ms - time_prev.ms));
     }
     
     return 0;
