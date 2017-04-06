@@ -59,15 +59,28 @@ typedef enum {IOPORT_B = 0x5+0x20, IOPORT_C = 0x8+0x20, IOPORT_D = 0xB+0x20} iop
 #define PULLUP_PORT_W(port) (*(volatile uint8_t *)(port))
 
 
-// PIN access
-#define IO_CONF_IN(port, pin)       CONF_PORT_WR(port) &= ~_BV(pin)
-#define IO_CONF_OUT(port, pin)      CONF_PORT_WR(port) |= _BV(pin)
-#define IO_WRITE_HIGH(port, pin)    WRITE_PORT_W(port) |= _BV(pin)
-#define IO_WRITE_LOW(port, pin)     WRITE_PORT_W(port) &= ~_BV(pin)
-#define IO_WRITE(port, pin, value)  WRITE_PORT_W(port) = (WRITE_PORT_WR(port) & ~_BV(pin)) | (value << pin)
-#define IO_READ(port, pin)          ((READ_PORT_R(port) & _BV(pin)) >> pin)
-#define IO_SWITCH(port, pin)        SWITCH_PORT_W(port) |= _BV(pin)
-#define IO_PULLUP_ON(port, pin)     PULLUP_PORT_W(port) |= _BV(pin)
-#define IO_PULLUP_OFF(port, pin)    PULLUP_PORT_W(port) &= ~_BV(pin)
+// Single PIN access
+#define IOPIN_CONF_IN(port, pin)       CONF_PORT_WR(port) &= ~_BV(pin)
+#define IOPIN_CONF_OUT(port, pin)      CONF_PORT_WR(port) |= _BV(pin)
+#define IOPIN_WRITE_HIGH(port, pin)    WRITE_PORT_W(port) |= _BV(pin)
+#define IOPIN_WRITE_LOW(port, pin)     WRITE_PORT_W(port) &= ~_BV(pin)
+#define IOPIN_WRITE(port, pin, value)  WRITE_PORT_W(port) = (WRITE_PORT_WR(port) & ~_BV(pin)) | (value << pin)
+#define IOPIN_READ(port, pin)          ((READ_PORT_R(port) & _BV(pin)) >> pin)
+#define IOPIN_SWITCH(port, pin)        SWITCH_PORT_W(port) |= _BV(pin)
+#define IOPIN_PULLUP_ON(port, pin)     PULLUP_PORT_W(port) |= _BV(pin)
+#define IOPIN_PULLUP_OFF(port, pin)    PULLUP_PORT_W(port) &= ~_BV(pin)
+
+
+// Multiple PIN access
+#define IOPORT_CONF_IN(port, mask)       CONF_PORT_WR(port) &= ~(mask)
+#define IOPORT_CONF_OUT(port, mask)      CONF_PORT_WR(port) |= (mask)
+#define IOPORT_WRITE_HIGH(port, mask)    WRITE_PORT_W(port) |= (mask)
+#define IOPORT_WRITE_LOW(port, mask)     WRITE_PORT_W(port) &= ~(mask)
+#define IOPORT_WRITE(port, mask, values) WRITE_PORT_W(port) = (WRITE_PORT_WR(port) & ~(mask)) | (values)
+#define IOPORT_READ(port, mask)          (READ_PORT_R(port) & (mask))
+#define IOPORT_SWITCH(port, mask)        SWITCH_PORT_W(port) |= (mask)
+#define IOPORT_PULLUP_ON(port, mask)     PULLUP_PORT_W(port) |= (mask)
+#define IOPORT_PULLUP_OFF(port, mask)    PULLUP_PORT_W(port) &= ~(mask)
+
 
 #endif /* __IOPORT_H */

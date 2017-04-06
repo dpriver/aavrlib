@@ -28,7 +28,7 @@
 #include <util/delay.h>
 #include <stdint.h>
 
-#include "boards/arduinoUNO.h"
+//#include "boards/arduinoUNO.h"
 #include "uc/system.h"
 #include "uc/usart.h"
 #include "systick.h"
@@ -46,8 +46,8 @@ int main(void){
     //sart_print("beginning test...");
     //usart_print("\n");
 
-    IO_CONF_OUT(IOPORT_D, 4);
-    IO_WRITE_LOW(IOPORT_D, 4);
+    IOPIN_CONF_OUT(IOPORT_D, 4);
+    IOPIN_WRITE_LOW(IOPORT_D, 4);
 
     while(1) {
 
@@ -78,7 +78,7 @@ int main(void){
     
     
         
-        IO_SWITCH(IOPORT_D, 4);
+        IOPIN_SWITCH(IOPORT_D, 4);
     }
   
     while(1);
