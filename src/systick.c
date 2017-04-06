@@ -168,10 +168,10 @@ uint32_t get_micros() {
 
     oldSREG = SREG;
 
+    cli();
     aux_ms = curr_ms;
     aux_us = SYSTICK_CURR_CNT();
     aux_extra = SYSTICK_PEND();
-
     sei();
 
     do {
