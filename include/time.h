@@ -50,6 +50,9 @@ typedef struct {
     uint32_t ms;
 } time_t;
 
+
+void time_copy(time_t *origin, time_t *dest);
+
 /**
  * @brief Time summation
  * 

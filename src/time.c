@@ -26,6 +26,11 @@
 #include <stdint.h>
 #include "time.h"
 
+void time_copy(time_t *origin, time_t *dest) {
+    dest->ms = origin->ms;
+    dest->us = origin->us;
+}
+
 // the 16 and 32 bit registers used in time_t makes this an ineficient calculation
 int8_t time_add(time_t *op1, time_t *op2, time_t *result) {
     
