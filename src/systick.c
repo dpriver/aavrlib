@@ -214,8 +214,14 @@ uint8_t timeout_expired(time_t *timeout) {
 
 /* DEPRECATED */
 void delay_ms(uint16_t ms) {
-    uint32_t _ms = curr_ms + ms;
-
+    uint32_t _ms;
+    uint32_t _curr_ms;
+    
+    cli();
+    _ms = curr_ms;
+    sei();
+    
+    _ms += ms;
     // if _ms overflows, this loop prevents from skiping the delay, waiting for
     // curr_ms to also overflow
     //while (curr_ms > _ms);
@@ -229,5 +235,9 @@ void delay_ms(uint16_t ms) {
     // then execute the loop while (curr_ms > _ms);
 
     // actual delay busy wait
-    while (curr_ms < _ms);
+    do {
+        cli();
+        _curr_ms = curr_ms;
+        sei();
+    } while (_curr_ms < _ms);
 }
