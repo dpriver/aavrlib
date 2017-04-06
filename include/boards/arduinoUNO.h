@@ -100,6 +100,9 @@
 
 #define IOPORT_VALUE(_VALUE_MODE, _PORT, pinmask) \
 	_PORT ## _V _VALUE_MODE pinmask )
+
+#define IOPORT_SWITCH(_PORT, pinmask) \
+    (_PORT ## _R |= pinmask)
     
 #define IOPORT_READ(_PORT, pinmask) \
 	(_PORT ## _R & pinmask)
