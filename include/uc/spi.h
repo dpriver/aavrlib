@@ -33,77 +33,86 @@
 #include "config.h"
 
 
-// Values to SPI_TEST:
-// SPI_STANDARD
-// SPI_74HC595N
-#if !defined(SPI_STANDARD) && !defined(SPI_74HC595N)
-	#define SPI_STANDARD
-#endif
+/**
+ * @brief Initialize SPI as master
+ * 
+ */
+void spi_master_init();
 
 
-typedef void (*transsmision_end_handler)(void);
-
-void spi_init();
-void spi_send_block(uint8_t caracteres[], uint8_t length);
-void spi_send_burst(uint8_t caracters[], uint8_t length, transsmision_end_handler end_handler);
-
-
-// Clock in master is stablished to max freq "clk/2"
-#define spi_setup_master_with_int() \
-	DDRB |= _BV(DDB2) | _BV(DDB3) | _BV(DDB5); \
-	SPCR = _BV(SPIE) | _BV(SPE) | _BV(MSTR); \
-	SPSR |= _BV(SPI2X);
-
-#define spi_setup_master() \
-	DDRB |= _BV(DDB2) | _BV(DDB3) | _BV(DDB5); \
-	SPCR = _BV(SPE) | _BV(MSTR); \
-	SPSR |= _BV(SPI2X);
-
-#define spi_setup_slave() \
-	DDRB &= ~_BV(DDB3) & ~_BV(DDR2) & ~_BV(DDR5); \
-	SPCR = _BV(SPIE) | _BV(SPE) | _BV(SPR0) | _BV(SPR1);
-
-#if defined(SPI_STANDARD)
-
-	#define spi_begin_transmission() \
-		PORTB &= ~_BV(PORTB2);
-
-	#define spi_end_transmission() \
-		PORTB |= _BV(PORTB2); \
-		SPCR &= ~_BV(SPE);
-
-	#define spi_sendbyte(byte) \
-		SPDR = byte;
-
-#elif defined(SPI_74HC595N)
-
-	#define spi_begin_transmission()
-
-	#define spi_end_transmission() \
-		PORTB |= _BV(PORTB2); \
-		SPCR &= ~_BV(SPE);
-	
-	#define spi_sendbyte(byte) \
-		PORTB |= _BV(PORTB2); \
-		PORTB &= ~_BV(PORTB2); \
-		SPDR = byte;
-
-#endif
+/**
+ * @brief Initialize SPI as slave
+ *
+ */
+void spi_slave_init();
 
 
-#define spi_receivebyte() \
-	spi_sendbyte(0xff);
+/**
+ * @brief Get the number of received bytes ready to read
+ * 
+ * SPI operations are buffered. This function is used to know how many 
+ * bytes remains unread in the receive buffer.
+ * 
+ * @return The number of received bytes on buffer
+ */
+uint8_t spi_received_bytes();
 
-#define spi_finished_transmission() \
-	(SPSR & _BV(SPIF))
 
-#define spi_readbyte(variable) \
-	variable = SPDR;
+/**
+ * @brief Get the number of bytes ready to send
+ * 
+ * SPI operations are buffered. This function is used to know how many 
+ * written bytes are still on the send buffer.
+ * 
+ * @return The number of bytes on send buffer
+ */
+uint8_t spi_send_pending();
 
-// This macros can be useful in specific situations but not for common use.
-// for example, i used it to test this spi module with a 74hc595n which needs to pull down and up PORTB2 (conected to
-// 74hc595n's storage register clk input) between each data transmision.
-// In normal situations is hardly recommended to use the provided functions spi_send_block() and spi_send_burst()
+
+/**
+ * @brief Write data into the SPI send buffer
+ *
+ * The bytes from the send buffer are sended in background, using 
+ * the SPI interrupt.
+ * 
+ * Example of usage:
+ * @code
+ * ...
+ * uint8_t data[N];
+ * uint8_t n;
+ * ...
+ * if ((spi_send_pending() - SPI_BUFF_SIZE) > 0) {
+ *  spi_write(data, n);
+ * }
+ * ...
+ * @endcode
+ * 
+ * @return The number of received bytes on buffer
+ */
+void spi_write(uint8_t *bytes, uint8_t length);
+
+
+/**
+ * @brief Read data from the SPI receive buffer
+ *
+ * The bytes from the receive buffer are received in background, using 
+ * the SPI interrupt.
+ * 
+ * Example of usage:
+ * @code
+ * ...
+ * uint8_t data[N];
+ * uint8_t n;
+ * ...
+ * if (spi_reseived_bytes() >= n) {
+ *  spi_read(data, n);
+ * }
+ * ...
+ * @endcode
+ * 
+ * @return The number of received bytes on buffer
+ */
+void spi_read(uint8_t *bytes, uint8_t length);
 
 
 #endif /* __SPI */

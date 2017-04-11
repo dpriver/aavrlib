@@ -33,28 +33,26 @@
 #include <boards/arduinoUNO.h>
 #include <systick.h>
 #include <softPWM_long.h>
+#include <ioport.h>
 
  
 volatile uint8_t last_command = 0; 
 
 // ultrasonic related configuration
-#define PORT_CONF_TRIGGER    PORT_C
-#define PORT_CONF_ECHO       PORT_C
-#define PORT_VAL_TRIGGER     PORT_C_V
-#define PORT_VAL_ECHO        PORT_C_R
+#define PORT_TRIGGER    PORT(PIN_8)
+#define PORT_ECHO       PORT(PIN_9)
 
-#define PIN_TRIGGER          PIN_8
-#define PIN_ECHO             PIN_9
+#define PIN_TRIGGER     PIN_8
+#define PIN_ECHO        PIN_9
 
 
 // Wheel related configuration
-#define PIN_LEFT_WHEEL_F   PIN_6
-#define PIN_LEFT_WHEEL_B   PIN_5
-#define PIN_RIGHT_WHEEL_F  PIN_4
-#define PIN_RIGHT_WHEEL_B  PIN_3
+#define PIN_LEFT_WHEEL_F    PIN_6
+#define PIN_LEFT_WHEEL_B    PIN_5
+#define PIN_RIGHT_WHEEL_F   PIN_4
+#define PIN_RIGHT_WHEEL_B   PIN_3
 
-#define PORT_CONF_WHEELS   PORT_B
-#define PORT_VAL_WHEELS    PORT_B_V
+#define PORT_WHEELS         PORT(PIN_6)
 
 #define SLOT_LEFT_WHEEL_F  0
 #define SLOT_LEFT_WHEEL_B  1
@@ -81,24 +79,24 @@ int main (void) {
     usart_print("Shuting off arduino's led\n");
 
     // Config pinA5 as output to signal when marching back
-    IOPORT_CONFIG(OUTPUT, PORT_A, _BV(PIN_A5));
-    IOPORT_VALUE(LOW, PORT_A, _BV(PIN_A5));
+    PIN_CONF_OUT(PORT(PIN_A5), PIN_A5);
+    PIN_WRITE_LOW(PORT(PIN_A5), PIN_A5);
 
 
     usart_print("Configuring ultrasonic pins");
-    IOPORT_CONFIG(OUTPUT, PORT_CONF_TRIGGER, _BV(PIN_TRIGGER));
-    IOPORT_CONFIG(INPUT, PORT_CONF_ECHO, _BV(PIN_ECHO));
+    PIN_CONF_OUT(PORT_TRIGGER, PIN_TRIGGER);
+    PIN_CONF_IN(PORT_ECHO, PIN_ECHO);
 
 
     usart_print("Configurating PWM signals\n");
     // configurate PWM signals
-    softPWM_l_add_signal(PIN_LEFT_WHEEL_F, &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
+    softPWM_l_add_signal(REAL_PIN(PIN_LEFT_WHEEL_F), &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
             SLOT_LEFT_WHEEL_F, 0);
-    softPWM_l_add_signal(PIN_LEFT_WHEEL_B, &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
+    softPWM_l_add_signal(REAL_PIN(PIN_LEFT_WHEEL_B), &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
             SLOT_LEFT_WHEEL_B, 0);
-    softPWM_l_add_signal(PIN_RIGHT_WHEEL_F, &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
+    softPWM_l_add_signal(REAL_PIN(PIN_RIGHT_WHEEL_F), &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
             SLOT_RIGHT_WHEEL_F, 0);
-    softPWM_l_add_signal(PIN_RIGHT_WHEEL_B, &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
+    softPWM_l_add_signal(REAL_PIN(PIN_RIGHT_WHEEL_B), &PORT_CONF_WHEELS, &PORT_VAL_WHEELS, 
             SLOT_RIGHT_WHEEL_B, 0);
 
     usart_print("Starting program...\n");
@@ -181,8 +179,8 @@ void behaviour_stop_when_barrier() {
 
     uint16_t distance;
 
-    distance = ultrasonic_measure(&PORT_VAL_TRIGGER, _BV(PIN_TRIGGER), 
-                    &PORT_VAL_ECHO, _BV(PIN_ECHO));
+    distance = ultrasonic_measure(&PORT_VAL_TRIGGER, REAL_PIN(PIN_TRIGGER), 
+                    &PORT_VAL_ECHO, _REAL_PIN(PIN_ECHO));
   
     if (distance < 0 ) {
         usart_print("Distance measure timeout\n");

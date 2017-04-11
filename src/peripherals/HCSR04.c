@@ -28,6 +28,7 @@
 
 #include "peripherals/HCSR04.h"
 #include "systick.h"
+#include "ioport.h"
 
 
 void ultrasonic_init() {
@@ -35,24 +36,21 @@ void ultrasonic_init() {
 }
 
 
-int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin, 
-        uint8_t volatile *echo_port, uint8_t echo_pin) {
+int16_t ultrasonic_measure(ioport_t trig_port, uint8_t trig_pin, 
+        ioport_t echo_port, uint8_t echo_pin) {
     
     time_t time1, time2, time_interval;
     //uint16_t time;
     time_t timeout;
 
-    //IOPORT_VALUE(HIGH, *trig_port, trig_pin);
-    *trig_port |= trig_pin;
-    // wait 10us
-    _delay_us(10);
-    //IOPORT_VALUE(LOW, *trig_port, trig_pin);
-    *trig_port &= ~trig_pin;
-    // wait for echo to be set (timeout is needed)
+    IOPIN_WRITE_HIGH(trig_port, trig_pin);
+    _delay_us(13);
+    IOPIN_WRITE_LOW(trig_port, trig_pin);
 
+    // wait for echo to be set (timeout is needed)
     start_timeout(1, &timeout);
     //while ( !IOPORT_READ(*echo_port, echo_pin) ) {
-    while(!(*echo_port & echo_pin)) {
+    while( !IOPIN_READ(echo_port, echo_pin) ) {
         if (timeout_expired(&timeout)) {
             return -1;
         }
@@ -61,11 +59,14 @@ int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
     get_uptime(&time1);
     
     // wait for echo to be clear (timeout is needed)
+    // the measure range is 2cm to 400cm, 
+    // wich corresponds to 116ns to 23200ns
+    // For that, a pulse longer than 25ms is likely to be an error
     start_timeout(30, &timeout);
     //while (IOPORT_READ(*echo_port, echo_pin)){
-    while(*echo_port & echo_pin) {
+    while( IOPIN_READ(echo_port, echo_pin) ) {
         if (timeout_expired(&timeout)) {
-            return -1;
+            return -2;
         }
     }
     
@@ -73,21 +74,5 @@ int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin,
     
     time_sub(&time2, &time1, &time_interval);
     
-    
-    return ((time_interval.ms << 10) + time_interval.us) >> 6;
-    
-    
-    /*
-    if (us_2 > us_1) {
-        time = ((ms_2 - ms_1) << 10) + (us_2 - us_1);
-    }
-    else {
-        time = ((ms_2 - ms_1) << 10) + (us_1 - us_2);
-    }
-    
-    // aproximate time/58 with time/64 to optimize calculations
-    return time >> 6;
-    
-    return 0;
-    */
+    return (((uint16_t)time_interval.ms << 10) + (uint16_t)time_interval.us) >> 6;
 }

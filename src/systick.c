@@ -113,7 +113,6 @@ void systick_init() {
 }
 
 
-// BUG -> Race condition
 void get_uptime(time_t *time) {
 
     uint32_t ms, aux_ms;
@@ -202,13 +201,29 @@ uint32_t get_micros() {
 }
 
 void start_timeout(uint16_t ms, time_t *timeout) {
-
-    timeout->ms = curr_ms + ms;
+    
+    get_uptime(timeout);
+    timeout->ms += ms;
 }
 
 
+void start_timeout_us(uint16_t us, time_t *timeout) {
+  
+    get_uptime(timeout);
+    timeout->us += us;
+    
+    if (timeout->us <= us)
+        timeout->ms += 1;
+}
+
 uint8_t timeout_expired(time_t *timeout) {
-    return (curr_ms > timeout->ms);
+    time_t time;
+    get_uptime(&time);
+    
+    // same ms and time.us is greater
+    // time.ms is greater
+    return ((time.ms == timeout->ms) && (time.us <= timeout->us)) || 
+            (time.ms > timeout->ms);
 }
 
 

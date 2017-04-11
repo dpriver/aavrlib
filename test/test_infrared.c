@@ -24,6 +24,17 @@
  *
  ******************************************************************************/
 
+/*
+ * Physical configuration:
+ * BOARD: Arduino UNO (atmega328p)
+ * 
+ * PIN_4 -> LED -> OHM -> GND
+ * PIN_6 -> HCSR04.Trig
+ * PIN_7 -> HCSR04.Echo
+ * 5V    -> HCSR04.Vcc
+ * GND   -> HCSR04.Gnd
+ */
+
 #include <avr/interrupt.h>
 #include <uc/usart.h>
 #include <uc/system.h>
@@ -36,49 +47,35 @@ uint8_t packet_address;
 uint8_t packet_command;
 
 
+#define LED_PIN     PIN_4
+#define IR_PIN      PIN_2  
+
 void ir_callback(uint8_t address, uint8_t command);
 
 int main( void ) {
     
     system_init();
     systick_init();
-    usart_init(bitrate_9600);
+    usart_init(bitrate_115200);
     ir_receiver_init(ir_callback, nec_decode);
     
-    sei();
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib infrared peripheral test                =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Prints the value received from a NEC infrared remote\n" \
+                " - Switches the pin 4 of the arduino UNO board with \n" \
+                " a period of 1000ms\n\n");
     
-    IOPORT_CONFIG(OUTPUT, PORT_C, _BV(PIN_13));
-    IOPORT_VALUE(LOW, PORT_C, _BV(PIN_13));
-
-    IOPORT_CONFIG(INPUT, PORT_B, _BV(PIN_2));
+    PIN_CONF_OUT(LED_PIN);
+    PIN_CONF_IN(IR_PIN);
+    PIN_WRITE_HIGH(LED_PIN);
     
-    while(1);
-    
-    /*
-    while(debug_index < 31) {
+    while(1) {
         delay_ms(500);
+        PIN_SWITCH(LED_PIN);
     }
     
-    usart_print("\nPOS      MILIS      MICROS      TIME         DIFF");
-    usart_print("\n==================================================");
-    uint8_t i;
-    for( i = 0; i < debug_index; i++) {
-        usart_print("\n[");
-        usart_printnumber8(i);
-        usart_print("]: ");
-        usart_printnumber32(milis[i]);
-        usart_print(" ");
-        usart_printnumber32(micros[i]);
-        usart_print(" -> ");
-        usart_printnumber32(time[i]);
-        usart_print("  =  ");
-        usart_printnumber32(diff[i]);
-        
-        usart_print("  [");
-        usart_printnumber32(isr_time[i]);
-        usart_print("]");
-    }
-    */
     return 0;
 }
 

@@ -27,13 +27,14 @@
 #define __HC_SR04
 
 #include <stdint.h>
+#include "ioport.h"
 
 
 void ultrasonic_init();
 
 
-int16_t ultrasonic_measure(uint8_t volatile *trig_port, uint8_t trig_pin, 
-        uint8_t volatile *echo_port, uint8_t echo_pin);
+int16_t ultrasonic_measure(ioport_t trig_port, uint8_t trig_pin, 
+        ioport_t echo_port, uint8_t echo_pin);
 
 
 

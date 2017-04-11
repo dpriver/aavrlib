@@ -73,7 +73,7 @@ typedef enum {
  * @param function The name of the interrupt routine
  */
 #define INTERRUPT(function) \
-    void function (void) __attribute__((signal, __INTR_ATTRS)); \
+    void function (void) __attribute__((signal)); \
     void function (void)
 
 

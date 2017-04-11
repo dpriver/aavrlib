@@ -23,7 +23,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
- 
+
+/*
+ * Physical configuration:
+ * BOARD: Arduino UNO (atmega328p)
+ * 
+ * PIN_4 -> LED -> OHM -> GND
+ * PIN_6 -> HCSR04.Trig
+ * PIN_7 -> HCSR04.Echo
+ * 5V    -> HCSR04.Vcc
+ * GND   -> HCSR04.Gnd
+ */
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -35,30 +46,38 @@
  
  
  
-#define ULTRASONIC_TRIGGER_PIN  PIN_6
-#define ULTRASONIC_ECHO_PIN     PIN_7
+#define TRIGGER_PIN  PIN_6
+#define ECHO_PIN     PIN_7
+#define LED_PIN      PIN_4
 
 
 int main( void ) {
 
     int16_t distance;
 
-    //system_init();
+    system_init();
     systick_init();
-    usart_init(bitrate_9600);
+    usart_init(bitrate_115200);
     ultrasonic_init();
-    sei();
 
-    IOPORT_CONFIG(OUTPUT, PORT_C, _BV(PIN_13));
-    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(ULTRASONIC_TRIGGER_PIN));
-    IOPORT_CONFIG(INPUT, PORT_B, _BV(ULTRASONIC_ECHO_PIN));
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib HCSR04 ultrasonic peripheral test       =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Prints the distance from the HCSR04 sensor to the\n" \
+                " detected obstacle in cm.\n" \
+                " - Prints the peripheral error if any." \
+                " - Switches the pin 4 of the arduino UNO board with \n" \
+                " a period of 1000ms\n\n");
 
 
-    usart_print("\nStarted\n===============================\n");
-
+    PIN_CONF_OUT(TRIGGER_PIN);
+    PIN_CONF_IN(ECHO_PIN);
+    PIN_CONF_OUT(LED_PIN);
+    PIN_WRITE_HIGH(LED_PIN);
 
     while(1) {
-        distance = ultrasonic_measure(&PORT_B_V, _BV(ULTRASONIC_TRIGGER_PIN), &PORT_B_R, _BV(ULTRASONIC_ECHO_PIN));
+        distance = ultrasonic_measure(PORT(TRIGGER_PIN), REAL_PIN(TRIGGER_PIN), PORT(ECHO_PIN), REAL_PIN(ECHO_PIN));
      
         if (distance >= 0) {
             usart_print("\nDistance: ");
@@ -66,10 +85,13 @@ int main( void ) {
             usart_print(" cm");
         }
         else {
-            usart_print("\ntimedout... !!");
+            usart_print("\ntimedout... !! [");
+            usart_printsignumber32((uint32_t)distance);
+            usart_print("]");
         }
         
         delay_ms(1000);
+        PIN_SWITCH(LED_PIN);
     }
 
     return 0;

@@ -30,9 +30,8 @@
  * Physical configuration:
  * BOARD: Arduino UNO (atmega328p)
  * 
- * PIN4 -> LED -> OHM -> GND
+ * PIN_4 -> LED -> OHM -> GND
  */
-
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -62,9 +61,8 @@ int main( void ) {
                 " - Switches the pin 4 of the arduino UNO board\n\n");
     
     delay_ms(2000);
-    
-    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_4));
-    IOPORT_VALUE(LOW,  PORT_B, _BV(PIN_4));
+    PIN_CONF_OUT(PIN_4);
+    PIN_WRITE_LOW(PIN_4);
     time.ms = 0;
     time.us = 0;
     time_prev.ms = 0;
@@ -73,7 +71,7 @@ int main( void ) {
     while(1) {
         
         delay_ms(500);
-        IOPORT_SWITCH(PORT_B, _BV(PIN_4));
+        PIN_SWITCH(PIN_4);
         
         time_copy(&time, &time_prev);
         get_uptime(&time);

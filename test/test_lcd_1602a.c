@@ -33,32 +33,39 @@
 #include <systick.h>
 
 
+
+#define PIN_LED PIN_7
+
+
 int main ( void ) {
   
     system_init();
     systick_init();
-    usart_init(bitrate_9600);
-    
-    usart_print("Init LCD...");
-    
-    /**** Initialization ****/
+    usart_init(bitrate_115200);
     lcd_1602a_init();
-    usart_print("OK\n");
     
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib 1602A LCD peripheral test               =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Prints a text to the 1602A LCD peripheral\n" \
+                " - Switches the pin 4 of the arduino UNO board with \n" \
+                " a period of 1000ms\n\n");
+                
+    PIN_CONF_OUT(PIN_LED);
+    PIN_WRITE_HIGH(PIN_LED);
+ 
+    //usart_print("Print 'Hello World' to LCD\n");
+    lcd_1602a_print("a", LCD_ROW1_POS(0));
+    //lcd_1602a_print("  Hello World ", LCD_ROW1_POS(0));
+    delay_ms(3000);
+    //usart_print("Print 'Works!!' to LCD\n");
+    //lcd_1602a_print("    Works!!", LCD_ROW2_POS(0));
     
-    //0100 0001 
-    //0010 1  000
-    //     D3
- 
- 
-    lcd_1602a_print("  Hello World ", LCD_ROW1_POS(0));
-    _delay_ms(3000);
-    lcd_1602a_print("    Works!!", LCD_ROW2_POS(0));
-
- 
-    usart_print("Values printed\n");
-    
-    while(1);
+    while(1) {
+        delay_ms(500);
+        PIN_SWITCH(PIN_LED);
+    }
     
 
 

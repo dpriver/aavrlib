@@ -50,7 +50,7 @@ INTERRUPT(__vector_usart_recv_isr) {
 int main( void ) {
     system_init();
     systick_init();
-    // For some reason it does not work at high baud rate...
+    // For some reason this test does not work at high baud rate...
     usart_init(bitrate_9600); 
     
     usart_print("====================================================\n");

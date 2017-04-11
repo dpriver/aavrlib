@@ -29,6 +29,7 @@
 
 
 #include "peripherals/1602A.h"
+#include "ioport.h"
 #include "config.h"
 
 
@@ -43,6 +44,9 @@
 #define D1_COMM_MASK    (0x1 << 1)
 #define D0_COMM_MASK    (0x1)
 
+
+
+/*
 #define CONFIRM_DATA() \
     E_PORT_V |= _BV(E_PIN); \
     _delay_us(250); \
@@ -62,15 +66,36 @@
     RS_PORT_V &= ~_BV(RS_PIN); \
     RW_PORT_V &= ~_BV(RW_PIN); \
     E_PORT_V  &= ~_BV(E_PIN); \
+*/
+
+#define CONFIRM_DATA() \
+    IOPIN_WRITE_HIGH(E_PORT, E_PIN); \
+    _delay_us(250); \
+    IOPIN_WRITE_LOW(E_PORT, E_PIN); \
+    _delay_us(250);
+
+#define CLEAR_DATA() \
+    IOPORT_WRITE_LOW(DATA_PORT, 0xf << DATA_PIN_LOW)
+
+#define SET_DATA(value) \
+    IOPORT_WRITE(DATA_PORT, 0xf << DATA_PIN_LOW, value << DATA_PIN_LOW)
+    
+#define READ_DATA() \
+    IOPORT_READ(DATA_PORT, 0xf)
+    
+#define CLEAR_CONTROL() \
+    IOPIN_WRITE_LOW(RS_PORT, RS_PIN); \
+    IOPIN_WRITE_LOW(RW_PORT, RW_PIN); \
+    IOPIN_WRITE_LOW(E_PORT, E_PIN)
 
 
 void lcd_1602a_init() {
 
     // Set pins as output
-    RS_PORT |= RS_PIN;
-    RW_PORT |= RW_PIN;
-    E_PORT  |= E_PIN;
-    DATA_PORT_V |= (0xf << DATA_PIN_LOW);
+    IOPIN_CONF_OUT(RS_PORT, RS_PIN);
+    IOPIN_CONF_OUT(RW_PORT, RW_PIN);
+    IOPIN_CONF_OUT(E_PORT, E_PIN);
+    IOPORT_CONF_OUT(DATA_PORT, 0xf << DATA_PIN_LOW);
     
     
     // Set values to 0
@@ -83,8 +108,6 @@ void lcd_1602a_init() {
     /* Set values RS RW D7 D6 D5 D4 */
     /*            0  0  0  0  1  1  */
     
-    //D5_PORT_V |= D5_PIN;
-    //D4_PORT_V |= D4_PIN;
     SET_DATA(0x3);
     CONFIRM_DATA();
     
@@ -99,7 +122,6 @@ void lcd_1602a_init() {
     // Set 4 bit interface
     /* Set values RS RW D7 D6 D5 D4 */
     /*            0  0  0  0  1  0  */
-    //D4_PORT_V &= ~D4_PIN;
     SET_DATA(0x2);
     CONFIRM_DATA();
 
@@ -109,19 +131,15 @@ void lcd_1602a_init() {
     /*            0  0  0  0  1  0    1  1  0  0  */
     CONFIRM_DATA();
 
-    //D5_PORT_V &= ~D5_PIN;
-    //D7_PORT_V |= D7_PIN;
     SET_DATA(0xC);
     CONFIRM_DATA();
 
     // Display OFF
     /* Set values RS RW D7 D6 D5 D4   D7 D6 D5 D4 */
     /*            0  0  0  0  0  0    1  0  0  0  */
-    //D7_PORT_V &= ~D7_PIN;
     SET_DATA(0);
     CONFIRM_DATA();
 
-    //D7_PORT_V |= D7_PIN;
     SET_DATA(0x8);
     CONFIRM_DATA();
     
@@ -192,12 +210,11 @@ uint8_t lcd_1602a_command(uint16_t command) {
     /* This have to be changed....
      */
     if (command & RS_COMM_MASK) { //RS
-        RS_PORT_V |= RS_PIN;
+        IOPIN_WRITE_HIGH(RS_PORT, RS_PIN);
     }
 
-    if (command & RW_COMM_MASK) { //RW
-        
-        RW_PORT_V |= RW_PIN;
+    if (!(command & RW_COMM_MASK)) { //RW
+        IOPIN_WRITE_LOW(RW_PORT, RW_PIN);
         //if (command & D7_COMM_MASK) { //D7
             //D7_PORT_V |= D7_PIN;
         //}
@@ -234,18 +251,18 @@ uint8_t lcd_1602a_command(uint16_t command) {
     else {
         
 #warning "[TODO] 1602a lcd command: read operation not implemented"
-        E_PORT_V |= E_PIN;
+        IOPIN_WRITE_HIGH(E_PORT, E_PIN);
         _delay_us(250);
         // read value
         data = READ_DATA() << 4;
-        E_PORT_V &= ~E_PIN;
+        IOPIN_WRITE_LOW(E_PORT, E_PIN);
         _delay_us(250);
         
-        E_PORT_V |= E_PIN;
+        IOPIN_WRITE_HIGH(E_PORT, E_PIN);
         _delay_us(250);
         // read value
         data |= READ_DATA();
-        E_PORT_V &= ~E_PIN;
+        IOPIN_WRITE_LOW(E_PORT, E_PIN);
         _delay_us(250);
         
         return data;

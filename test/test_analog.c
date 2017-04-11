@@ -24,6 +24,15 @@
  *
  ******************************************************************************/
 
+/*
+ * Physical configuration:
+ * BOARD: Arduino UNO (atmega328p)
+ * 
+ * PIN_4 -> LED  -> OHM -> GND
+ * 5V    -> OHM |-> OHM -> GND
+ *              |-> PIN_A0
+ */
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -32,6 +41,7 @@
 #include "uc/system.h"
 #include "uc/usart.h"
 #include "uc/analog.h"
+#include "systick.h"
 #include "boards/arduinoUNO.h"
 
 
@@ -42,23 +52,31 @@ int main( void ) {
 	uint8_t analog_read = 0;
     
 	system_init();
-	usart_init(bitrate_9600);
+    systick_init();
+	usart_init(bitrate_115200);
 	adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
     
-	IOPORT_CONFIG(INPUT, PORT_A, _BV(PIN_A0));
-	IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_7));
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib analog test                             =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Prints the analog value read from the A0 pin of\n" \
+                " the arduino UNO board.\n" \
+                " - Switches the pin 4 of the arduino UNO board with \n" \
+                " a period of 500ms\n\n");
     
-
+	PIN_CONF_IN(PIN_A0);
+	PIN_CONF_OUT(PIN_4);
+    PIN_WRITE_HIGH(PIN_4);
+    
 	while(1) {
-		IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_7));
 		analog_read = adc_single_read();
 		usart_print("Readed value: ");
 		usart_printnumber8(analog_read);
 		usart_print("\n");
 
-		_delay_ms(300);
-		IOPORT_VALUE(LOW, PORT_B, _BV(PIN_7));
-		_delay_ms(300);
+		delay_ms(500);
+		PIN_SWITCH(PIN_4);
 	}
 	
 	return 0;
