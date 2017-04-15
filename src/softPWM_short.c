@@ -30,6 +30,7 @@
 
 #include "uc/interrupt.h"
 #include "uc/timers.h"
+#include "ioport.h"
 #include "softPWM_short.h"
 
 
@@ -110,7 +111,7 @@ uint8_t duty_count[SOFTPWM_S_MAX_SIGNALS];
 uint8_t signal_pin[SOFTPWM_S_MAX_SIGNALS];
 
 // PORT_x defined in arduinoUNO.h
-volatile uint8_t *signal_port[SOFTPWM_S_MAX_SIGNALS];
+volatile ioport_t signal_port[SOFTPWM_S_MAX_SIGNALS];
 
 uint8_t curr_signal;
 
@@ -122,8 +123,8 @@ INTERRUPT(__vector_softpwm_s_top_isr) {
 
     if(duty_count[curr_signal] > 0) {
         // Set signal pin as 1
-        //IOPORT_VALUE(HIGH, *(signal_port[curr_signal]), signal_pin[curr_signal]);
-        *(signal_port[curr_signal]) |= signal_pin[curr_signal]; 
+        //*(signal_port[curr_signal]) |= signal_pin[curr_signal]; 
+        IOPIN_WRITE_HIGH(signal_port[curr_signal], signal_pin[curr_signal]);
         
         // set interrupt count to current signal's duty count
         SOFTPWM_TIMER_SET_DUTY_COUNT(duty_count[curr_signal]);
@@ -134,8 +135,8 @@ INTERRUPT(__vector_softpwm_s_top_isr) {
 //SOFTPWM_S_DUTY_ISR() {
 INTERRUPT(__vector_softpwm_s_duty_isr) {
     // set signal pin as 0
-    //IOPORT_VALUE(LOW, *(signal_port[curr_signal]), signal_pin[curr_signal]);
-    *(signal_port[curr_signal]) &= ~signal_pin[curr_signal];
+    //*(signal_port[curr_signal]) &= ~signal_pin[curr_signal];
+    IOPIN_WRITE_LOW(signal_port[curr_signal], signal_pin[curr_signal]);
 
     if (curr_signal < (SOFTPWM_S_MAX_SIGNALS-1)) {
         ++curr_signal;
@@ -149,7 +150,7 @@ INTERRUPT(__vector_softpwm_s_duty_isr) {
 
 
 void softPWM_s_init() {
-    int i;
+    uint8_t i;
     curr_signal = 0;
     
     for(i = SOFTPWM_S_MAX_SIGNALS; i>0 ; --i) {
@@ -164,8 +165,8 @@ void softPWM_s_init() {
 }
 
 
-int8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
-    volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width) {
+int8_t softPWM_s_add_signal(ioport_t port, uint8_t pin, uint8_t slot, 
+        uint8_t pulse_width) {
         
     if (slot >= SOFTPWM_S_MAX_SIGNALS)
         return -1;
@@ -173,12 +174,9 @@ int8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port,
     if (pulse_width > PWM_TOP_CNT)
         return -1;
 
-    signal_pin[slot] = _BV(pin);
-    signal_port[slot] = data_port;
+    signal_pin[slot] = pin;
+    signal_port[slot] = port;
     duty_count[slot] = pulse_width;
-    
-    //IOPORT_CONFIG(OUTPUT, *config_port, pin);
-    *config_port |= pin;
     
     return slot;
 }
@@ -191,8 +189,7 @@ int8_t softPWM_s_stop_signal(uint8_t slot) {
     
     duty_count[slot] = 0;
     
-    //IOPORT_VALUE(LOW, *(signal_port[slot]), signal_pin[slot]);
-    *(signal_port[slot]) &= ~signal_pin[slot];
+    IOPIN_WRITE_LOW(signal_port[slot], signal_pin[slot]);
     
     return 0;
 }

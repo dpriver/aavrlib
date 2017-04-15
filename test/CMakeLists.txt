@@ -3,7 +3,8 @@
 
 set(tests 
     test_analog test_systick test_infrared test_lcd_1602a
-    test_mpu6050_datagather test_mpu6050_calib test_usart test_HC-SR04)
+    test_mpu6050_datagather test_mpu6050_calib test_usart test_HC-SR04
+    test_softPWM_short test_softPWM_long)
 
 
 SET(CMAKE_C_FLAGS ${CFLAGS} CACHE STRING "" FORCE)

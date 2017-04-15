@@ -30,6 +30,8 @@
 
 #include <stdint.h>
 
+#include "ioport.h"
+
 
 // max pwm signals
 #define SOFTPWM_S_MAX_SIGNALS (10)
@@ -46,11 +48,9 @@ void softPWM_s_init();
 /**
  * @brief Add a new PWM signal
  * 
- * @param pin The pin to output the signal. Obtained from a board header.
- * @param config_port The configuration port of the provided pin. Obtained from 
- *        a board header.
- * @param data_port The data port of the provided pin. Obtained from a board 
+ * @param port The data port of the provided pin. Obtained from a board 
  *        header.
+ * @param pin The pin to output the signal. Obtained from a board header.
  * @param slot The internal slot in which the PWM should be stored
  * @param pulse_width the signal's pulse width. Should be less than 
  *        SOFTPWM_S_MAX_WIDTH.
@@ -58,8 +58,8 @@ void softPWM_s_init();
  *         is greater than SOFTPWM_L_MAX_WIDTH. Otherwise, it returns the 
  *         assigned slot.
  */
-int8_t softPWM_s_add_signal(uint8_t pin, volatile uint8_t *config_port, 
-    volatile uint8_t *data_port, uint8_t slot, uint8_t pulse_width);
+int8_t softPWM_s_add_signal(ioport_t port, uint8_t pin, uint8_t slot, 
+        uint8_t pulse_width);
 
 
 /**

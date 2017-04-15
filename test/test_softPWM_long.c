@@ -1,10 +1,10 @@
 /*******************************************************************************
- *  test_softPWMlong.h
+ *  test_softPWM_short.c
  *
- *  long pulse software generated PWM test
+ *  Short pulse software generated PWM test
  *  Send a software based PWN signal to the pin 4 of the arduinoUNO board. The 
  *  pulse width comes determined for the analog value readed from the board's 
- *  a0 pin. The readed and the assigned values are showed via USART
+ *  a0 pin. Each 300ms, the readed and the assigned values are showed via USART.
  *
  *  This file is part of aavrlib
  *
@@ -26,82 +26,82 @@
  *
  ******************************************************************************/
 
+/*
+ * Physical configuration:
+ * BOARD: Arduino UNO (atmega328p)
+ * 
+ * PIN_4 -> LED -> OHM -> GND
+ * PIN_6 -> HCSR04.Trig
+ * PIN_7 -> HCSR04.Echo
+ * 5V    -> HCSR04.Vcc
+ * GND   -> HCSR04.Gnd
+ */
 
 #include <avr/io.h>
+#include <avr/power.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
+#include <stdint.h>
 
 #include <uc/system.h>
-#include <uc/analog.h>
 #include <uc/usart.h>
+#include <uc/analog.h>
 #include <boards/arduinoUNO.h>
+#include <systick.h>
 #include <softPWM_long.h>
 
 
-/*
- * SYSTEM DESCRIPTION
- * 
- * Direction PINS =>
- *      PORT_B -> PIN_2
- *      PORT_B -> PIN_3
- * 
- * PWM PINS =>
- *      PORT_B -> PIN_4
- *      PORT_B -> PIN_5
- *
- * Speed set input =>
- *      PORT_A -> 0
- * 
- */
+// Pins
+#define LED_PIN     PIN_4
+#define SERVO_PIN   PIN_5
+
+#define FREQ_CNT    (20)
+#define DUTY_HALF   (FREQ_CNT/2)
+
 
 
 int main( void ) {
     
-    uint8_t analog_read, pulse_width;
-    
-    system_init(),
-    usart_init(bitrate_9600);
-    softPWM_l_init();
-    adc_init(adc_presc_128, adc_ref_vcc ,adc_channel_a0, 0);
-    
-    sei();    
-    
-    // config digital outputs to set direction
-    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_2));
-    IOPORT_CONFIG(OUTPUT, PORT_B, _BV(PIN_3));
-    
-    IOPORT_VALUE(HIGH, PORT_B, _BV(PIN_2));
-    IOPORT_VALUE(LOW, PORT_B, _BV(PIN_3));
-    
-    // start pwm generation
-    softPWM_l_start();
-    
-    
-    // long pulse PWM in pin 4, with duty at 50%
-    if (softPWM_l_add_signal(PIN_4, &PORT_B, &PORT_B_V, 0, 15) == -1) {
-        usart_print("\n\nError, could not add PWM signal\n");
-        return 0;
-    }
-    
-    
-    while(1) {
-        
-        // get speed input
-        analog_read = adc_single_read();
-        pulse_width = (77./255) * analog_read;
-        
-        
-        usart_print("\nAnalog read: ");
-        usart_printnumber8(analog_read);
-        
-        usart_print("\t\tpulse width: ");
-        usart_printnumber8(pulse_width);
-       
+    uint8_t duty_count = 30;
+    uint8_t direction = 1;
 
-        if (softPWM_l_set_pulse_width(0, pulse_width) == -1) {
-            usart_print("\n\nError, could not set the signal's pulse\n");
-            return 0;
-        }
-    }
+    system_init();
+    systick_init();
+    usart_init(bitrate_115200);
+    softPWM_l_init();
+
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib software based long PWM test            =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Generates a software based PWM signal on pin 5 with\n" \
+                " a changing duty cycle.\n" \
+                " - Prints the current duty cycle value\n" \
+                " - Switches the pin 4 of the arduino UNO board with \n" \
+                " a period of 600ms\n\n");
     
-    return 0;
+    PIN_CONF_OUT(LED_PIN);
+    PIN_CONF_OUT(SERVO_PIN);
+    PIN_WRITE_HIGH(LED_PIN);
+    
+    softPWM_l_add_signal(PORT(SERVO_PIN), REAL_PIN(SERVO_PIN), 0, 0);
+    
+	while(1) {
+        
+        duty_count = (direction)? duty_count+1: duty_count-1;
+        if ((duty_count == SOFTPWM_L_MAX_WIDTH) || (duty_count == 0)) {
+            direction = !direction;
+        }
+    
+		usart_print("\tAssigned value: ");
+        usart_printnumber8(duty_count);
+        usart_print("\n");
+        
+        softPWM_l_set_pulse_width(0, duty_count);
+        
+        delay_ms(100);
+        PIN_SWITCH(LED_PIN);
+    }
+	
+	return 0;
 }

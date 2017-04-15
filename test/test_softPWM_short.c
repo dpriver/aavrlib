@@ -26,6 +26,17 @@
  *
  ******************************************************************************/
 
+/*
+ * Physical configuration:
+ * BOARD: Arduino UNO (atmega328p)
+ * 
+ * PIN_4 -> LED -> OHM -> GND
+ * PIN_6 -> HCSR04.Trig
+ * PIN_7 -> HCSR04.Echo
+ * 5V    -> HCSR04.Vcc
+ * GND   -> HCSR04.Gnd
+ */
+
 #include <avr/io.h>
 #include <avr/power.h>
 #include <avr/interrupt.h>
@@ -36,48 +47,60 @@
 #include <uc/usart.h>
 #include <uc/analog.h>
 #include <boards/arduinoUNO.h>
+#include <systick.h>
 #include <softPWM_short.h>
 
 
+// Pins
+#define LED_PIN     PIN_4
+#define SERVO_PIN   PIN_5
 
-#define FREQ_CNT (20)
-#define DUTY_HALF (FREQ_CNT/2)
-#define ADC_MASK (0x0)
+#define FREQ_CNT    (20)
+#define DUTY_HALF   (FREQ_CNT/2)
 
 
 
 int main( void ) {
-
-    uint8_t analog_read = 0;
-    uint8_t duty_count = 0;
+    
+    uint8_t duty_count = 30;
+    uint8_t direction = 1;
 
     system_init();
-    usart_init(bitrate_9600);
+    systick_init();
+    usart_init(bitrate_115200);
     softPWM_s_init();
-    adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
-    
-    
-    IOPORT_CONFIG(INPUT, PORT_A, _BV(PIN_A0));
 
-    softPWM_s_start();
-
-    softPWM_s_add_signal(PIN_4, &PORT_B, &PORT_B_V, 0, 124);
+    usart_print("====================================================\n");
+    usart_print("=  aavrlib software based short PWM test           =\n");
+    usart_print("====================================================\n\n");
+    usart_print("This test: \n" \
+                " - Generates a software based PWM signal on pin 5 with\n" \
+                " a changing duty cycle.\n" \
+                " - Prints the current duty cycle value\n" \
+                " - Switches the pin 4 of the arduino UNO board with \n" \
+                " a period of 600ms\n\n");
     
+    PIN_CONF_OUT(LED_PIN);
+    PIN_CONF_OUT(SERVO_PIN);
+    PIN_WRITE_HIGH(LED_PIN);
     
+    softPWM_s_add_signal(PORT(SERVO_PIN), REAL_PIN(SERVO_PIN), 0, 0);
     
 	while(1) {
-        analog_read = adc_single_read();
-        duty_count = (124./255) * analog_read;
         
-		usart_print("Readed value: ");
-		usart_printnumber8(analog_read);
+        duty_count = (direction)? duty_count+1: duty_count-1;
+        if ((duty_count == 120) || (duty_count == 30)) {
+            direction = !direction;
+        }
+    
 		usart_print("\tAssigned value: ");
         usart_printnumber8(duty_count);
         usart_print("\n");
         
         softPWM_s_set_pulse_width(0, duty_count);
         
-        _delay_ms(300);
+        delay_ms(300);
+        PIN_SWITCH(LED_PIN);
     }
 	
 	return 0;
