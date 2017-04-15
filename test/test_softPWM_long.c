@@ -31,10 +31,7 @@
  * BOARD: Arduino UNO (atmega328p)
  * 
  * PIN_4 -> LED -> OHM -> GND
- * PIN_6 -> HCSR04.Trig
- * PIN_7 -> HCSR04.Echo
- * 5V    -> HCSR04.Vcc
- * GND   -> HCSR04.Gnd
+ * PIN_5 -> LED -> OHM -> GND
  */
 
 #include <avr/io.h>
@@ -52,8 +49,8 @@
 
 
 // Pins
-#define LED_PIN     PIN_4
-#define SERVO_PIN   PIN_5
+#define LED_PIN   PIN_4
+#define PWM_PIN   PIN_5
 
 #define FREQ_CNT    (20)
 #define DUTY_HALF   (FREQ_CNT/2)
@@ -78,13 +75,13 @@ int main( void ) {
                 " a changing duty cycle.\n" \
                 " - Prints the current duty cycle value\n" \
                 " - Switches the pin 4 of the arduino UNO board with \n" \
-                " a period of 600ms\n\n");
+                " a period of 200ms\n\n");
     
     PIN_CONF_OUT(LED_PIN);
-    PIN_CONF_OUT(SERVO_PIN);
+    PIN_CONF_OUT(PWM_PIN);
     PIN_WRITE_HIGH(LED_PIN);
     
-    softPWM_l_add_signal(PORT(SERVO_PIN), REAL_PIN(SERVO_PIN), 0, 0);
+    softPWM_l_add_signal(PORT(PWM_PIN), REAL_PIN(PWM_PIN), 0, 0);
     
 	while(1) {
         
@@ -93,7 +90,7 @@ int main( void ) {
             direction = !direction;
         }
     
-		usart_print("\tAssigned value: ");
+		usart_print("Assigned value: ");
         usart_printnumber8(duty_count);
         usart_print("\n");
         
