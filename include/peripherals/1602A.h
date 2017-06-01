@@ -40,7 +40,16 @@
 #define __LCD_1602A
 
 
-
+#define RS_COMM_MASK    (0x1 << 9)
+#define RW_COMM_MASK    (0x1 << 8)
+#define D7_COMM_MASK    (0x1 << 7)
+#define D6_COMM_MASK    (0x1 << 6)
+#define D5_COMM_MASK    (0x1 << 5)
+#define D4_COMM_MASK    (0x1 << 4)
+#define D3_COMM_MASK    (0x1 << 3)
+#define D2_COMM_MASK    (0x1 << 2)
+#define D1_COMM_MASK    (0x1 << 1)
+#define D0_COMM_MASK    (0x1)
 
 
 #define LCD_ROW1_POS(pos) (0x0 + (pos))
@@ -54,9 +63,9 @@
 #define LCD_1602A_MOVE_RIGHT() lcd_1602a_command(0x14) //!< Move cursor 1 position to the right
 #define LCD_1602A_SHIFT_LEFT() lcd_1602a_command(0x18)  //!< Shift all the display characters to the left
 #define LCD_1602A_SHIFT_RIGHT() lcd_1602a_command(0x1c) //!< Shift all the display characters to the right
-#define LCD_1602A_SET_TARGET_INT_MEM(addr) lcd_1602a_command(0x40 | (addr))  //!< Set the target to be the internal memory
-#define LCD_1602A_SET_TARGET_DISP_MEM(addr) lcd_1602a_command(0x80 | (addr)) //!< Set the target to be the display memory
-#define LCD_1602A_WRITE_CHAR(c) lcd_1602a_command(0x200 | (c)) //!< Write a char into the current target memory
+#define LCD_1602A_SET_TARGET_INT_MEM(addr) lcd_1602a_command(D6_COMM_MASK | (addr))  //!< Set the target to be the internal memory
+#define LCD_1602A_SET_TARGET_DISP_MEM(addr) lcd_1602a_command(D7_COMM_MASK | (addr)) //!< Set the target to be the display memory
+#define LCD_1602A_WRITE_CHAR(c) lcd_1602a_command(RS_COMM_MASK | (c)) //!< Write a char into the current target memory
 
 
 

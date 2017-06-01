@@ -31,17 +31,40 @@
 #include <boards/arduinoUNO.h>
 #include <peripherals/1602A.h>
 #include <systick.h>
-
+#include <config.h>
 
 
 #define PIN_LED PIN_7
+
+
+
+#define CONFIRM_DATA() \
+    IOPIN_WRITE_HIGH(E_PORT, E_PIN); \
+    _delay_us(250); \
+    IOPIN_WRITE_LOW(E_PORT, E_PIN); \
+    _delay_us(250);
+
+#define CLEAR_DATA() \
+    IOPORT_WRITE_LOW(DATA_PORT, 0xf << DATA_PIN_LOW)
+
+#define SET_DATA(value) \
+    IOPORT_WRITE(DATA_PORT, 0xf << DATA_PIN_LOW, value << DATA_PIN_LOW)
+    
+#define READ_DATA() \
+    IOPORT_READ(DATA_PORT, 0xf)
+    
+#define CLEAR_CONTROL() \
+    IOPIN_WRITE_LOW(RS_PORT, RS_PIN); \
+    IOPIN_WRITE_LOW(RW_PORT, RW_PIN); \
+    IOPIN_WRITE_LOW(E_PORT, E_PIN)
+    
 
 
 int main ( void ) {
   
     system_init();
     systick_init();
-    usart_init(bitrate_115200);
+    usart_init(bitrate_9600);
     lcd_1602a_init();
     
     usart_print("====================================================\n");
@@ -51,16 +74,17 @@ int main ( void ) {
                 " - Prints a text to the 1602A LCD peripheral\n" \
                 " - Switches the pin 4 of the arduino UNO board with \n" \
                 " a period of 1000ms\n\n");
-                
+            
+    
+    delay_ms(40);
     PIN_CONF_OUT(PIN_LED);
     PIN_WRITE_HIGH(PIN_LED);
- 
-    //usart_print("Print 'Hello World' to LCD\n");
-    lcd_1602a_print("a", LCD_ROW1_POS(0));
-    //lcd_1602a_print("  Hello World ", LCD_ROW1_POS(0));
+
+    lcd_1602a_print("Hello World ", LCD_ROW1_POS(3));
+
     delay_ms(3000);
-    //usart_print("Print 'Works!!' to LCD\n");
-    //lcd_1602a_print("    Works!!", LCD_ROW2_POS(0));
+    usart_print("Print 'Works!!' to LCD\n");
+    lcd_1602a_print("    Works!!", LCD_ROW2_POS(0));
     
     while(1) {
         delay_ms(500);

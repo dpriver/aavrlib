@@ -32,17 +32,7 @@
 #include "ioport.h"
 #include "config.h"
 
-
-#define RS_COMM_MASK    (0x1 << 9)
-#define RW_COMM_MASK    (0x1 << 8)
-#define D7_COMM_MASK    (0x1 << 7)
-#define D6_COMM_MASK    (0x1 << 6)
-#define D5_COMM_MASK    (0x1 << 5)
-#define D4_COMM_MASK    (0x1 << 4)
-#define D3_COMM_MASK    (0x1 << 3)
-#define D2_COMM_MASK    (0x1 << 2)
-#define D1_COMM_MASK    (0x1 << 1)
-#define D0_COMM_MASK    (0x1)
+#include "uc/usart.h"
 
 
 
@@ -78,7 +68,7 @@
     IOPORT_WRITE_LOW(DATA_PORT, 0xf << DATA_PIN_LOW)
 
 #define SET_DATA(value) \
-    IOPORT_WRITE(DATA_PORT, 0xf << DATA_PIN_LOW, value << DATA_PIN_LOW)
+    IOPORT_WRITE(DATA_PORT, 0xf << DATA_PIN_LOW, (value) << DATA_PIN_LOW)
     
 #define READ_DATA() \
     IOPORT_READ(DATA_PORT, 0xf)
@@ -96,7 +86,10 @@ void lcd_1602a_init() {
     IOPIN_CONF_OUT(RW_PORT, RW_PIN);
     IOPIN_CONF_OUT(E_PORT, E_PIN);
     IOPORT_CONF_OUT(DATA_PORT, 0xf << DATA_PIN_LOW);
+    IOPORT_WRITE_HIGH(DATA_PORT, 0xf << DATA_PIN_LOW);
     
+    usart_print("DATA_PIN_LOW: ");
+    usart_printnumber32(DATA_PIN_LOW);
     
     // Set values to 0
     CLEAR_CONTROL();
@@ -119,6 +112,8 @@ void lcd_1602a_init() {
     _delay_ms(1);
     CONFIRM_DATA();
    
+   /* Wait more than 4 ms */
+   _delay_ms(5);
     // Set 4 bit interface
     /* Set values RS RW D7 D6 D5 D4 */
     /*            0  0  0  0  1  0  */
@@ -155,16 +150,17 @@ void lcd_1602a_init() {
     SET_DATA(0x1);
     CONFIRM_DATA();
     
+   _delay_ms(2);
    
    // mode set
     /* Set values RS RW D7 D6 D5 D4   D7 D6 D5 D4 */
-    /*            0  0  0  0  0  0    0  0  1  0  */
+    /*            0  0  0  0  0  0    0  1  1  0  */
     //D4_PORT_V &= ~D4_PIN;
     SET_DATA(0);
     CONFIRM_DATA();
 
     //D5_PORT_V |= D5_PIN;
-    SET_DATA(0x2);
+    SET_DATA(0x6);
     CONFIRM_DATA();
     
    
@@ -207,48 +203,17 @@ uint8_t lcd_1602a_command(uint16_t command) {
     CLEAR_DATA();
     CLEAR_CONTROL();
     
+    usart_print("\nlcd command: ");
+    usart_printnumber32(command);
+    
     /* This have to be changed....
      */
-    if (command & RS_COMM_MASK) { //RS
+    if (command & RS_COMM_MASK) { //RS Data input
         IOPIN_WRITE_HIGH(RS_PORT, RS_PIN);
     }
 
-    if (!(command & RW_COMM_MASK)) { //RW
-        IOPIN_WRITE_LOW(RW_PORT, RW_PIN);
-        //if (command & D7_COMM_MASK) { //D7
-            //D7_PORT_V |= D7_PIN;
-        //}
-        //if (command & D6_COMM_MASK) { //D6
-            //D6_PORT_V |= D6_PIN;
-        //}
-        //if (command & D5_COMM_MASK) { //D5
-            //D5_PORT_V |= D5_PIN;
-        //}
-        //if (command & D4_COMM_MASK) { //D4
-            //D4_PORT_V |= D4_PIN;
-        //}
-        SET_DATA((command >> 4) & 0xF);
-        CONFIRM_DATA();
-
-        CLEAR_DATA();
-        //if (command & D3_COMM_MASK) { //D3
-            //D7_PORT_V |= D7_PIN;
-        //}
-        //if (command & D2_COMM_MASK) { //D2
-            //D6_PORT_V |= D6_PIN;
-        //}
-        //if (command & D1_COMM_MASK) { //D1
-            //D5_PORT_V |= D5_PIN;
-        //}
-        //if (command & D0_COMM_MASK) { //D0
-            //D4_PORT_V |= D4_PIN;
-        //}
-        SET_DATA(command & 0xF);
-        CONFIRM_DATA();
-        
-        return 0;
-    }
-    else {
+    if (command & RW_COMM_MASK) { //RW Read operation
+        IOPIN_WRITE_HIGH(RW_PORT, RW_PIN);
         
 #warning "[TODO] 1602a lcd command: read operation not implemented"
         IOPIN_WRITE_HIGH(E_PORT, E_PIN);
@@ -266,5 +231,40 @@ uint8_t lcd_1602a_command(uint16_t command) {
         _delay_us(250);
         
         return data;
+        
+    } 
+    else { // Write operation
+    
+        //if (command & D7_COMM_MASK) { //D7
+            //D7_PORT_V |= D7_PIN;
+        //}
+        //if (command & D6_COMM_MASK) { //D6
+            //D6_PORT_V |= D6_PIN;
+        //}
+        //if (command & D5_COMM_MASK) { //D5
+            //D5_PORT_V |= D5_PIN;
+        //}
+        //if (command & D4_COMM_MASK) { //D4
+            //D4_PORT_V |= D4_PIN;
+        //}
+        SET_DATA((command >> 4) & 0xF);
+        CONFIRM_DATA();
+
+        //if (command & D3_COMM_MASK) { //D3
+            //D7_PORT_V |= D7_PIN;
+        //}
+        //if (command & D2_COMM_MASK) { //D2
+            //D6_PORT_V |= D6_PIN;
+        //}
+        //if (command & D1_COMM_MASK) { //D1
+            //D5_PORT_V |= D5_PIN;
+        //}
+        //if (command & D0_COMM_MASK) { //D0
+            //D4_PORT_V |= D4_PIN;
+        //}
+        SET_DATA(command & 0xF);
+        CONFIRM_DATA();
+        
+        return 0;
     }
 }
