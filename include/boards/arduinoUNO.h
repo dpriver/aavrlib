@@ -125,6 +125,7 @@
 #define MPIN_1	_BV(PORTD1)
 #define MPIN_2	_BV(PORTD2)
 #define MPIN_3	_BV(PORTD3)
+#define MPIN_4  _BV(PORTD4)
 #define MPIN_5	_BV(PORTD5)
 #define MPIN_6	_BV(PORTD6)
 #define MPIN_7	_BV(PORTD7)
