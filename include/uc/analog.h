@@ -120,6 +120,7 @@ typedef enum {
  * This function must be called once before using any other ADC 
  * function. It enables the ADC module and configures it to work on 
  * free running mode with the selected prescaler, channel and bitmask. 
+ * The analog comparator functionality (pag. 239) is disabled.
  * 
  * @param prescaler Prescaler for the ADC clock
  * @param adc_reference Reference voltage for the ADC

@@ -33,15 +33,34 @@
 
 void adc_init(adc_prescaler_t prescaler, adc_reference_t ref,
 		adc_channel_t channel, uint8_t pinmask) {
+            
 	power_adc_enable();
-    // enable ADC with selected prescaler
-    ADCSRA = (1 << ADEN) | (prescaler << ADPS0);
-    // select Vref source and analog input pin
-    // left adjusted result (8bit resolution)
-    ADCSRB = 0x00;
-    ADMUX = (ref << REFS0) | (1 << ADLAR) | (channel << MUX0);
+    
+    
+    // Disable Analog comparator multiplexer and configure ADC to free
+    // running mode
+    ADCSRB = 0;
+    
     // disable digital input buffer of pins used as analog inputs
     DIDR0 = pinmask;
+    
+    // keep enabled the digital input capture buffer of AIN0 and AIN1
+    DIDR1 = 0;
+    
+    // ACD power is switched off by writting a 1 to ACD bit on ADSR 
+    // register with the following consideration.
+    // pag.240: "When changing the ACD bit, the Analog Comparator 
+    // Interrupt must be disabled by clearing the ACIE bit in ACSR. 
+    // Otherwise an interrupt can occur when the bit is changed."
+    ACSR = 0;
+    ACSR = _BV(ACD);
+    
+    // enable ADC with selected prescaler
+    ADCSRA = (1 << ADEN) | (prescaler << ADPS0);
+    
+    // select the Vref source and the analog input pin
+    // left adjusted result, to optimice 8bit precision reading.
+    ADMUX = (ref << REFS0) | (1 << ADLAR) | (channel << MUX0);
 }
 
 void adc_change_channel(adc_channel_t channel) {
