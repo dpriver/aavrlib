@@ -29,7 +29,7 @@
  * 
  * This file contains the functionality for analog I/O.
  * Analog I/O is made thoughr Analog-to-Digital Conversors (ADC) connected
- * directly to the I/O pins, which can be ualso used as digital pins if the ADC 
+ * directly to the I/O pins, which can be also used as digital pins if the ADC 
  * is disabled.
  * 
  * The ADC starts with a specific digital value, and then iterates various 
@@ -100,7 +100,12 @@ typedef enum {
 	adc_channel_gnd = 15            //!< Ground
 } adc_channel_t;
 
-
+/**
+ * @brief Mask values to form the pinmask for adc_init()
+ * 
+ * If the adc channels a0, a1 and a3 are the ones to be used, the 
+ * pinmask should be: (MSK_CH0 | MSK_CH1 | MSK_CH3)
+ */
 #define MSK_CH0 _BV(ADC0D)
 #define MSK_CH1 _BV(ADC1D)
 #define MSK_CH2 _BV(ADC2D)
@@ -112,14 +117,15 @@ typedef enum {
 /**
  * @brief Initialize the analog-to-digital converter
  * 
- * This function must be called once before using any other ADC function.
- * A pinmask of the pins connected to analog inputs should be indicated for 
- * power eficiency.
+ * This function must be called once before using any other ADC 
+ * function. It enables the ADC module and configures it to work on 
+ * free running mode with the selected prescaler, channel and bitmask. 
  * 
  * @param prescaler Prescaler for the ADC clock
  * @param adc_reference Reference voltage for the ADC
  * @param channel Analog input channel
- * @param pinmask Mask of the pins connected to analog inputs
+ * @param pinmask Mask of the pins connected to analog inputs 
+ * (for power efficiency)
  * 
  */
 void adc_init(adc_prescaler_t prescaler, adc_reference_t ref,
@@ -135,15 +141,15 @@ void adc_change_channel(adc_channel_t channel);
 
 
 /**
- * @brief Performs a single analog read
+ * @brief Performs a single analog read with 8-bit precision
  * 
  * The result voltage is calculated with the following formula
  * \f{eqnarray*}{
- *  V_{in} = \frac{ADC * V_{ref}}{1024}
+ *  V_{in} = \frac{ADC * V_{ref}}{256}
  * \f}
  * Where \f$ ADC\f$ is the read value and \f$ V_{ref} \f$ is the reference voltage
  * 
- * @returns The digital representation of the analog input \f$ (0-1023) \f$
+ * @returns The digital representation of the analog input \f$ (0-255) \f$
  */
 uint8_t adc_single_read();
 

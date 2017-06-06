@@ -50,12 +50,13 @@ void adc_change_channel(adc_channel_t channel) {
 
 
 uint8_t adc_single_read() {
-	ADCSRA &= ~_BV(ADIF);
-	
-	ADCSRA |= (1 << ADSC);
+    // Clear ADC Interrupt flag as state in the avr documentation.
+    // pag. 256: "ADIF is cleared by writing a logical one to the flag"
+    // and start a new conversion.
+	ADCSRA |= _BV(ADIF) | _BV(ADSC);
 	
 	// wait until the conversion finishes
-	while(!(ADCSRA & (1<<ADIF)));
+	while(!(ADCSRA & _BV(ADIF)));
 	
 	// only reads ADCH because ADC is in left adjusted mode for an 8 bits
 	// resoution. is convenient to use ADCH instead of ADCL because ADCH must
