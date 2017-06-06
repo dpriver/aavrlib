@@ -92,10 +92,11 @@ void interrupt_init();
 /**
  * @brief Attach a routine to an interrupt
  * 
- * The provided function is attached to the interrupt. Also, the interrupt is 
- * enabled.
+ * The provided function is attached to the interrupt. It does not 
+ * enable the interrupt. It has to be done from the corrresponding
+ * module.
  * 
- * @param interrupt The interrupt to which the routine is going to be attached
+ * @param interrupt The interrupt to which the routine is going to be attached.
  * @param isr The function to attach
  */
 void interrupt_attach(interrupt_t interrupt, isr_function isr);
@@ -104,8 +105,9 @@ void interrupt_attach(interrupt_t interrupt, isr_function isr);
 /**
  * @brief Detach a routine from an interrupt
  * 
- * The routine attached to the indicated interrupt is detached and the interrupt 
- * is disabled.
+ * The routine attached to the indicated interrupt is detached. It does 
+ * not disable the interrupt. It has to be done from the corresponding
+ * module.
  * 
  * @param interrupt The interrupt whose routine is to be detached
  */
