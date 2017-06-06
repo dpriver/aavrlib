@@ -53,7 +53,7 @@ int main( void ) {
     
 	system_init();
     systick_init();
-	usart_init(bitrate_115200);
+	usart_init(bitrate_9600);
 	adc_init(adc_presc_128, adc_ref_vcc, adc_channel_a0, ADC_MASK);
     
     usart_print("====================================================\n");
