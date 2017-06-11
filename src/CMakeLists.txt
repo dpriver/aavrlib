@@ -5,5 +5,5 @@ add_subdirectory(uc)
 add_subdirectory(peripherals)
 
 
-set(util_source_files time.c systick.c softPWM_short.c softPWM_long.c)
+set(util_source_files time.c systick.c softPWM_short.c softPWM_long.c ir_NEC.c ir_RAW.c)
 add_library(util_objects OBJECT ${util_source_files})

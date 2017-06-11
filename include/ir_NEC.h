@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	infrared.h
+ *	ir_NEC.h
  *
- *  infrared receiver
+ *  infrared NEC protocol
  *
  *
  *  This file is part of aavrlib
@@ -23,15 +23,28 @@
  *
  ******************************************************************************/
 
-#ifndef __INFRARED
-#define __INFRARED
+#ifndef __IR_NEC
+#define __IR_NEC
 
-#define DEBUG_VALS 60
-
-
-typedef uint8_t (*decode_protocol)(uint32_t interval);
+#include <stdint.h>
+#include "config.h"
 
 
-void ir_receiver_init(decode_protocol decode);
+// IR NEC errors
+#define IR_NEC_REDUNDANCY_ERROR         (1)
+#define IR_NEC_INVALID_PULSE_ERROR      (2)
 
-#endif /* __INFRARED */
+
+// In NEC "extended" mode, the address width is 16bits
+#ifdef IR_NEC_EXTENDED
+    typedef void (*ir_nec_completion_handler)(uint16_t address, uint8_t command);
+#else
+    typedef void (*ir_nec_completion_handler)(uint8_t address, uint8_t command);
+#endif
+
+typedef void (*ir_nec_faillure_handler)(uint8_t error, uint32_t data);
+
+void ir_nec_init(ir_nec_completion_handler completion, ir_nec_faillure_handler faillure);
+uint8_t ir_nec_decode(uint32_t interval);
+
+#endif /* __IR_NEC */

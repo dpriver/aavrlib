@@ -1,7 +1,7 @@
 /*******************************************************************************
- *	infrared.h
+ *	ir_NEC.h
  *
- *  infrared receiver
+ *  infrared NEC protocol
  *
  *
  *  This file is part of aavrlib
@@ -23,15 +23,14 @@
  *
  ******************************************************************************/
 
-#ifndef __INFRARED
-#define __INFRARED
+#ifndef __IR_RAW
+#define __IR_RAW
 
-#define DEBUG_VALS 60
+#include <stdint.h>
 
+typedef void (*ir_raw_completion_handler)(uint32_t *buffer, uint8_t n);
 
-typedef uint8_t (*decode_protocol)(uint32_t interval);
+void ir_raw_init(uint32_t *buffer, uint8_t size, ir_raw_completion_handler completion);
+uint8_t ir_raw_decode(uint32_t interval);
 
-
-void ir_receiver_init(decode_protocol decode);
-
-#endif /* __INFRARED */
+#endif /* __IR_RAW */

@@ -47,6 +47,14 @@
 #define _SOFTPWM_L_TIMER TIMER2
 #define _SYSTICK_TIMER   TIMER0
 
+/*====================================================================
+ *   INFRARED
+ *====================================================================*/
+// uncomment if IR NEC "extended" protocol is used.
+// If the ir_NEC library is not used, this definition can be ignored
+#define IR_NEC_EXTENDED
+
+
 
 // Configuration for the case when a board has been defined and included
 // PIN definitions from the board header file should be used
