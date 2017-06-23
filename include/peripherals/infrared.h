@@ -32,6 +32,6 @@
 typedef uint8_t (*decode_protocol)(uint32_t interval);
 
 
-void ir_receiver_init(decode_protocol decode);
+void ir_receiver_init(decode_protocol decode, interrupt_t interrupt_vector);
 
 #endif /* __INFRARED */

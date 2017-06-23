@@ -49,9 +49,9 @@ uint8_t ir_raw_decode(uint32_t interval) {
     ir_RAW_data.buffer[ir_RAW_data.index] = interval;
     ir_RAW_data.index++;
 
-    if (ir_RAW_data.index == 35) {
+    if (ir_RAW_data.index == ir_RAW_data.n) {
         ir_RAW_data.index = 0;
-        ir_RAW_data.completion(ir_RAW_data.buffer, 35);
+        ir_RAW_data.completion(ir_RAW_data.buffer, ir_RAW_data.n);
     }
 
     return 0;

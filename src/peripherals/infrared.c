@@ -75,7 +75,7 @@ INTERRUPT(__vector_ir_receiver_isr) {
  *   Infrared functions
  *============================================================================*/
 
-void ir_receiver_init(decode_protocol decode){
+void ir_receiver_init(decode_protocol decode, interrupt_t interrupt_vector){
 
     //int i;
     //debug_index = 0;
@@ -90,12 +90,5 @@ void ir_receiver_init(decode_protocol decode){
     
     ir_data.last_lecture = 0;
     
-    interrupt_attach(INT0_int, __vector_ir_receiver_isr);
-
-	EICRA = (EICRA | _BV(ISC01)) & ~_BV(ISC00);
-	//EICRA = (EICRA | _BV(ISC00)) & ~_BV(ISC01);
-    EIMSK |= _BV(INT0);
-    
-    // configure pin 2 as input
-    DDRD |= _BV(PORTD2);
+    interrupt_attach(interrupt_vector, __vector_ir_receiver_isr);
 }

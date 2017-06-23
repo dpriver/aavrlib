@@ -33,7 +33,8 @@
 // IR NEC errors
 #define IR_NEC_REDUNDANCY_ERROR         (1)
 #define IR_NEC_INVALID_PULSE_ERROR      (2)
-
+#define IR_NEC_INVALID_SPACE_ERROR      (3)
+#define IR_NEC_INVALID_TAIL_ERROR       (4)
 
 // In NEC "extended" mode, the address width is 16bits
 #ifdef IR_NEC_EXTENDED

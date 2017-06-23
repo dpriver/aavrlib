@@ -32,6 +32,7 @@
 #ifndef __INTERRUPT
 #define __INTERRUPT
 
+#include <avr/io.h>
 
 #define N_INTERRUPTS 25
 
@@ -65,6 +66,32 @@ typedef enum {
     TWI_int,
     SPM_READY_int
 } interrupt_t;
+
+
+
+/*
+ * PCINT0-PCINT5 --> PB0-PB5 (PIN8-PIN13)
+ * PCINT6-PCINT7 --> PB6-PB7 (disconnected)
+ *  
+ * PCINT8-PCINT13 --> PC0-PC5 (PINA0-PINA5)
+ * PCINT14 --> PC6 (disconnected)
+ * 
+ * PCINT16-PCINT23 --> PD0-PD7 (PIN0-PIN7)
+ * 
+ * INT0 --> PD2 (PIN2)
+ * INT1 --> PD3 (PIN3)
+ */
+//typedef enum {CINTPORT_0 = PCMSK0, CINPORT_1 = PCMSK1, CINTPORT_2 = PCMSK2} cintport_t;
+
+#define CINTPORT_0 PCMSK0
+#define CINTPORT_1 PCMSK1
+#define CINTPORT_2 PCMSK2
+
+#define ENABLE_CINTERRUPTS()                PCICR = _BV(PCIE2) | _BV(PCIE1) | _BV(PCIE0)
+#define DISABLE_CINTERRUPTS()              PCICR = 0
+
+#define CINT_ENABLE(cintport, cintpin)      cintport |= _BV(cintpin)
+#define CINT_DISABLE(cintport, cintpin)     cintport &= ~_BV(cintpin)
 
 
 /**

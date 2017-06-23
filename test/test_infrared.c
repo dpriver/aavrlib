@@ -37,6 +37,7 @@
 #include <avr/interrupt.h>
 #include <uc/usart.h>
 #include <uc/system.h>
+#include <uc/interrupt.h>
 #include <boards/arduinoUNO.h>
 #include <systick.h>
 #include <peripherals/infrared.h>
@@ -66,15 +67,14 @@ void ir_fail_callback(uint8_t error, uint32_t data);
 
 int main( void ) {
     
-    uint32_t ir_buffer[40];
+    uint32_t ir_buffer[71];
     
     system_init();
     systick_init();
     usart_init(bitrate_9600);
     ir_nec_init(ir_success_callback, ir_fail_callback);
-    //ir_receiver_init(ir_nec_decode);
-    ir_raw_init(ir_buffer, 40, ir_raw_success_callback);
-    ir_receiver_init(ir_raw_decode);
+    ir_raw_init(ir_buffer, 71, ir_raw_success_callback);
+    ir_receiver_init(ir_raw_decode, CINTVECT(IR_PIN));
     
     usart_print("====================================================\n");
     usart_print("=  aavrlib infrared peripheral test                =\n");
@@ -86,7 +86,11 @@ int main( void ) {
     
     PIN_CONF_OUT(LED_PIN);
     PIN_CONF_IN(IR_PIN);
+    
     PIN_WRITE_HIGH(LED_PIN);
+    PIN_ENABLE_CINTERRUPT(IR_PIN);
+    
+    ENABLE_CINTERRUPTS();
     
     while(1) {
         delay_ms(500);
@@ -102,6 +106,12 @@ void ir_fail_callback(uint8_t error, uint32_t data) {
     switch (error) {
         case IR_NEC_INVALID_PULSE_ERROR:
             usart_print("Bad pulse.");
+            break;
+        case IR_NEC_INVALID_SPACE_ERROR:
+            usart_print("Bad space.");
+            break;
+        case IR_NEC_INVALID_TAIL_ERROR:
+            usart_print("Bad tail.");
             break;
         case IR_NEC_REDUNDANCY_ERROR:
             usart_print("Redundancy check error.");

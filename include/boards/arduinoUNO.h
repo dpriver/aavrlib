@@ -39,17 +39,10 @@
 /*====================================================================
  *   Usable macros for I/O operations
  *====================================================================*/
- 
-// Single PIN access
-#define _PIN_CONF_IN(pin)       IOPIN_CONF_IN(PORT(pin), _ ## pin) 
-#define _PIN_CONF_OUT(pin)      IOPIN_CONF_OUT(PORT(pin), _ ## pin)
-#define _PIN_WRITE_HIGH(pin)    IOPIN_WRITE_HIGH(PORT(pin), _ ## pin)
-#define _PIN_WRITE_LOW(pin)     IOPIN_WRITE_LOW(PORT(pin), _ ## pin)
-#define _PIN_WRITE(pin, value)  IOPIN_WRITE(PORT(pin), _ ## pin, value)
-#define _PIN_READ(pin)          IOPIN_READ(PORT(pin), _ ## pin)
-#define _PIN_SWITCH(pin)        IOPIN_SWITCH(PORT(pin), _ ## pin)
-#define _PIN_PULLUP_ON(pin)     IOPIN_PULLUP_ON(PORT(pin), _ ## pin)
-#define _PIN_PULLUP_OFF(pin)    IOPIN_PULLUP_OFF(PORT(pin), _ ## pin)
+
+// External interrupts
+#define PIN_ENABLE_CINTERRUPT(pin)      _PIN_ENABLE_CINTERRUPT(pin)
+#define PIN_DISABLE_CINTERRUPT(pin)      _PIN_DISABLE_CINTERRUPT(pin)
 
 
 // Single PIN access
@@ -75,11 +68,14 @@
 #define PORT_PULLUP_OFF(port, mask)    IOPORT_PULLUP_OFF(port, mask)
 
 // Get the port corresponding to pin
-#define _PORT(pin)      pin ## _PORT
-#define _REAL_PIN(pin)  _ ## pin
-
 #define PORT(pin)       _PORT(pin)
 #define REAL_PIN(pin)   _REAL_PIN(pin)
+
+// Get the change interupt port corresponding to pin
+#define CINTPORT(pin)   _CINTPORT(pin)
+
+// Get the change interupt vector corresponding to pin
+#define CINTVECT(pin)   _CINTVECT(pin)
 
 /*====================================================================
  *   Usable pins
@@ -144,6 +140,21 @@
  /*
  * Definitions for use by the single pin access macros
  */
+
+#define _PIN_ENABLE_CINTERRUPT(pin)     CINT_ENABLE(CINTPORT(pin), _CINT ## pin)
+#define _PIN_DISABLE_CINTERRUPT(pin)    CINT_DISABLE(CINTPORT(pin), _CINT ## pin)
+    
+// Single PIN access
+#define _PIN_CONF_IN(pin)       IOPIN_CONF_IN(PORT(pin), _ ## pin) 
+#define _PIN_CONF_OUT(pin)      IOPIN_CONF_OUT(PORT(pin), _ ## pin)
+#define _PIN_WRITE_HIGH(pin)    IOPIN_WRITE_HIGH(PORT(pin), _ ## pin)
+#define _PIN_WRITE_LOW(pin)     IOPIN_WRITE_LOW(PORT(pin), _ ## pin)
+#define _PIN_WRITE(pin, value)  IOPIN_WRITE(PORT(pin), _ ## pin, value)
+#define _PIN_READ(pin)          IOPIN_READ(PORT(pin), _ ## pin)
+#define _PIN_SWITCH(pin)        IOPIN_SWITCH(PORT(pin), _ ## pin)
+#define _PIN_PULLUP_ON(pin)     IOPIN_PULLUP_ON(PORT(pin), _ ## pin)
+#define _PIN_PULLUP_OFF(pin)    IOPIN_PULLUP_OFF(PORT(pin), _ ## pin)
+ 
 // Analog pins
 #define _PIN_A0	PORTC0
 #define _PIN_A1	PORTC1
@@ -168,10 +179,49 @@
 #define _PIN_12	PORTB4
 #define _PIN_13	PORTB5
 
+
+// Change interrupt pins
+#define _CINTPIN_A0	PCINT8
+#define _CINTPIN_A1	PCINT9
+#define _CINTPIN_A2	PCINT10
+#define _CINTPIN_A3	PCINT11
+#define _CINTPIN_A4	PCINT12
+#define _CINTPIN_A5	PCINT13
+#define _CINTPIN_0	PCINT16
+#define _CINTPIN_1	PCINT17
+#define _CINTPIN_2	PCINT18
+#define _CINTPIN_3	PCINT19
+#define _CINTPIN_4	PCINT20
+#define _CINTPIN_5	PCINT21
+#define _CINTPIN_6	PCINT22
+#define _CINTPIN_7	PCINT23
+#define _CINTPIN_8  PCINT0
+#define _CINTPIN_9	PCINT1
+#define _CINTPIN_10	PCINT2
+#define _CINTPIN_11	PCINT3
+#define _CINTPIN_12	PCINT4
+#define _CINTPIN_13	PCINT5
+
+
+
 /*
  * Definitions for use by the PORT(pin) macro
  */
- // Analog pins
+#define _PORT(pin)      pin ## _PORT
+#define _REAL_PIN(pin)  _ ## pin
+
+
+/*
+ * Definitions for use by the CINTPORT(pin) macro
+ */
+#define _CINTPORT(pin)  CINT ## pin ## _PORT
+
+/*
+ * Definitions for use by the CINTVECT(pin) macro
+ */
+#define _CINTVECT(pin)  CINT ## pin ## _VECT
+ 
+ // Analog pins ports
 #define PIN_A0_PORT     (IOPORT_C)
 #define PIN_A1_PORT     (IOPORT_C)
 #define PIN_A2_PORT     (IOPORT_C)
@@ -179,7 +229,7 @@
 #define PIN_A4_PORT     (IOPORT_C)
 #define PIN_A5_PORT     (IOPORT_C)
 
-// Digital pins
+// Digital pins ports
 #define PIN_0_PORT      (IOPORT_D)
 #define PIN_1_PORT      (IOPORT_D)
 #define PIN_2_PORT      (IOPORT_D)
@@ -194,5 +244,49 @@
 #define PIN_11_PORT     (IOPORT_B)
 #define PIN_12_PORT     (IOPORT_B)
 #define PIN_13_PORT     (IOPORT_B)
+
+// Pin change interupt ports
+#define CINTPIN_A0_PORT	    (CINTPORT_1)
+#define CINTPIN_A1_PORT	    (CINTPORT_1)
+#define CINTPIN_A2_PORT	    (CINTPORT_1)
+#define CINTPIN_A3_PORT	    (CINTPORT_1)
+#define CINTPIN_A4_PORT	    (CINTPORT_1)
+#define CINTPIN_A5_PORT	    (CINTPORT_1)
+#define CINTPIN_0_PORT	    (CINTPORT_2)
+#define CINTPIN_1_PORT	    (CINTPORT_2)
+#define CINTPIN_2_PORT	    (CINTPORT_2)
+#define CINTPIN_3_PORT	    (CINTPORT_2)
+#define CINTPIN_4_PORT	    (CINTPORT_2)
+#define CINTPIN_5_PORT	    (CINTPORT_2)
+#define CINTPIN_6_PORT	    (CINTPORT_2)
+#define CINTPIN_7_PORT	    (CINTPORT_2)
+#define CINTPIN_8_PORT      (CINTPORT_0)
+#define CINTPIN_9_PORT	    (CINTPORT_0)
+#define CINTPIN_10_PORT	    (CINTPORT_0)
+#define CINTPIN_11_PORT	    (CINTPORT_0)
+#define CINTPIN_12_PORT	    (CINTPORT_0)
+#define CINTPIN_13_PORT	    (CINTPORT_0)
+
+// Pin change interupt vectors
+#define CINTPIN_A0_VECT	    (PCINT1_int)
+#define CINTPIN_A1_VECT	    (PCINT1_int)
+#define CINTPIN_A2_VECT	    (PCINT1_int)
+#define CINTPIN_A3_VECT	    (PCINT1_int)
+#define CINTPIN_A4_VECT	    (PCINT1_int)
+#define CINTPIN_A5_VECT	    (PCINT1_int)
+#define CINTPIN_0_VECT	    (PCINT2_int)
+#define CINTPIN_1_VECT	    (PCINT2_int)
+#define CINTPIN_2_VECT	    (PCINT2_int)
+#define CINTPIN_3_VECT	    (PCINT2_int)
+#define CINTPIN_4_VECT	    (PCINT2_int)
+#define CINTPIN_5_VECT	    (PCINT2_int)
+#define CINTPIN_6_VECT	    (PCINT2_int)
+#define CINTPIN_7_VECT	    (PCINT2_int)
+#define CINTPIN_8_VECT      (PCINT0_int)
+#define CINTPIN_9_VECT	    (PCINT0_int)
+#define CINTPIN_10_VECT     (PCINT0_int)
+#define CINTPIN_11_VECT     (PCINT0_int)
+#define CINTPIN_12_VECT     (PCINT0_int)
+#define CINTPIN_13_VECT	    (PCINT0_int)
 
 #endif /* __ARDUINO_UNO_H */

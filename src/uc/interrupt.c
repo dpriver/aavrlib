@@ -298,6 +298,15 @@ void interrupt_init() {
     for (i = 0; i < N_INTERRUPTS; i++) {
         isr[i] = default_ISR;
     }
+    
+    PCMSK0 = 0; // Pin Change interrupt masks
+    PCMSK1 = 0;
+    PCMSK2 = 0;
+    EIMSK = 0;  // External interrupt mask
+    EIFR = 0;   // External interrupt flags
+    PCICR = 0;  // Pin change interrupt control
+    PCIFR = 0;  // Pin change flags
+    
 }
 
 void interrupt_attach(interrupt_t interrupt, isr_function new_isr) {
